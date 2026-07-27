@@ -103,6 +103,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath18") {
+    params.set("v", "lessonpath19");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1567,7 +1572,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=32"></script>
+<script src="course-data.js?v=33"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1596,7 +1601,7 @@ const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
-const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v1";
+const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v2";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1764,6 +1769,8 @@ const kurmanjiLetterSounds = {
     Y:"ye",
     Z:"ze"
 };
+
+const GREETINGS_BALL3_REPLACEMENT_STEPS = greetingsBall3ReplacementSteps();
 
 const gameParts = [
     {
@@ -2941,145 +2948,7 @@ const gameParts = [
                     ["Go!", "Here"]
                 ]
             },
-            { type:"choice", instruction:"", prompt:"a / an", spoken:"a, an", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            { type:"choice", instruction:"", prompt:"Cats", spoken:"Cats", options:["kitik ek", "kitik"], answer:"kitik" },
-            { type:"choice", instruction:"", prompt:"a cat", spoken:"a cat", options:["kitik", "pișîk", "kitik ek"], answer:"kitik ek" },
-            { type:"choice", instruction:"", prompt:"a cat", spoken:"a cat", options:["kitik", "pișîk ek", "pișîk"], answer:"pișîk ek" },
-            { type:"choice", instruction:"", prompt:"dogs", spoken:"dogs", options:["se", "se yek"], answer:"se" },
-            { type:"choice", instruction:"", prompt:"a dog", spoken:"a dog", options:["se", "se yek"], answer:"se yek" },
-            { type:"choice", instruction:"", prompt:"a / an", spoken:"a, an", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            {
-                type:"match",
-                instruction:"Animal nouns with ek",
-                prompt:"",
-                pairs:[
-                    { english:"a cat 🐈", kurmanji:"kitik ek", group:"cat-ek" },
-                    { english:"a rabbit 🐇", kurmanji:"Kêrûşk ek", group:"rabbit-ek" },
-                    { english:"a turtle 🐢", kurmanji:"kûsel ek", group:"turtle-ek" },
-                    { english:"an owl 🦉", kurmanji:"bim ek", group:"owl-ek" },
-                    { english:"an eagle 🦅", kurmanji:"baz ek", group:"eagle-ek" },
-                    { english:"an elephant 🐘", kurmanji:"fîl ek", group:"elephant-ek" }
-                ],
-                leftHeading:"English",
-                rightHeading:"Kurmanji",
-                leftSide:"first",
-                rightSide:"second",
-                leftSpeakMap:{
-                    "a cat 🐈":"a cat",
-                    "a rabbit 🐇":"a rabbit",
-                    "a turtle 🐢":"a turtle",
-                    "an owl 🦉":"an owl",
-                    "an eagle 🦅":"an eagle",
-                    "an elephant 🐘":"an elephant"
-                }
-            },
-            {
-                type:"match",
-                instruction:"Animal nouns with yek",
-                prompt:"When a noun ends with a vowel (a, e, ê, i, Î, o, u, û) + yek.",
-                promptHtml:'<span class="prompt-subnote"><strong>Note:</strong> When a noun ends with a vowel<br>(a, e, ê, i, Î, o, u, û) + yek.</span>',
-                pairs:[
-                    { english:"a dog 🐶", kurmanji:"sey ek", group:"dog-yek" },
-                    { english:"a squirrel 🐿️", kurmanji:"smore ek (⚠️)", group:"squirrel-ek" },
-                    { english:"a duck 🦆", kurmanji:"mirawî yek", group:"duck-yek" },
-                    { english:"a fish 🐟", kurmanji:"masî yek", group:"fish-yek" },
-                    { english:"a fox 🦊", kurmanji:"rîvî yek", group:"fox-yek" },
-                    { english:"an ant 🐜", kurmanji:"mêrû yek", group:"ant-yek" }
-                ],
-                leftHeading:"English",
-                rightHeading:"Kurmanji",
-                leftSide:"first",
-                rightSide:"second",
-                leftSpeakMap:{
-                    "a dog 🐶":"a dog",
-                    "a squirrel 🐿️":"a squirrel",
-                    "a duck 🦆":"a duck",
-                    "a fish 🐟":"a fish",
-                    "a fox 🦊":"a fox",
-                    "an ant 🐜":"an ant"
-                }
-            },
-            { type:"choice", instruction:"", prompt:"🐇 Kêrûşk ek", options:["a turtle", "an owl", "a rabbit"], answer:"a rabbit" },
-            { type:"choice", instruction:"", prompt:"🐇 kêvrûşk ek", options:["a turtle", "an owl", "a rabbit"], answer:"a rabbit" },
-            { type:"choice", instruction:"", prompt:"🐢 kûsel ek / kûsik ek", options:["an ant", "a fox", "a turtle"], answer:"a turtle" },
-            { type:"choice", instruction:"", prompt:"🦉 bim ek / kûnd ek", options:["a fox", "a woodpecker", "an owl"], answer:"an owl" },
-            { type:"choice", instruction:"", prompt:"🐧 danîkuke yek / darçik ek", options:["a fox", "an ant", "a woodpecker"], answer:"a woodpecker" },
-            { type:"choice", instruction:"", prompt:"🦊 rîvî yek / rovî yek", options:["a woodpecker", "an ant", "a fox"], answer:"a fox" },
-            { type:"choice", instruction:"", prompt:"🐜 mêrû yek / mêrî yek", options:["a woodpecker", "an ant", "a fox"], answer:"an ant" },
-            {
-                type:"match",
-                instruction:"To Have",
-                prompt:"",
-                pairs:[
-                    { english:"to have", kurmanji:"hebûn", group:"to-have" },
-                    { english:"have / has", kurmanji:"hebe / hey / heye / hene", group:"have-has" },
-                    { english:"had", kurmanji:"hebû / hebûn (heî)", group:"had" },
-                    { english:"had", kurmanji:"hebûy (hebi)", group:"had" }
-                ],
-                leftHeading:"English",
-                rightHeading:"Kurmanji",
-                leftSide:"first",
-                rightSide:"second",
-                leftSpeakMap:{
-                    "to have":"to have",
-                    "have / has":"have, has",
-                    "had":"had"
-                }
-            },
-            {
-                type:"type",
-                instruction:"To Have • Type in Kurmanji",
-                prompt:"had",
-                spoken:"had",
-                answer:"hebû / hebûn (heî)",
-                acceptedAnswers:["hebû / hebûn (heî)", "hebûy (hebi)"]
-            },
-            { type:"choice", instruction:"", prompt:"of mine", spoken:"of mine", options:["____a te", "____a wî", "____a min"], answer:"____a min" },
-            toHaveMatchStep(),
-            hadTypingStep(),
-            { type:"choice", instruction:"", prompt:"a", spoken:"a", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            { type:"choice", instruction:"", prompt:"a cat", spoken:"a cat", options:["kitik", "pișîk", "kitik ek"], answer:"kitik ek" },
-            { type:"choice", instruction:"", prompt:"of mine", spoken:"of mine", options:["____a te", "____a wî", "____a min"], answer:"____a min" },
-            movingRichChoiceStep("", "a cat of mine\n____a min", '<span class="static-blue-word">a cat</span> of mine<br><span class="prompt-blank">____</span>a min', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-            movingRichChoiceStep("", "a cat of mine\nkitik ek __ ____", 'a cat <span class="static-blue-word">of mine</span><br>kitik ek <span class="prompt-blank">__ ____</span>', ["a te", "a wî", "a min"], "a min"),
-            { type:"choice", instruction:"", prompt:"have", spoken:"have", options:["hebûn", "hebû / hebûn (heî)", "hebe / hey / heye / hene"], answer:"hebe / hey / heye / hene" },
-            movingRichChoiceStep("", "I have a cat.\nMin ______ a hey.", 'I have <span class="static-blue-word">a cat</span>.<br>Min <span class="prompt-blank">______</span> a hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-            { type:"choice", instruction:"", prompt:"of mine", spoken:"of mine", options:["____e te", "____e wî", "____a min"], answer:"____a min" },
-            movingRichChoiceStep("", "I have a cat.\nmin ______ ê hey.", 'I have <span class="static-blue-word">a cat</span>.<br>min <span class="prompt-blank">______</span> ê hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-            { type:"choice", instruction:"", prompt:"of mine", spoken:"of mine", options:["____a/e te", "____a/e wî", "____a/ê min"], answer:"____a/ê min" },
-            movingRichChoiceStep("", "You have a cat.\nTe ______ a hey.", 'You have <span class="static-blue-word">a cat</span>.<br>Te <span class="prompt-blank">______</span> a hey.', ["pișîk", "pișîk ek", "kitik"], "pișîk ek"),
-            movingRichChoiceStep("", "You have an owl.\nTe ______ ê hey.", 'You have <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">______</span> ê hey.', ["kûd", "kûd ek", "bim"], "kûd ek"),
-            movingRichChoiceStep("", "You have an owl.\nTe ______ ê hey.", 'You have <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">______</span> ê hey.', ["kûd", "bim ek", "bim"], "bim ek"),
-            { type:"choice", instruction:"", prompt:"of mine", spoken:"of mine", options:["___ a te", "___ a wî", "___ a min"], answer:"___ a min" },
-            { type:"choice", instruction:"", prompt:"of yours", spoken:"of yours", options:["___ a te", "___ a wî", "___ a min"], answer:"___ a te" },
-            { type:"choice", instruction:"", prompt:"have", spoken:"have", options:["hebûn", "hebû / hebûn (heî)", "hebe / hey / heye / hene"], answer:"hebe / hey / heye / hene" },
-            richChoiceStep("", "A cat of mine", '<span class="static-blue-word">A cat</span> of mine', ["kitik", "kitik ek"], "kitik ek"),
-            movingRichChoiceStep("", "A cat of mine\n___ a min", '<span class="static-blue-word">A cat</span> of mine<br><span class="prompt-blank">___</span> a min', ["kitik", "kitik ek"], "kitik ek"),
-            toHaveMatchStep(),
-            hadTypingStep(),
-            { type:"choice", instruction:"", prompt:"have", spoken:"have", options:["hebûn", "hebû / hebûn (heî)", "hebe / hey / heye / hene"], answer:"hebe / hey / heye / hene" },
-            { type:"choice", instruction:"", prompt:"dogs", spoken:"dogs", options:["se", "se yek"], answer:"se" },
-            { type:"choice", instruction:"", prompt:"a dog", spoken:"a dog", options:["se", "se yek"], answer:"se yek" },
-            { type:"choice", instruction:"", prompt:"to have", spoken:"to have", options:["hebe / hey / heye / hene", "hebû / hebûn (heî)", "hebûn"], answer:"hebûn" },
-            { type:"choice", instruction:"", prompt:"a / an", spoken:"a, an", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            { type:"choice", instruction:"", prompt:"have", spoken:"have", options:["hebûn", "hebû / hebûn (heî)", "hebe / hey / heye / hene"], answer:"hebe / hey / heye / hene" },
-            { type:"choice", instruction:"", prompt:"has", spoken:"has", options:["hebûn", "hebû / hebûn (heî)", "hebe / hey / heye / hene"], answer:"hebe / hey / heye / hene" },
-            { type:"choice", instruction:"", prompt:"home", spoken:"home", options:["mal", "mal ek"], answer:"mal" },
-            { type:"choice", instruction:"", prompt:"a home", spoken:"a home", options:["mal", "mal ek"], answer:"mal ek" },
-            movingRichChoiceStep("", "🦉 Bim ek (kûnd ek)\n____ owl", '🦉 Bim <span class="static-blue-word">ek</span> (kûnd ek)<br><span class="prompt-blank">____</span> owl', ["A", "An"], "An"),
-            movingRichChoiceStep("", "🦅 Baz ek\n____ eagle", '🦅 Baz <span class="static-blue-word">ek</span><br><span class="prompt-blank">____</span> eagle', ["A", "An"], "An"),
-            movingRichChoiceStep("", "🐜 mêrû yek (mêrî yek)\n____ ant", '🐜 mêrû <span class="static-blue-word">yek</span> (mêrî yek)<br><span class="prompt-blank">____</span> ant', ["A", "An"], "An"),
-            movingRichChoiceStep("", "🐜 mêrû___", '🐜 mêrû<span class="prompt-blank">___</span>', ["ek", "yek"], "yek"),
-            { type:"choice", instruction:"", prompt:"a", spoken:"a", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            { type:"choice", instruction:"", prompt:"a rabbit", spoken:"a rabbit", options:["kêvrûşk ek", "kêvrûşk"], answer:"kêvrûşk ek" },
-            movingRichChoiceStep("", "I have a rabbit.\nmin _____ a hey.", 'I have <span class="static-blue-word">a rabbit</span>.<br>min <span class="prompt-blank">_____</span> a hey.', ["kêvrûşk ek", "kêvrûşk"], "kêvrûşk ek"),
-            { type:"choice", instruction:"", prompt:"an", spoken:"an", options:["ek / yek", "2", "3"], answer:"ek / yek" },
-            movingRichChoiceStep("", "🦉 Bim ek (kûnd ek)\n____ owl", '🦉 Bim <span class="static-blue-word">ek</span> (kûnd ek)<br><span class="prompt-blank">____</span> owl', ["A", "An"], "An"),
-            movingRichChoiceStep("", "🦉 Bim__", '🦉 Bim<span class="prompt-blank">__</span>', ["ek", "yek"], "ek"),
-            movingRichChoiceStep("", "🦉 kûnd __", '🦉 kûnd <span class="prompt-blank">__</span>', ["ek", "yek"], "ek"),
-            movingRichChoiceStep("", "___ owl 🦉", '<span class="prompt-blank">___</span> owl 🦉', ["A", "An"], "An"),
-            movingRichChoiceStep("", "I have an owl.\nMin _____ ê hey.", 'I have <span class="static-blue-word">an owl</span>.<br>Min <span class="prompt-blank">_____</span> ê hey.', ["bim ek", "Kûnd", "bim"], "bim ek"),
-            movingRichChoiceStep("", "You have an owl.\nTe _____ ê hey.", 'You have <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">_____</span> ê hey.', ["bim ek", "Kûnd", "bim"], "bim ek"),
+            ...GREETINGS_BALL3_REPLACEMENT_STEPS,
         ]
     },
     {
@@ -3577,14 +3446,6 @@ const gameParts = [
         ]
     }
 ];
-
-const GREETINGS_BALL3_REPLACEMENT_START = 301;
-const GREETINGS_BALL3_REPLACEMENT_STEPS = greetingsBall3ReplacementSteps();
-gameParts[0].steps.splice(
-    GREETINGS_BALL3_REPLACEMENT_START,
-    64,
-    ...GREETINGS_BALL3_REPLACEMENT_STEPS
-);
 
 const partDescriptions = [
     "Alphabet, family, and first sentences",
