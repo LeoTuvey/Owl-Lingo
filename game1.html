@@ -113,6 +113,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath20") {
+    params.set("v", "lessonpath21");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1577,7 +1582,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=34"></script>
+<script src="course-data.js?v=35"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1606,7 +1611,7 @@ const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
-const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v3";
+const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v4";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1688,7 +1693,7 @@ function resetFamilyBall3Progress(){
 }
 
 function resetGreetingsBall3ReplacementProgress(){
-    const sectionIds = ["a-part-2-greetings-v3", "a-part-2-greetings-v4"];
+    const sectionIds = ["a-part-2-greetings-v3", "a-part-2-greetings-v4", "a-part-2-greetings-v5"];
 
     sectionIds.forEach((sectionId) => {
         const lessonPrefix = sectionId + "-";
@@ -3492,7 +3497,7 @@ const coursePartRoutes = {
         slug:"greetings",
         title:"👋 Greet People",
         gamePartIndex:0,
-        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v4"],
+        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5"],
         enginePartId:"part-3"
     },
     "food-drink":{
@@ -3867,16 +3872,16 @@ const partSections = {
             ]
         },
         {
-            id:"a-part-2-greetings-v4",
+            id:"a-part-2-greetings-v5",
             ballNumber:3,
             label:"Ball 3",
-            detail:"Verbs, animal nouns, have got, possessives, and articles",
+            detail:"Verb reference note",
             start:301,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length,
-            lessons:Array.from({ length:GREETINGS_BALL3_REPLACEMENT_STEPS.length }, (_, index) => ({
-                id:`a-part-2-greetings-v4-activity-${index + 1}`,
-                label:`Activity ${index + 1}`,
-                detail:`Ball 3 activity ${index + 1}`,
+            lessons:["To have", "To come", "To go"].map((name, index) => ({
+                id:`a-part-2-greetings-v5-activity-${index + 1}`,
+                label:name,
+                detail:"💡 Verb note",
                 start:301 + index,
                 end:301 + index
             }))
@@ -4197,20 +4202,10 @@ function hadTypingStep(){
 }
 
 function greetingsBall3ReplacementSteps(){
-    const voiceChoice = (prompt, options, answer, spoken = prompt) => ({
-        type:"choice",
-        instruction:"",
-        prompt,
-        spoken,
-        options,
-        answer
-    });
-
-    const referenceMatch = (instruction, pairs, prompt = "", promptHtml = "") => ({
+    const referenceMatch = (instruction, pairs, prompt = "") => ({
         type:"match",
         instruction,
         prompt,
-        promptHtml,
         pairs,
         leftHeading:"English",
         rightHeading:"Kurmanji",
@@ -4218,59 +4213,6 @@ function greetingsBall3ReplacementSteps(){
         rightSide:"second",
         leftSpeakMap:Object.fromEntries(pairs.map((pair) => [pair.english, pair.english]))
     });
-
-    const haveGotReference = (includeShe = false) => referenceMatch(
-        "Have got",
-        [
-            { english:"have", kurmanji:"ya", group:"have" },
-            { english:"got", kurmanji:"hey", group:"got" },
-            { english:"have got", kurmanji:"ya hey", group:"have-got" },
-            { english:"I - me", kurmanji:"Ez - min", group:"i-me" },
-            { english:"You - you", kurmanji:"Tu - te", group:"you-you" },
-            { english:"He - him", kurmanji:"Ew - wî", group:"he-him" },
-            ...(includeShe ? [{ english:"She - her", kurmanji:"Ew - wê", group:"she-her" }] : []),
-            { english:"a - an", kurmanji:"ek - yek", group:"article" }
-        ]
-    );
-
-    const hasGotReference = () => referenceMatch(
-        "Has got",
-        [
-            { english:"has", kurmanji:"ya", group:"has" },
-            { english:"got", kurmanji:"hey", group:"got" },
-            { english:"has got", kurmanji:"ya hey", group:"has-got" },
-            { english:"I - me", kurmanji:"Ez - min", group:"i-me" },
-            { english:"You - you", kurmanji:"Tu - te", group:"you-you" },
-            { english:"He - him", kurmanji:"Ew - wî", group:"he-him" },
-            { english:"She - her", kurmanji:"Ew - wê", group:"she-her" }
-        ]
-    );
-
-    const animalEkMatch = referenceMatch(
-        "Animal nouns with ek",
-        [
-            { english:"a cat 🐈", kurmanji:"kitik ek", group:"cat-ek" },
-            { english:"a rabbit 🐇", kurmanji:"Kêrûşk ek", group:"rabbit-ek" },
-            { english:"a turtle 🐢", kurmanji:"kûsel ek", group:"turtle-ek" },
-            { english:"an owl 🦉", kurmanji:"bim ek", group:"owl-ek" },
-            { english:"an eagle 🦅", kurmanji:"baz ek", group:"eagle-ek" },
-            { english:"an elephant 🐘", kurmanji:"fîl ek", group:"elephant-ek" }
-        ]
-    );
-
-    const animalYekMatch = referenceMatch(
-        "Animal nouns with yek",
-        [
-            { english:"a dog 🐶", kurmanji:"sey ek", group:"dog-ek" },
-            { english:"a squirrel 🐿️", kurmanji:"smore ek (⚠️)", group:"squirrel-ek" },
-            { english:"a duck 🦆", kurmanji:"mirawî yek", group:"duck-yek" },
-            { english:"a fish 🐟", kurmanji:"masî yek", group:"fish-yek" },
-            { english:"a fox 🦊", kurmanji:"rîvî yek", group:"fox-yek" },
-            { english:"an ant 🐜", kurmanji:"mêrû yek", group:"ant-yek" }
-        ],
-        "When a noun ends with a vowel (a, e, ê, i, Î, o, u, û) + yek.",
-        '<span class="prompt-subnote"><strong>Note:</strong> When a noun ends with a vowel<br>(a, e, ê, i, Î, o, u, û) + yek.</span>'
-    );
 
     return [
         referenceMatch("💡 Note • To have", [
@@ -4284,94 +4226,13 @@ function greetingsBall3ReplacementSteps(){
             { english:"come", kurmanji:"were! / dihê", group:"come" },
             { english:"came", kurmanji:"hat / (hatî)", group:"came" },
             { english:"come", kurmanji:"hati", group:"come-participle" }
-        ], "dihê (dih) is usually pronounced as t: Ez dihê-im = Ez têim = Ez têm"),
+        ], "dihê: (dih), is usually pronounced as (t): Ez dihê-im = Ez têim = Ez têm"),
         referenceMatch("💡 Note • To go", [
             { english:"To go", kurmanji:"Çûn", group:"to-go" },
             { english:"go", kurmanji:"diçe", group:"go" },
             { english:"went", kurmanji:"çû / (çûy)", group:"went" },
             { english:"gone", kurmanji:"çûy / çû", group:"gone" }
-        ]),
-
-        voiceChoice("a / an", ["ek / yek", "2", "3"], "ek / yek", "a, an"),
-        voiceChoice("Cats", ["kitik ek", "kitik"], "kitik"),
-        voiceChoice("a cat", ["kitik", "pișîk", "kitik ek"], "kitik ek"),
-        voiceChoice("a cat", ["kitik", "pișîk ek", "pișîk"], "pișîk ek"),
-        voiceChoice("dogs", ["se", "se yek"], "se"),
-        voiceChoice("a dog", ["se", "se yek"], "se yek"),
-        voiceChoice("a / an", ["ek / yek", "2", "3"], "ek / yek", "a, an"),
-        animalEkMatch,
-        animalYekMatch,
-        choiceStep("", "🐇 Kêrûşk ek", ["a turtle", "an owl", "a rabbit"], "a rabbit"),
-        choiceStep("", "🐇 kêvrûşk ek", ["a turtle", "an owl", "a rabbit"], "a rabbit"),
-        choiceStep("", "🐢 kûsel ek / kûsik ek", ["an ant", "a fox", "a turtle"], "a turtle"),
-        choiceStep("", "🦉 bim ek / kûnd ek", ["a fox", "a woodpecker", "an owl"], "an owl"),
-        choiceStep("", "🐧 danîkuke yek / darçik ek", ["a fox", "an ant", "a woodpecker"], "a woodpecker"),
-        choiceStep("", "🦊 rîvî yek / rovî yek", ["a woodpecker", "an ant", "a fox"], "a fox"),
-        choiceStep("", "🐜 mêrû yek / mêrî yek", ["a woodpecker", "an ant", "a fox"], "an ant"),
-
-        haveGotReference(false),
-        rawBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
-        rawBuildStep("", "I have got a-cat.", ["hey", "kitik-ek", "ya", "Min"], ["Min", "kitik-ek", "ya", "hey"]),
-        rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
-        rawBuildStep("", "I ____ ___ a cat.", ["got", "have"], ["have", "got"]),
-        rawBuildStep("", "You have got a cat.", ["hey", "kitik-ek", "ya", "Te"], ["Te", "kitik-ek", "ya", "hey"]),
-        hasGotReference(),
-        rawBuildStep("", "Wî kitik-ek ya hey.\nHe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
-        voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
-        hasGotReference(),
-        rawBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
-        choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
-        choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
-
-        voiceChoice("a", ["ek / yek", "2", "3"], "ek / yek"),
-        voiceChoice("a cat", ["kitik", "pișîk", "kitik ek"], "kitik ek"),
-        voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
-        movingRichChoiceStep("", "a cat of mine\n____a min", '<span class="static-blue-word">a cat</span> of mine<br><span class="prompt-blank">____</span>a min', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-        movingRichChoiceStep("", "a cat of mine\nkitik ek __ ____", 'a cat <span class="static-blue-word">of mine</span><br>kitik ek <span class="prompt-blank">__ ____</span>', ["a te", "a wî", "a min"], "a min"),
-        voiceChoice("have got", ["hebûn", "hebû", "ya hey"], "ya hey"),
-        movingRichChoiceStep("", "I have got a cat.\nMin ______ ya hey.", 'I have got <span class="static-blue-word">a cat</span>.<br>Min <span class="prompt-blank">______</span> ya hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-        voiceChoice("of mine", ["____e te", "____e wî", "____a min"], "____a min"),
-        movingRichChoiceStep("", "I have got a cat.\nmin ______ yê hey.", 'I have got <span class="static-blue-word">a cat</span>.<br>min <span class="prompt-blank">______</span> yê hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
-        voiceChoice("of mine", ["____a/e te", "____a/e wî", "____a/ê min"], "____a/ê min"),
-        movingRichChoiceStep("", "You have got a cat.\nTe ______ ya hey.", 'You have got <span class="static-blue-word">a cat</span>.<br>Te <span class="prompt-blank">______</span> ya hey.', ["kitik", "pișîk ek", "pișîk"], "pișîk ek"),
-        movingRichChoiceStep("", "You have got an owl.\nTe ______ yê hey", 'You have got <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">______</span> yê hey', ["kûd", "kûd ek", "bim"], "kûd ek"),
-        movingRichChoiceStep("", "You have got an owl.\nTe ______ yê hey.", 'You have got <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">______</span> yê hey.', ["kûd", "bim ek", "bim"], "bim ek"),
-        voiceChoice("of mine", ["___ a te", "___ a wî", "___ a min"], "___ a min"),
-        voiceChoice("of yours", ["___ a te", "___ a wî", "___ a min"], "___ a te"),
-        voiceChoice("have got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
-        richChoiceStep("", "A cat of mine", '<span class="static-blue-word">A cat</span> of mine', ["kitik", "kitik ek"], "kitik ek"),
-        movingRichChoiceStep("", "A cat of mine\n___ a min", '<span class="static-blue-word">A cat</span> of mine<br><span class="prompt-blank">___</span> a min', ["kitik", "kitik ek"], "kitik ek"),
-
-        hasGotReference(),
-        rawBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
-        choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
-        choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
-        voiceChoice("have got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
-        voiceChoice("has got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
-        voiceChoice("dogs", ["se", "se yek"], "se"),
-        voiceChoice("a dog", ["se", "se yek"], "se yek"),
-        voiceChoice("has got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
-        choiceStep("", "yêt hey", ["had", "to have", "have got"], "have got"),
-        voiceChoice("a / an", ["ek / yek", "2", "3"], "ek / yek", "a, an"),
-        choiceStep("", "yê hey", ["had", "to have", "have got"], "have got"),
-        choiceStep("", "yêt hey", ["had", "to have", "has got"], "has got"),
-        voiceChoice("home", ["mal", "mal ek"], "mal"),
-        voiceChoice("a home", ["mal", "mal ek"], "mal ek"),
-        movingRichChoiceStep("", "🦉 Bim ek (kûnd ek)\n____ owl", '🦉 Bim <span class="static-blue-word">ek</span> (kûnd ek)<br><span class="prompt-blank">____</span> owl', ["A", "An"], "An"),
-        movingRichChoiceStep("", "🦅 Baz ek\n____ eagle", '🦅 Baz <span class="static-blue-word">ek</span><br><span class="prompt-blank">____</span> eagle', ["A", "An"], "An"),
-        movingRichChoiceStep("", "🐜 mêrû yek (mêrî yek)\n____ ant", '🐜 mêrû <span class="static-blue-word">yek</span> (mêrî yek)<br><span class="prompt-blank">____</span> ant', ["A", "An"], "An"),
-        movingRichChoiceStep("", "🐜 mêrû___", '🐜 mêrû<span class="prompt-blank">___</span>', ["ek", "yek"], "yek"),
-        voiceChoice("a", ["ek / yek", "2", "3"], "ek / yek"),
-        voiceChoice("a rabbit", ["kêvrûşk ek", "kêvrûşk"], "kêvrûşk ek"),
-        movingRichChoiceStep("", "I have got a rabbit.\nmin _____ ya hey.", 'I have got <span class="static-blue-word">a rabbit</span>.<br>min <span class="prompt-blank">_____</span> ya hey.', ["kêvrûşk ek", "kêvrûşk"], "kêvrûşk ek"),
-        voiceChoice("an", ["ek / yek", "2", "3"], "ek / yek"),
-        movingRichChoiceStep("", "🦉 Bim ek (kûnd ek)\n____ owl", '🦉 Bim <span class="static-blue-word">ek</span> (kûnd ek)<br><span class="prompt-blank">____</span> owl', ["A", "An"], "An"),
-        movingRichChoiceStep("", "🦉 Bim__", '🦉 Bim<span class="prompt-blank">__</span>', ["ek", "yek"], "ek"),
-        movingRichChoiceStep("", "🦉 kûnd __", '🦉 kûnd <span class="prompt-blank">__</span>', ["ek", "yek"], "ek"),
-        movingRichChoiceStep("", "___ owl 🦉", '<span class="prompt-blank">___</span> owl 🦉', ["A", "An"], "An"),
-        choiceStep("", "ya hey", ["had", "to have", "has got"], "has got"),
-        movingRichChoiceStep("", "She has got an owl.\nMin _____ yê hey.", 'She has got <span class="static-blue-word">an owl</span>.<br>Min <span class="prompt-blank">_____</span> yê hey.', ["bim ek", "Kûnd", "bim"], "bim ek"),
-        movingRichChoiceStep("", "You have got an owl.\nTe _____ yê hey.", 'You have got <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">_____</span> yê hey.', ["bim ek", "Kûnd", "bim"], "bim ek")
+        ])
     ];
 }
 
@@ -6721,7 +6582,7 @@ function completeStep(){
         }
 
         if(usesDirectBallFlow(partIndex)) {
-            if(["a-part-2-greetings-v2", "a-part-2-greetings-v4"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
+            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
                 const nextLessonIndex = completedLessonIndex + 1;
                 if(nextLessonIndex < lessonsForSection(partIndex, sectionIndex).length) {
                     startLesson(partIndex, sectionIndex, nextLessonIndex);
