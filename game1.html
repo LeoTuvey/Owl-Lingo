@@ -98,6 +98,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath17") {
+    params.set("v", "lessonpath18");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1562,7 +1567,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=31"></script>
+<script src="course-data.js?v=32"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1589,6 +1594,7 @@ let currentBuildOptions = [];
 const urlParams = new URLSearchParams(window.location.search);
 const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
+let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v1";
 
@@ -5869,7 +5875,8 @@ function showSectionSelect(index, message){
         return;
     }
 
-    if(usesDirectBallFlow(index) && initialBallId) {
+    if(usesDirectBallFlow(index) && initialBallId && !initialBallLaunchAttempted) {
+        initialBallLaunchAttempted = true;
         startSectionById(index, initialBallId);
         return;
     }
