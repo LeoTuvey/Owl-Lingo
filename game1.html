@@ -158,6 +158,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath29") {
+    params.set("v", "lessonpath30");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1622,7 +1627,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=43"></script>
+<script src="course-data.js?v=44"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4393,8 +4398,8 @@ function greetingsBall3ReplacementSteps(){
         voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
         hasGotReference(),
         movingBlankBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
-        choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
-        choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
+        movingRichChoiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", 'Wê kitik-ek <span class="static-blue-word">ya hey</span>.<br>She <span class="prompt-blank">___</span> a cat.', ["has", "have"], "has"),
+        movingRichChoiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", 'Wî kitik-ek <span class="static-blue-word">ya hey</span>.<br>He <span class="prompt-blank">___</span> a cat.', ["has", "have"], "has"),
 
         voiceChoice("a", ["ek / yek", "2", "3"], "ek / yek"),
         voiceChoice("a cat", ["kitik", "pișîk", "kitik ek"], "kitik ek"),
@@ -4417,8 +4422,8 @@ function greetingsBall3ReplacementSteps(){
 
         hasGotReference(),
         movingBlankBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
-        choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
-        choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
+        movingRichChoiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", 'Wê kitik-ek <span class="static-blue-word">ya hey</span>.<br>She <span class="prompt-blank">___</span> a cat.', ["has", "have"], "has"),
+        movingRichChoiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", 'Wî kitik-ek <span class="static-blue-word">ya hey</span>.<br>He <span class="prompt-blank">___</span> a cat.', ["has", "have"], "has"),
         voiceChoice("have got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
         voiceChoice("has got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
         voiceChoice("dogs", ["se", "se yek"], "se"),
