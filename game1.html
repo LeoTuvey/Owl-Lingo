@@ -123,6 +123,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath22") {
+    params.set("v", "lessonpath23");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1587,7 +1592,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=36"></script>
+<script src="course-data.js?v=37"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1616,7 +1621,7 @@ const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
-const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v5";
+const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v6";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -3883,7 +3888,7 @@ const partSections = {
             detail:"Verb reference note",
             start:301,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length,
-            lessons:["To come", "To go"].map((name, index) => ({
+            lessons:["Verb note"].map((name, index) => ({
                 id:`a-part-2-greetings-v5-activity-${index + 1}`,
                 label:name,
                 detail:"💡 Verb note",
@@ -4207,32 +4212,38 @@ function hadTypingStep(){
 }
 
 function greetingsBall3ReplacementSteps(){
-    const referenceMatch = (instruction, pairs, prompt = "") => ({
-        type:"match",
-        instruction,
-        prompt,
-        pairs,
-        leftHeading:"English",
-        rightHeading:"Kurmanji",
-        leftSide:"first",
-        rightSide:"second",
-        leftSpeakMap:Object.fromEntries(pairs.map((pair) => [pair.english, pair.english]))
-    });
-
-    return [
-        referenceMatch("💡 Note • To come", [
-            { english:"To come", kurmanji:"Hatin", group:"to-come" },
-            { english:"come", kurmanji:"were! / dihê", group:"come" },
-            { english:"came", kurmanji:"hat / (hatî)", group:"came" },
-            { english:"come", kurmanji:"hati", group:"come-participle" }
-        ], "dihê: (dih), is usually pronounced as (t): Ez dihê-im = Ez têim = Ez têm"),
-        referenceMatch("💡 Note • To go", [
-            { english:"To go", kurmanji:"Çûn", group:"to-go" },
-            { english:"go", kurmanji:"diçe", group:"go" },
-            { english:"went", kurmanji:"çû / (çûy)", group:"went" },
-            { english:"gone", kurmanji:"çûy / çû", group:"gone" }
-        ])
-    ];
+    return [{
+        type:"choice",
+        instruction:"",
+        prompt:"💡 Note:\n\nVerbs\tPresent\tPast\tPast Participle\nTo have\tHave / has\thad\thad\nHebûn\thebe\thebû / (hey)\thebûy / hebi (hey / heye / hene)\n\nTo come\tcome\tcame\tcome\nHatin\twere! / dihê\that / (hatî)\thati\n\nTo go\tgo\twent\tgone\nÇûn\tdiçe\tçû / (çûy)\tçûy / çû\n\n🗣 Pronunciation Note\nWord\tExplanation\ndihê\tdihê (pronounced dih) is usually pronounced as t in everyday speech.\nExample\tEz dihê-im = Ez têim = Ez têm",
+        promptHtml:`
+            <div style="font-size:0.58em;line-height:1.35;text-align:left;width:min(100%,900px);margin:0 auto;overflow-x:auto">
+                <strong>💡 Note:</strong>
+                <table style="width:100%;margin-top:16px;border-collapse:collapse;text-align:left">
+                    <thead><tr><th style="padding:8px"><strong>Verbs</strong></th><th style="padding:8px"><strong>Present</strong></th><th style="padding:8px"><strong>Past</strong></th><th style="padding:8px"><strong>Past Participle</strong></th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px"><strong>To have</strong></td><td style="padding:8px">Have / has</td><td style="padding:8px">had</td><td style="padding:8px">had</td></tr>
+                        <tr><td style="padding:8px"><strong>Hebûn</strong></td><td style="padding:8px">hebe</td><td style="padding:8px">hebû / (hey)</td><td style="padding:8px">hebûy / hebi (hey / heye / hene)</td></tr>
+                        <tr><td colspan="4" style="height:22px"></td></tr>
+                        <tr><td style="padding:8px"><strong>To come</strong></td><td style="padding:8px">come</td><td style="padding:8px">came</td><td style="padding:8px">come</td></tr>
+                        <tr><td style="padding:8px"><strong>Hatin</strong></td><td style="padding:8px">were! / dihê</td><td style="padding:8px">hat / (hatî)</td><td style="padding:8px">hati</td></tr>
+                        <tr><td colspan="4" style="height:22px"></td></tr>
+                        <tr><td style="padding:8px"><strong>To go</strong></td><td style="padding:8px">go</td><td style="padding:8px">went</td><td style="padding:8px">gone</td></tr>
+                        <tr><td style="padding:8px"><strong>Çûn</strong></td><td style="padding:8px">diçe</td><td style="padding:8px">çû / (çûy)</td><td style="padding:8px">çûy / çû</td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:20px"><strong>🗣 Pronunciation Note</strong></div>
+                <table style="width:100%;margin-top:8px;border-collapse:collapse;text-align:left">
+                    <thead><tr><th style="padding:8px"><strong>Word</strong></th><th style="padding:8px"><strong>Explanation</strong></th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px"><strong>dihê</strong></td><td style="padding:8px"><strong>dihê</strong> (pronounced <strong>dih</strong>) is usually pronounced as <strong>t</strong> in everyday speech.</td></tr>
+                        <tr><td style="padding:8px"><strong>Example</strong></td><td style="padding:8px"><strong>Ez dihê-im = Ez têim = Ez têm</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>`,
+        options:["Continue"],
+        answer:"Continue"
+    }];
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
