@@ -128,6 +128,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath23") {
+    params.set("v", "lessonpath24");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1592,7 +1597,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=37"></script>
+<script src="course-data.js?v=38"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4217,29 +4222,35 @@ function greetingsBall3ReplacementSteps(){
         instruction:"",
         prompt:"💡 Note:\n\nVerbs\tPresent\tPast\tPast Participle\nTo have\tHave / has\thad\thad\nHebûn\thebe\thebû / (hey)\thebûy / hebi (hey / heye / hene)\n\nTo come\tcome\tcame\tcome\nHatin\twere! / dihê\that / (hatî)\thati\n\nTo go\tgo\twent\tgone\nÇûn\tdiçe\tçû / (çûy)\tçûy / çû\n\n🗣 Pronunciation Note\nWord\tExplanation\ndihê\tdihê (pronounced dih) is usually pronounced as t in everyday speech.\nExample\tEz dihê-im = Ez têim = Ez têm",
         promptHtml:`
-            <div style="font-size:0.58em;line-height:1.35;text-align:left;width:min(100%,900px);margin:0 auto;overflow-x:auto">
-                <strong>💡 Note:</strong>
-                <table style="width:100%;margin-top:16px;border-collapse:collapse;text-align:left">
-                    <thead><tr><th style="padding:8px"><strong>Verbs</strong></th><th style="padding:8px"><strong>Present</strong></th><th style="padding:8px"><strong>Past</strong></th><th style="padding:8px"><strong>Past Participle</strong></th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px"><strong>To have</strong></td><td style="padding:8px">Have / has</td><td style="padding:8px">had</td><td style="padding:8px">had</td></tr>
-                        <tr><td style="padding:8px"><strong>Hebûn</strong></td><td style="padding:8px">hebe</td><td style="padding:8px">hebû / (hey)</td><td style="padding:8px">hebûy / hebi (hey / heye / hene)</td></tr>
-                        <tr><td colspan="4" style="height:22px"></td></tr>
-                        <tr><td style="padding:8px"><strong>To come</strong></td><td style="padding:8px">come</td><td style="padding:8px">came</td><td style="padding:8px">come</td></tr>
-                        <tr><td style="padding:8px"><strong>Hatin</strong></td><td style="padding:8px">were! / dihê</td><td style="padding:8px">hat / (hatî)</td><td style="padding:8px">hati</td></tr>
-                        <tr><td colspan="4" style="height:22px"></td></tr>
-                        <tr><td style="padding:8px"><strong>To go</strong></td><td style="padding:8px">go</td><td style="padding:8px">went</td><td style="padding:8px">gone</td></tr>
-                        <tr><td style="padding:8px"><strong>Çûn</strong></td><td style="padding:8px">diçe</td><td style="padding:8px">çû / (çûy)</td><td style="padding:8px">çûy / çû</td></tr>
-                    </tbody>
-                </table>
-                <div style="margin-top:20px"><strong>🗣 Pronunciation Note</strong></div>
-                <table style="width:100%;margin-top:8px;border-collapse:collapse;text-align:left">
-                    <thead><tr><th style="padding:8px"><strong>Word</strong></th><th style="padding:8px"><strong>Explanation</strong></th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px"><strong>dihê</strong></td><td style="padding:8px"><strong>dihê</strong> (pronounced <strong>dih</strong>) is usually pronounced as <strong>t</strong> in everyday speech.</td></tr>
-                        <tr><td style="padding:8px"><strong>Example</strong></td><td style="padding:8px"><strong>Ez dihê-im = Ez têim = Ez têm</strong></td></tr>
-                    </tbody>
-                </table>
+            <div style="font-size:0.56em;font-weight:500;line-height:1.45;text-align:left;width:min(100%,920px);margin:0 auto;color:#18324a">
+                <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin-bottom:14px;border-radius:999px;background:#fff4bd;color:#755400;box-shadow:0 4px 12px rgba(117,84,0,.12)"><strong>💡 Note:</strong></div>
+                <div style="overflow-x:auto;border:1px solid #cfe4f7;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(33,94,145,.13)">
+                    <table style="width:100%;min-width:680px;border-collapse:separate;border-spacing:0;text-align:left">
+                        <thead style="background:linear-gradient(135deg,#288fd5,#1769aa);color:#fff">
+                            <tr><th style="padding:13px 14px"><strong>Verbs</strong></th><th style="padding:13px 14px"><strong>Present</strong></th><th style="padding:13px 14px"><strong>Past</strong></th><th style="padding:13px 14px"><strong>Past Participle</strong></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;border-bottom:1px solid #e2edf6"><strong>To have</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">Have / has</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">had</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">had</td></tr>
+                            <tr style="background:#eaf6ff"><td style="padding:12px 14px;border-bottom:3px solid #fff"><strong>Hebûn</strong></td><td style="padding:12px 14px;border-bottom:3px solid #fff">hebe</td><td style="padding:12px 14px;border-bottom:3px solid #fff">hebû / (hey)</td><td style="padding:12px 14px;border-bottom:3px solid #fff">hebûy / hebi (hey / heye / hene)</td></tr>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;border-bottom:1px solid #e2edf6"><strong>To come</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">come</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">came</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">come</td></tr>
+                            <tr style="background:#eaf6ff"><td style="padding:12px 14px;border-bottom:3px solid #fff"><strong>Hatin</strong></td><td style="padding:12px 14px;border-bottom:3px solid #fff">were! / dihê</td><td style="padding:12px 14px;border-bottom:3px solid #fff">hat / (hatî)</td><td style="padding:12px 14px;border-bottom:3px solid #fff">hati</td></tr>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;border-bottom:1px solid #e2edf6"><strong>To go</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">go</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">went</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">gone</td></tr>
+                            <tr style="background:#eaf6ff"><td style="padding:12px 14px"><strong>Çûn</strong></td><td style="padding:12px 14px">diçe</td><td style="padding:12px 14px">çû / (çûy)</td><td style="padding:12px 14px">çûy / çû</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top:18px;overflow:hidden;border:1px solid #ccebdd;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(36,125,86,.12)">
+                    <div style="padding:12px 14px;background:linear-gradient(135deg,#35a978,#1f8059);color:#fff"><strong>🗣 Pronunciation Note</strong></div>
+                    <div style="overflow-x:auto">
+                        <table style="width:100%;min-width:560px;border-collapse:collapse;text-align:left">
+                            <thead style="background:#edf9f3"><tr><th style="padding:11px 14px"><strong>Word</strong></th><th style="padding:11px 14px"><strong>Explanation</strong></th></tr></thead>
+                            <tbody>
+                                <tr><td style="padding:12px 14px;border-top:1px solid #dcefe6"><strong>dihê</strong></td><td style="padding:12px 14px;border-top:1px solid #dcefe6"><strong>dihê</strong> (pronounced <strong>dih</strong>) is usually pronounced as <strong>t</strong> in everyday speech.</td></tr>
+                                <tr style="background:#f4fbf7"><td style="padding:12px 14px;border-top:1px solid #dcefe6"><strong>Example</strong></td><td style="padding:12px 14px;border-top:1px solid #dcefe6"><strong>Ez dihê-im = Ez têim = Ez têm</strong></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>`,
         options:["Continue"],
         answer:"Continue"
