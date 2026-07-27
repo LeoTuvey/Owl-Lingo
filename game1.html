@@ -118,6 +118,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath21") {
+    params.set("v", "lessonpath22");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1582,7 +1587,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=35"></script>
+<script src="course-data.js?v=36"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1611,7 +1616,7 @@ const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
-const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v4";
+const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v5";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -3878,7 +3883,7 @@ const partSections = {
             detail:"Verb reference note",
             start:301,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length,
-            lessons:["To have", "To come", "To go"].map((name, index) => ({
+            lessons:["To come", "To go"].map((name, index) => ({
                 id:`a-part-2-greetings-v5-activity-${index + 1}`,
                 label:name,
                 detail:"💡 Verb note",
@@ -4215,12 +4220,6 @@ function greetingsBall3ReplacementSteps(){
     });
 
     return [
-        referenceMatch("💡 Note • To have", [
-            { english:"To have", kurmanji:"Hebûn", group:"to-have" },
-            { english:"Have / has", kurmanji:"hebe (hey / heye / hene)", group:"have-has" },
-            { english:"had", kurmanji:"hebû / (hey)", group:"had" },
-            { english:"had", kurmanji:"hebûy / hebi", group:"had" }
-        ]),
         referenceMatch("💡 Note • To come", [
             { english:"To come", kurmanji:"Hatin", group:"to-come" },
             { english:"come", kurmanji:"were! / dihê", group:"come" },
