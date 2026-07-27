@@ -168,6 +168,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath31") {
+    params.set("v", "lessonpath32");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1485,15 +1490,15 @@ button.wrong{
         margin-top:6px;
     }
     body.compact-match-step{
-        padding:7px;
+        padding:8px;
     }
     body.compact-match-step .card{
-        padding:10px 7px 12px;
+        padding:12px 9px 14px;
     }
     body.compact-match-step #question{
-        margin:3px auto 6px;
-        font-size:18px;
-        line-height:1.08;
+        margin:4px auto 7px;
+        font-size:20px;
+        line-height:1.1;
     }
     body.compact-match-step #instruction{
         min-height:14px;
@@ -1502,24 +1507,24 @@ button.wrong{
     }
     body.compact-match-step .match-grid{
         width:100%;
-        gap:6px;
-        margin:5px auto;
+        gap:7px;
+        margin:6px auto;
     }
     body.compact-match-step .match-column{
-        gap:5px;
+        gap:6px;
     }
     body.compact-match-step .match-heading{
-        margin-bottom:1px;
-        font-size:10px;
+        margin-bottom:2px;
+        font-size:11px;
     }
     body.compact-match-step .match-grid button{
         width:100%;
-        min-height:38px;
-        padding:7px 4px;
+        min-height:44px;
+        padding:8px 6px;
         margin:0;
-        border-radius:10px;
-        font-size:12px;
-        line-height:1.12;
+        border-radius:11px;
+        font-size:clamp(13px, 3.8vw, 15px);
+        line-height:1.16;
     }
     body.compact-match-step #feedback{
         min-height:22px;
@@ -1674,7 +1679,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=45"></script>
+<script src="course-data.js?v=46"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
