@@ -153,6 +153,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath28") {
+    params.set("v", "lessonpath29");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1617,7 +1622,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=42"></script>
+<script src="course-data.js?v=43"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4616,6 +4621,7 @@ function movingBlankBuildStep(instruction, prompt, options, answer){
     const step = rawBuildStep(instruction, prompt, options, answer);
     step.promptHtml = escapeHtml(cleanPlaceholderLines(prompt))
         .replace(/\n/g, "<br>")
+        .replace(/ya hey/g, '<span class="static-blue-word">ya hey</span>')
         .replace(/_{2,}/g, (blank) => `<span class="prompt-blank" data-build-answer-target>${blank}</span>`);
     step.moveCorrectWordsToBlanks = true;
     return step;
