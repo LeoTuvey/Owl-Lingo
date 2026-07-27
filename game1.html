@@ -138,6 +138,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath25") {
+    params.set("v", "lessonpath26");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -1602,7 +1607,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=39"></script>
+<script src="course-data.js?v=40"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1631,7 +1636,7 @@ const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
-const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v7";
+const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v8";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4354,16 +4359,16 @@ function greetingsBall3ReplacementSteps(){
         choiceStep("", "🐜 mêrû yek / mêrî yek", ["a woodpecker", "an ant", "a fox"], "an ant"),
 
         haveGotReference(false),
-        rawBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
+        movingBlankBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
         rawBuildStep("", "I have got a-cat.", ["hey", "kitik-ek", "ya", "Min"], ["Min", "kitik-ek", "ya", "hey"]),
         rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
-        rawBuildStep("", "I ____ ___ a cat.", ["got", "have"], ["have", "got"]),
+        movingBlankBuildStep("", "I ____ ___ a cat.", ["got", "have"], ["have", "got"]),
         rawBuildStep("", "You have got a cat.", ["hey", "kitik-ek", "ya", "Te"], ["Te", "kitik-ek", "ya", "hey"]),
         hasGotReference(),
-        rawBuildStep("", "Wî kitik-ek ya hey.\nHe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
+        movingBlankBuildStep("", "Wî kitik-ek ya hey.\nHe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
         voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
         hasGotReference(),
-        rawBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
+        movingBlankBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
         choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
         choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
 
@@ -4387,7 +4392,7 @@ function greetingsBall3ReplacementSteps(){
         movingRichChoiceStep("", "A cat of mine\n___ a min", '<span class="static-blue-word">A cat</span> of mine<br><span class="prompt-blank">___</span> a min', ["kitik", "kitik ek"], "kitik ek"),
 
         hasGotReference(),
-        rawBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
+        movingBlankBuildStep("", "Wê kitik-ek ya hey.\nShe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
         choiceStep("", "Wê kitik-ek ya hey.\nShe ___ a cat.", ["has", "have"], "has"),
         choiceStep("", "Wî kitik-ek ya hey.\nHe ___ a cat.", ["has", "have"], "has"),
         voiceChoice("have got", ["hebûn", "hebû", "yêt hey"], "yêt hey"),
@@ -4586,6 +4591,15 @@ function rawBuildStep(instruction, prompt, options, answer){
         options:options,
         answer:answer
     };
+}
+
+function movingBlankBuildStep(instruction, prompt, options, answer){
+    const step = rawBuildStep(instruction, prompt, options, answer);
+    step.promptHtml = escapeHtml(cleanPlaceholderLines(prompt))
+        .replace(/\n/g, "<br>")
+        .replace(/_{2,}/g, (blank) => `<span class="prompt-blank" data-build-answer-target>${blank}</span>`);
+    step.moveCorrectWordsToBlanks = true;
+    return step;
 }
 
 function rawBuildStepMulti(instruction, prompt, options, answers){
@@ -6513,7 +6527,7 @@ function renderSelectedWords(){
     }
 
     bank.innerHTML = selectedWords.map((word, index) => `
-        <button onclick="removeWord(${index})">${escapeHtml(word.text)}</button>
+        <button data-selected-word-index="${index}" onclick="removeWord(${index})">${escapeHtml(word.text)}</button>
     `).join("");
 }
 
@@ -6541,12 +6555,62 @@ function checkBuild(button){
 
     if(isCorrect){
         showButtonResult(button, "correct");
+        if(moveCorrectBuildWordsIntoBlanks(step)) return;
         markCorrect();
         return;
     }
 
     showButtonResult(button, "wrong");
     markWrong();
+}
+
+function moveCorrectBuildWordsIntoBlanks(step){
+    if(!step?.moveCorrectWordsToBlanks) return false;
+
+    const targets = [...document.querySelectorAll("[data-build-answer-target]")];
+    if(!targets.length || targets.length !== selectedWords.length) return false;
+
+    document.querySelectorAll("#activity button").forEach((entry) => {
+        entry.disabled = true;
+    });
+
+    const animations = targets.map((target, index) => {
+        const source = document.querySelector(`[data-selected-word-index="${index}"]`);
+        const value = selectedWords[index]?.text || "";
+        if(!source) {
+            target.textContent = value;
+            return Promise.resolve();
+        }
+
+        const start = source.getBoundingClientRect();
+        const finish = target.getBoundingClientRect();
+        const token = document.createElement("span");
+        token.className = "choice-fly-token";
+        token.textContent = value;
+        token.style.left = start.left + "px";
+        token.style.top = start.top + "px";
+        document.body.appendChild(token);
+
+        const animation = token.animate([
+            { transform:"translate(0, 0) scale(1)", opacity:1 },
+            {
+                transform:`translate(${finish.left - start.left}px, ${finish.top - start.top}px) scale(0.82)`,
+                opacity:1
+            }
+        ], {
+            duration:520 + (index * 90),
+            easing:"cubic-bezier(.2,.8,.2,1)",
+            fill:"forwards"
+        });
+
+        return animation.finished.finally(() => {
+            target.textContent = value;
+            token.remove();
+        });
+    });
+
+    Promise.allSettled(animations).then(() => markCorrect());
+    return true;
 }
 
 function checkTyped(button){
