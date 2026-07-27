@@ -178,6 +178,11 @@ if (window.location.protocol === "file:") {
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
+  if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
+    params.set("v", "lessonpath34");
+    const nextUrl = "game1.html?" + params.toString() + window.location.hash;
+    window.location.replace(nextUrl);
+  }
   if (!params.get("coursePart")) {
     const target = "engine.html" + window.location.search + window.location.hash;
     window.location.replace(target);
@@ -591,12 +596,16 @@ button{
     font-weight:800;
     box-shadow:0 4px 0 #d6e3ef;
     transition:transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
 }
 
-button:hover{
-    background:#f7fbff;
-    border-color:#1cb0f6;
-    transform:translateY(-1px);
+@media (hover:hover) and (pointer:fine){
+    button:hover{
+        background:#f7fbff;
+        border-color:#1cb0f6;
+        transform:translateY(-1px);
+    }
 }
 
 button:active{
@@ -1685,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=47"></script>
+<script src="course-data.js?v=48"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -6107,6 +6116,10 @@ function showPartLabel(text){
 }
 
 function load(){
+    if(document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+
     const part = gameParts[partIndex];
     let step = currentStep();
     if(!step) {
