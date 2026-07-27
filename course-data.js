@@ -109,7 +109,7 @@ const SECTION_ONE_PARTS = [
     number: 3,
     title: "👋 Greet People",
     summary: "Greetings, introductions, and polite phrases.",
-    href: "game1.html?coursePart=greetings&v=lessonpath24",
+    href: "game1.html?coursePart=greetings&v=lessonpath25",
     icon: "👋",
     accent: "sky",
     lessons: lessonList(
@@ -133,12 +133,13 @@ const SECTION_ONE_PARTS = [
       "Kurmanji typing practice",
       "Greeting word review",
       "Listen and choose",
-      "Verb note"
+      "Verb note",
+      ...Array.from({ length:77 }, (_, index) => `Ball 3 activity ${index + 1}`)
     ),
     balls: [
       ball("a-part-2-greetings-v1", 1, "Ball 1", "Subject pronouns, times of day, greetings, and basic conversation", 9),
       ball("a-part-2-greetings-v2", 2, "Ball 2", "Greeting conversations, grammar endings, typing, and listening", 11),
-      ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb reference note", 1)
+      ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb note, animals, have got, possessives, and articles", 78)
     ]
   },
   {
