@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath75");
+    params.set("v", "lessonpath76");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=89"></script>
+<script src="course-data.js?v=90"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4817,7 +4817,6 @@ function greetingsBall4Steps(){
         voiceChoice("of yours", ["___ ê te", "___ a wî", "___ a min"], "___ ê te"),
         rawBuildStep("Put the Words in Order !", "Bav ê min", ["father", "My"], ["My", "father"]),
         rawBuildStep("", "Bav ê min kitik ek yê hey.\nMy father ____ ____ a cat.", ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]),
-        movingChoice("Your father\nBav ê te", 'Your father<br><span class="prompt-blank">Bav ê te</span>', ["Bav ê te"], "Bav ê te"),
         rawBuildStep("", "Bav ê we(hingo)", ["father", "Your"], ["Your", "father"]),
         rawBuildStep("", "Bab ê te se-yek yê hey.\nYour father ____ ____ a-dog.", ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]),
         voiceChoice("aunt", ["mam", "father", "xalet"], "xalet"),
