@@ -109,7 +109,7 @@ const SECTION_ONE_PARTS = [
     number: 3,
     title: "👋 Greet People",
     summary: "Greetings, introductions, and polite phrases.",
-    href: "game1.html?coursePart=greetings&v=lessonpath43",
+    href: "game1.html?coursePart=greetings&v=lessonpath44",
     icon: "👋",
     accent: "sky",
     lessons: lessonList(
