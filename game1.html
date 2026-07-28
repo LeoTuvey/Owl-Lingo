@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath41");
+    params.set("v", "lessonpath42");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=55"></script>
+<script src="course-data.js?v=56"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4795,13 +4795,26 @@ function greetingsBall4Steps(){
         movingChoice("My uncles → Xal __ min", 'My uncles → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "ên"], "ên")
     ];
 
+    const blueAnimalWords = new Map([
+        ["Kitik-ek e min heye.\nI have got _____.", "Kitik-ek"],
+        ["Kitik ek e te heye.\nYou have got _____.", "Kitik ek"],
+        ["Bim-ek e wî heye.\nHe has got _____.", "Bim-ek"]
+    ]);
+
     steps.forEach((step) => {
         const prompt = step.prompt || "";
+        const blueAnimalWord = blueAnimalWords.get(prompt);
         const highlightEnglishVerb = /\b(?:have|has)\b/i.test(prompt);
         const highlightEHey = /\be\b[^\n]*\bheye\b/i.test(prompt);
-        if(!highlightEnglishVerb && !highlightEHey) return;
+        if(!blueAnimalWord && !highlightEnglishVerb && !highlightEHey) return;
         if(!step.promptHtml) {
             step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
+        }
+        if(blueAnimalWord) {
+            step.promptHtml = step.promptHtml.replace(
+                blueAnimalWord,
+                `<span class="static-blue-word" style="text-decoration:none">${blueAnimalWord}</span>`
+            );
         }
         if(highlightEnglishVerb) {
             step.promptHtml = step.promptHtml.replace(
