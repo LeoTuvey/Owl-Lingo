@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath36");
+    params.set("v", "lessonpath37");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=50"></script>
+<script src="course-data.js?v=51"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4693,6 +4693,16 @@ function greetingsBall4Steps(){
     ]);
     const movingChoice = (prompt, promptHtml, options, answer) =>
         movingRichChoiceStep("", prompt, promptHtml, options, answer);
+    const haveCatBuild = movingBlankBuildStep(
+        "",
+        "I have a cat.\nKitik-ek __ min ____.",
+        ["heye", "e"],
+        ["e", "heye"]
+    );
+    haveCatBuild.promptHtml = haveCatBuild.promptHtml.replace(
+        "I have a cat.",
+        'I <span class="static-blue-word">have</span> a cat.'
+    );
 
     return [
         singularA,
@@ -4702,7 +4712,7 @@ function greetingsBall4Steps(){
         pluralHene,
         movingChoice("Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
         rawBuildStep("", "Kitik-ek e min heye.\nI ______ a-cat.", ["got", "have"], ["have", "got"]),
-        movingBlankBuildStep("", "I have a cat.\nKitik-ek __ min ____.", ["heye", "e"], ["e", "heye"]),
+        haveCatBuild,
         movingChoice("Kitik ek e te heye.\nYou have got _____.", 'Kitik ek e te heye.<br>You have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
         rawBuildStep("", "Kitik-ek e te heye.\nYou ______ a-cat.", ["got", "have"], ["have", "got"]),
         movingChoice("Kitik-ek e wî heye.\nHe has got _____.", 'Kitik-ek e wî heye.<br>He has got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
