@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath49");
+    params.set("v", "lessonpath50");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=63"></script>
+<script src="course-data.js?v=64"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4652,7 +4652,7 @@ function greetingsBall4Steps(){
         { english:"His", kurmanji:"a wî", group:"his-a" },
         { english:"Her", kurmanji:"a wê", group:"her-a" },
         { english:"Our", kurmanji:"a me", group:"our-a" },
-        { english:"Your", kurmanji:"a we (hingo)", group:"your-plural-a" },
+        { english:"Your", kurmanji:"a we (hingo)", group:"your-a" },
         { english:"Their", kurmanji:"a wan", group:"their-a" }
     ]);
     const possessiveE = () => referenceMatch("Singular Possessive Forms", [
