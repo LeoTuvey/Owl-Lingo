@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath39");
+    params.set("v", "lessonpath40");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=53"></script>
+<script src="course-data.js?v=54"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1724,7 +1724,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v1";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v2";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1857,6 +1857,22 @@ if(localStorage.getItem(GREETINGS_BALL3_REPLACEMENT_VERSION) !== "done"){
 }
 
 if(localStorage.getItem(GREETINGS_BALL4_VERSION) !== "done"){
+    const sectionId = "a-part-2-greetings-v6";
+    const lessonPrefix = sectionId + "-";
+    delete completedLessons[sectionId];
+    Object.keys(completedSections || {}).forEach((key) => {
+        if(!Array.isArray(completedSections[key])) return;
+        completedSections[key] = completedSections[key].filter((value) => value !== sectionId);
+    });
+    Object.keys(completedLessonStepMap || {}).forEach((key) => {
+        if(key.startsWith(lessonPrefix)) delete completedLessonStepMap[key];
+    });
+    Object.keys(lessonStatuses || {}).forEach((key) => {
+        if(key.startsWith(lessonPrefix)) delete lessonStatuses[key];
+    });
+    Object.keys(gradebook || {}).forEach((key) => {
+        if(key.startsWith(lessonPrefix) || key === sectionId) delete gradebook[key];
+    });
     const courseProgress = Engine.getCourseProgress();
     const greetingsState = courseProgress?.sections?.["section-1"];
     const greetingsPart = greetingsState?.parts?.["part-3"];
@@ -1867,6 +1883,11 @@ if(localStorage.getItem(GREETINGS_BALL4_VERSION) !== "done"){
     }
     if(greetingsState) greetingsState.completed = false;
     Engine.saveCourseProgress(courseProgress);
+    saveCompletedSections();
+    saveCompletedLessons();
+    saveCompletedLessonStepMap();
+    saveLessonStatuses();
+    saveGradebook();
     localStorage.setItem(GREETINGS_BALL4_VERSION, "done");
 }
 
@@ -4706,15 +4727,16 @@ function greetingsBall4Steps(){
         pluralEt,
         singularHeye,
         pluralHene,
-        movingChoice("Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        movingChoice("Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat", "an cat"], "a cat"),
         rawBuildStep("", "Kitik-ek e min heye.\nI ______ a-cat.", ["got", "have"], ["have", "got"]),
         haveCatBuild,
-        movingChoice("Kitik ek e te heye.\nYou have got _____.", 'Kitik ek e te heye.<br>You have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        movingRichChoiceStep("Type the Missing Words", "Kitik ek e te heye.\nYou have got _____.", 'Kitik ek e te heye.<br>You have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
         rawBuildStep("", "Kitik-ek e te heye.\nYou ______ a-cat.", ["got", "have"], ["have", "got"]),
-        movingChoice("Kitik-ek e wî heye.\nHe has got _____.", 'Kitik-ek e wî heye.<br>He has got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        rawBuildStep("Type the Missing Words", "Bim-ek e wî heye.\nHe has got _____.", ["o", "l", "w", "n", "a"], ["a", "n", "o", "w", "l"]),
         rawBuildStep("", "Kitik-ek e wî heye.\nHe ______ a-cat.", ["got", "has"], ["has", "got"]),
         voiceChoice("of mine", ["___ a te", "___ a wî", "___ a min"], "___ a min"),
         voiceChoice("A cat", ["kitik ek"], "kitik ek"),
+        rawBuildStep("", "Kûnd-ek e min\n___ ____ of mine", ["owl", "An"], ["An", "owl"]),
         rawBuildStep("", "Kitik-ek a min\n___ ____ of mine", ["cat", "A"], ["A", "cat"]),
         voiceChoice("An aunt", ["mam", "mam ek", "met ek"], "met ek"),
         voiceChoice("An aunt", ["xalet", "xal", "xalet ek"], "xalet ek"),
