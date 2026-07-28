@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath62");
+    params.set("v", "lessonpath63");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=76"></script>
+<script src="course-data.js?v=77"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4839,6 +4839,7 @@ function greetingsBall4Steps(){
         "My sister has got three cats.\nXwişk a min sê pișîk __ ___.",
         "My father has got three dogs.\nBab ê min sê se __ ____."
     ]);
+    const blueFatherYeHeyPrompt = "Bav ê min kitik ek yê hey.\nMy father ____ ____ a cat.";
     const splitHasGotPrompts = new Set([
         "My sister has got three cats.\nSê pișîk __ xwişk a min ____.",
         "My father has got three dogs.\nSê se __ bab ê min ____."
@@ -4858,6 +4859,7 @@ function greetingsBall4Steps(){
         const blueYouHaveGotPhrase = blueYouHaveGotPrompts.get(prompt);
         const blueFamilySubject = blueFamilySubjectPrompts.get(prompt);
         const highlightHasGotPhrase = blueHasGotPrompts.has(prompt);
+        const highlightFatherYeHey = prompt === blueFatherYeHeyPrompt;
         const blueAuntPhrase = blueAuntPhraseByPrompt.get(prompt);
         const highlightEnglishVerb =
             !blueAnimalWord &&
@@ -4867,7 +4869,7 @@ function greetingsBall4Steps(){
             !splitHasGotPrompts.has(prompt) &&
             prompt.trim().toLowerCase() !== "has got" &&
             /\b(?:have|has)\b/i.test(prompt);
-        if(!blueAnimalWord && !highlightEHeyBlank && !highlightDuKititBlank && !blueYouHaveGotPhrase && !blueFamilySubject && !highlightHasGotPhrase && !blueAuntPhrase && !highlightEnglishVerb) return;
+        if(!blueAnimalWord && !highlightEHeyBlank && !highlightDuKititBlank && !blueYouHaveGotPhrase && !blueFamilySubject && !highlightHasGotPhrase && !highlightFatherYeHey && !blueAuntPhrase && !highlightEnglishVerb) return;
         if(!step.promptHtml) {
             step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
         }
@@ -4927,6 +4929,12 @@ function greetingsBall4Steps(){
             step.promptHtml = step.promptHtml.replace(
                 "has got",
                 '<span class="static-blue-word" style="text-decoration:none">has got</span>'
+            );
+        }
+        if(highlightFatherYeHey) {
+            step.promptHtml = step.promptHtml.replace(
+                "yê hey",
+                '<span class="static-blue-word" style="text-decoration:none">yê hey</span>'
             );
         }
         if(blueAuntPhrase) {
