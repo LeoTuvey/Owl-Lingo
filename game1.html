@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath68");
+    params.set("v", "lessonpath69");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=82"></script>
+<script src="course-data.js?v=83"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4828,7 +4828,8 @@ function greetingsBall4Steps(){
     ]);
     const blueEHeyBlankPrompts = new Set([
         "Kitik-ek e min heye.\nI ______ a-cat.",
-        "Kitik-ek e te heye.\nYou ______ a-cat."
+        "Kitik-ek e te heye.\nYou ______ a-cat.",
+        "Kitik-ek e wî heye.\nHe ______ a-cat."
     ]);
     const blueDuKititBlankPrompts = new Set([
         "Me du kitit êt hey.\nWe have got ___ ____.",
