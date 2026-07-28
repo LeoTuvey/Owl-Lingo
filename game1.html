@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath66");
+    params.set("v", "lessonpath67");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=80"></script>
+<script src="course-data.js?v=81"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4739,7 +4739,12 @@ function greetingsBall4Steps(){
         movingChoice("Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat", "an cat"], "a cat"),
         rawBuildStep("", "Kitik-ek e min heye.\nI ______ a-cat.", ["got", "have"], ["have", "got"]),
         haveCatBuild,
-        movingRichChoiceStep("Type the Missing Words", "Kitik ek e te heye.\nYou have got _____.", 'Kitik ek e te heye.<br>You have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        {
+            type:"type",
+            instruction:"Type the Missing Words",
+            prompt:"Kitik ek e te heye.\nYou have got _____.",
+            answer:"a cat"
+        },
         rawBuildStep("", "Kitik-ek e te heye.\nYou ______ a-cat.", ["got", "have"], ["have", "got"]),
         rawBuildStep("Type the Missing Words", "Bim-ek e wî heye.\nHe has got _____.", ["o", "l", "w", "n", "a"], ["a", "n", "o", "w", "l"]),
         rawBuildStep("", "Kitik-ek e wî heye.\nHe ______ a-cat.", ["got", "has"], ["has", "got"]),
