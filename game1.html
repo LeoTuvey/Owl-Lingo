@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath34");
+    params.set("v", "lessonpath35");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=48"></script>
+<script src="course-data.js?v=49"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -1724,6 +1724,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v1";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1855,6 +1856,20 @@ if(localStorage.getItem(GREETINGS_BALL3_REPLACEMENT_VERSION) !== "done"){
     localStorage.setItem(GREETINGS_BALL3_REPLACEMENT_VERSION, "done");
 }
 
+if(localStorage.getItem(GREETINGS_BALL4_VERSION) !== "done"){
+    const courseProgress = Engine.getCourseProgress();
+    const greetingsState = courseProgress?.sections?.["section-1"];
+    const greetingsPart = greetingsState?.parts?.["part-3"];
+    if(greetingsPart){
+        greetingsPart.completed = false;
+        greetingsPart.completedAt = null;
+        greetingsPart.latestResult = null;
+    }
+    if(greetingsState) greetingsState.completed = false;
+    Engine.saveCourseProgress(courseProgress);
+    localStorage.setItem(GREETINGS_BALL4_VERSION, "done");
+}
+
 preserveMovedGreetingProgress();
 
 const emoji = {
@@ -1901,6 +1916,7 @@ const kurmanjiLetterSounds = {
 };
 
 const GREETINGS_BALL3_REPLACEMENT_STEPS = greetingsBall3ReplacementSteps();
+const GREETINGS_BALL4_STEPS = greetingsBall4Steps();
 
 const gameParts = [
     {
@@ -3079,6 +3095,7 @@ const gameParts = [
                 ]
             },
             ...GREETINGS_BALL3_REPLACEMENT_STEPS,
+            ...GREETINGS_BALL4_STEPS,
         ]
     },
     {
@@ -3615,7 +3632,7 @@ const coursePartRoutes = {
         slug:"greetings",
         title:"👋 Greet People",
         gamePartIndex:0,
-        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5"],
+        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6"],
         enginePartId:"part-3"
     },
     "food-drink":{
@@ -4002,6 +4019,21 @@ const partSections = {
                 detail:index === 0 ? "💡 Verb note" : `Ball 3 activity ${index}`,
                 start:301 + index,
                 end:301 + index
+            }))
+        },
+        {
+            id:"a-part-2-greetings-v6",
+            ballNumber:4,
+            label:"Ball 4",
+            detail:"Has got, possessives, singular and plural forms",
+            start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length,
+            end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length,
+            lessons:Array.from({ length:GREETINGS_BALL4_STEPS.length }, (_, index) => ({
+                id:`a-part-2-greetings-v6-activity-${index + 1}`,
+                label:`Activity ${index + 1}`,
+                detail:`Ball 4 activity ${index + 1}`,
+                start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + index,
+                end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + index
             }))
         }
     ],
@@ -4518,6 +4550,221 @@ function greetingsBall3ReplacementSteps(){
         choiceStep("", "ya hey", ["had", "to have", "has got"], "has got"),
         movingRichChoiceStep("", "She has got an owl.\nMin _____ yê hey.", 'She has got <span class="static-blue-word">an owl</span>.<br>Min <span class="prompt-blank">_____</span> yê hey.', ["bim ek", "Kûnd", "bim"], "bim ek"),
         movingRichChoiceStep("", "You have got an owl.\nTe _____ yê hey.", 'You have got <span class="static-blue-word">an owl</span>.<br>Te <span class="prompt-blank">_____</span> yê hey.', ["bim ek", "Kûnd", "bim"], "bim ek")
+    ];
+}
+
+function greetingsBall4Steps(){
+    const voiceChoice = (prompt, options, answer, spoken = prompt) => ({
+        type:"choice",
+        instruction:"",
+        prompt,
+        spoken,
+        options,
+        answer
+    });
+
+    const referenceMatch = (instruction, pairs, prompt = "") => ({
+        type:"match",
+        instruction,
+        prompt,
+        pairs,
+        leftHeading:"English",
+        rightHeading:"Kurmanji",
+        leftSide:"first",
+        rightSide:"second",
+        compactOnPhone:pairs.length >= 6,
+        leftSpeakMap:Object.fromEntries(pairs.map((pair) => [pair.english, pair.english]))
+    });
+
+    const singularA = referenceMatch("Singular", [
+        { english:"has", kurmanji:"(a/ya)", group:"has-a" },
+        { english:"got", kurmanji:"hey", group:"got-a" },
+        { english:"has got", kurmanji:"(a/ya) hey", group:"has-got-a" },
+        { english:"have", kurmanji:"(a/ya)", group:"have-a" },
+        { english:"got", kurmanji:"hey", group:"got-have-a" },
+        { english:"have got", kurmanji:"(a/ya) hey", group:"have-got-a" }
+    ]);
+    const singularE = referenceMatch("Singular", [
+        { english:"has", kurmanji:"(ê/yê)", group:"has-e" },
+        { english:"got", kurmanji:"hey", group:"got-e" },
+        { english:"has got", kurmanji:"(ê/yê) hey", group:"has-got-e" },
+        { english:"have", kurmanji:"(ê/yê)", group:"have-e" },
+        { english:"got", kurmanji:"hey", group:"got-have-e" },
+        { english:"have got", kurmanji:"(ê/yê) hey", group:"have-got-e" }
+    ]);
+    const pluralEt = referenceMatch("Plural", [
+        { english:"has", kurmanji:"yêt/êt", group:"has-et" },
+        { english:"got", kurmanji:"hey", group:"got-et" },
+        { english:"has got", kurmanji:"êt hey", group:"has-got-et" },
+        { english:"have", kurmanji:"yêt/êt", group:"have-et" },
+        { english:"got", kurmanji:"hey", group:"got-have-et" },
+        { english:"have got", kurmanji:"êt hey", group:"have-got-et" }
+    ]);
+    const singularHeye = referenceMatch("Singular", [
+        { english:"has", kurmanji:"e", group:"has-heye" },
+        { english:"got", kurmanji:"heye", group:"got-heye" },
+        { english:"has got", kurmanji:"e__heye", group:"has-got-heye" },
+        { english:"have", kurmanji:"e", group:"have-heye" },
+        { english:"got", kurmanji:"heye", group:"got-have-heye" },
+        { english:"have got", kurmanji:"e__heye", group:"have-got-heye" }
+    ]);
+    const pluralHene = referenceMatch("plural", [
+        { english:"has", kurmanji:"ên", group:"has-hene" },
+        { english:"got", kurmanji:"hene", group:"got-hene" },
+        { english:"has got", kurmanji:"ên__hene", group:"has-got-hene" },
+        { english:"have", kurmanji:"ên", group:"have-hene" },
+        { english:"got", kurmanji:"hene", group:"got-have-hene" },
+        { english:"have got", kurmanji:"ên__hene", group:"have-got-hene" }
+    ]);
+    const hasGotReference = () => referenceMatch("Has got", [
+        { english:"has", kurmanji:"(ê/yê) (a/ya)", group:"has" },
+        { english:"got", kurmanji:"hey", group:"got" },
+        { english:"has got", kurmanji:"yê hey", group:"has-got" },
+        { english:"You - you", kurmanji:"Tu - te", group:"you" },
+        { english:"He - him", kurmanji:"Ew - wî", group:"he" },
+        { english:"Father", kurmanji:"Bab / Bav", group:"father" },
+        { english:"My", kurmanji:"ê min", group:"my" }
+    ]);
+    const possessiveA = () => referenceMatch("Singular Possessive Forms", [
+        { english:"My", kurmanji:"a min", group:"my-a" },
+        { english:"Your", kurmanji:"a te", group:"your-a" },
+        { english:"His", kurmanji:"a wî", group:"his-a" },
+        { english:"Her", kurmanji:"a wê", group:"her-a" },
+        { english:"Our", kurmanji:"a me", group:"our-a" },
+        { english:"Your", kurmanji:"a we (hingo)", group:"your-plural-a" },
+        { english:"Their", kurmanji:"a wan", group:"their-a" }
+    ]);
+    const possessiveE = () => referenceMatch("Singular Possessive Forms", [
+        { english:"My", kurmanji:"ê min", group:"my-e" },
+        { english:"Your", kurmanji:"ê te", group:"your-e" },
+        { english:"His", kurmanji:"ê wî", group:"his-e" },
+        { english:"Her", kurmanji:"ê wê", group:"her-e" },
+        { english:"Our", kurmanji:"ê me", group:"our-e" },
+        { english:"Your", kurmanji:"ê we (hingo)", group:"your-plural-e" },
+        { english:"Their", kurmanji:"ê wan", group:"their-e" }
+    ]);
+    const motherForms = referenceMatch(
+        "Singular",
+        [
+            { english:"My mother", kurmanji:"Dayik a min", group:"my-mother" },
+            { english:"Your mother", kurmanji:"Dayik a te", group:"your-mother" },
+            { english:"His mother", kurmanji:"Dayik a wî", group:"his-mother" },
+            { english:"Her mother", kurmanji:"Dayik a wê", group:"her-mother" },
+            { english:"Our mother", kurmanji:"Dayik a me", group:"our-mother" },
+            { english:"Your mother", kurmanji:"Dayik a we (hingo)", group:"your-plural-mother" },
+            { english:"Their mother", kurmanji:"Dayik a wan", group:"their-mother" }
+        ],
+        "(a → (mother) female , animals and things)"
+    );
+    const fatherForms = referenceMatch(
+        "Singular",
+        [
+            { english:"My father", kurmanji:"Bab ê min", group:"my-father" },
+            { english:"Your father", kurmanji:"Bab ê te", group:"your-father" },
+            { english:"His father", kurmanji:"Bab ê wî", group:"his-father" },
+            { english:"Her father", kurmanji:"Bab ê wê", group:"her-father" },
+            { english:"Our father", kurmanji:"Bab ê me", group:"our-father" },
+            { english:"Your father", kurmanji:"Bab ê we (hingo)", group:"your-plural-father" },
+            { english:"Their father", kurmanji:"Bab ê wan", group:"their-father" }
+        ],
+        "(ê → (father) male, animals and things)"
+    );
+    const pluralPossessivesFive = () => referenceMatch("Plural Possessives (êt / ên)", [
+        { english:"My sisters", kurmanji:"Xwişk êt min", group:"sisters" },
+        { english:"My parents", kurmanji:"Day û bab ên min", group:"parents" },
+        { english:"My cats", kurmanji:"Kitik ên min", group:"cats" },
+        { english:"My dogs", kurmanji:"Se êt min", group:"dogs" },
+        { english:"My books", kurmanji:"Pertûk ên min", group:"books" }
+    ]);
+    const pluralPossessivesSix = referenceMatch("Plural Possessives (êt / ên)", [
+        { english:"My sisters", kurmanji:"Xwişk êt min", group:"sisters" },
+        { english:"My parents", kurmanji:"Day û bab êt min", group:"my-parents" },
+        { english:"Their parents", kurmanji:"Day û bab êt wan", group:"their-parents" },
+        { english:"My cats", kurmanji:"Kitik ên min", group:"cats" },
+        { english:"My dogs", kurmanji:"Se êt min", group:"dogs" },
+        { english:"My books", kurmanji:"Pertûk ên min", group:"books" }
+    ]);
+    const numbers = () => referenceMatch("", [
+        { english:"One", kurmanji:"Yek", group:"one" },
+        { english:"Two", kurmanji:"Du", group:"two" },
+        { english:"Three", kurmanji:"Sê", group:"three" },
+        { english:"Four", kurmanji:"Çar", group:"four" },
+        { english:"Five", kurmanji:"Pênc", group:"five" }
+    ]);
+    const movingChoice = (prompt, promptHtml, options, answer) =>
+        movingRichChoiceStep("", prompt, promptHtml, options, answer);
+
+    return [
+        singularA,
+        singularE,
+        pluralEt,
+        singularHeye,
+        pluralHene,
+        movingChoice("Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        rawBuildStep("", "Kitik-ek e min heye.\nI ______ a-cat.", ["got", "have"], ["have", "got"]),
+        movingBlankBuildStep("", "I have a cat.\nKitik-ek __ min ____.", ["heye", "e"], ["e", "heye"]),
+        movingChoice("Kitik ek e te heye.\nYou have got _____.", 'Kitik ek e te heye.<br>You have got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        rawBuildStep("", "Kitik-ek e te heye.\nYou ______ a-cat.", ["got", "have"], ["have", "got"]),
+        movingChoice("Kitik-ek e wî heye.\nHe has got _____.", 'Kitik-ek e wî heye.<br>He has got <span class="prompt-blank">_____</span>.', ["a cat"], "a cat"),
+        rawBuildStep("", "Kitik-ek e wî heye.\nHe ______ a-cat.", ["got", "has"], ["has", "got"]),
+        voiceChoice("of mine", ["___ a te", "___ a wî", "___ a min"], "___ a min"),
+        voiceChoice("A cat", ["kitik ek"], "kitik ek"),
+        rawBuildStep("", "Kitik-ek a min\n___ ____ of mine", ["cat", "A"], ["A", "cat"]),
+        voiceChoice("An aunt", ["mam", "mam ek", "met ek"], "met ek"),
+        voiceChoice("An aunt", ["xalet", "xal", "xalet ek"], "xalet ek"),
+        rawBuildStep("", "Xalet ek a min\n__ ___ of mine", ["aunt", "An"], ["An", "aunt"]),
+        hasGotReference(),
+        rawBuildStep("", "has got", ["hey", "ya"], ["ya", "hey"]),
+        rawBuildStep("", "has got", ["hey", "yê"], ["yê", "hey"]),
+        rawBuildStep("", "has got", ["hey", "êt"], ["êt", "hey"]),
+        rawBuildStep("", "has got", ["hene", "ên"], ["ên", "hene"]),
+        rawBuildStep("", "Xalet-ek a min kitik-ek ya hey.\nAn-aunt of mine ______ a-cat.", ["got", "has"], ["has", "got"]),
+        rawBuildStep("", "Xalet-ek a min kitik-ek yê hey.\nAn-aunt of mine ______ a-cat.", ["has", "got"], ["has", "got"]),
+        rawBuildStep("", "Xalet-ek a min kitik-ek a hey.\nAn-aunt of mine ______ a-cat.", ["has", "got"], ["has", "got"]),
+        rawBuildStep("", "Xalet-ek a min kitik-ek ê hey.\nAn-aunt of mine ______ a-cat.", ["has", "got"], ["has", "got"]),
+        movingChoice("Xalet-ek a min kitik-ek ê hey.\nAn-aunt of mine ______ a-cat.", 'Xalet-ek a min kitik-ek ê hey.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.', ["Has got", "Have got"], "Has got"),
+        movingChoice("Xalet-ek a min kitik-ek ê hey.\nAn-aunt of mine ______ a-cat.", 'Xalet-ek a min kitik-ek ê hey.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.', ["Has", "Have"], "Has"),
+        hasGotReference(),
+        possessiveA(),
+        possessiveE(),
+        motherForms,
+        fatherForms,
+        movingChoice("(a → female) and (ê → male)\nMy mother → Dayik _ min", '(a → female) and (ê → male)<br>My mother → Dayik <span class="prompt-blank">_</span> min', ["a", "ê"], "a"),
+        movingChoice("(a → female) and (ê → male)\nHis mother → Dayik _ wî", '(a → female) and (ê → male)<br>His mother → Dayik <span class="prompt-blank">_</span> wî', ["a", "ê"], "a"),
+        movingChoice("(a → female) and (ê → male)\nMy father → Bab _ min", '(a → female) and (ê → male)<br>My father → Bab <span class="prompt-blank">_</span> min', ["a", "ê"], "ê"),
+        movingChoice("(a → female) and (ê → male)\nHis father → Bab _ wî", '(a → female) and (ê → male)<br>His father → Bab <span class="prompt-blank">_</span> wî', ["a", "ê"], "ê"),
+        pluralPossessivesFive(),
+        numbers(),
+        rawBuildStep("", "Me du kitit êt hey.\nWe have got ___ ____.", ["cats", "two"], ["two", "cats"]),
+        rawBuildStep("", "Du kitit ên me hene.\nWe have got ___ ____.", ["cats", "two"], ["two", "cats"]),
+        rawBuildStep("", "We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.", ["got", "have"], ["have", "got"]),
+        rawBuildStep("", "Du kitit ên we(Hingo) hene.\nYou ____ ____ two cats.", ["got", "have"], ["have", "got"]),
+        pluralPossessivesSix,
+        numbers(),
+        movingChoice("My father has got three dogs.\n_______ sê se êt hey.", 'My father has got three dogs.<br><span class="prompt-blank">_______</span> sê se êt hey.', ["Bab ê min", "Bab a min"], "Bab ê min"),
+        rawBuildStep("", "Bab ê min sê se êt hey.", ["dogs", "has", "got", "My-father", "three"], ["My-father", "has", "got", "three", "dogs."]),
+        rawBuildStep("", "Bab ê min sê se êt hey.", ["Has", "My-father", "three", "dogs"], ["My-father", "has", "three", "dogs"]),
+        movingChoice("My sister has got three cats.\n_______ sê pișîk êt hey.", 'My sister has got three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "xwişk a min"),
+        movingChoice("My sister has three cats.\n_______ sê pișîk êt hey.", 'My sister has three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "Xwişk a min"),
+        movingChoice("My sister has got three cats.\nXwişk a min sê pișîk __ ___.", 'My sister has got three cats.<br>Xwişk a min sê pișîk <span class="prompt-blank">__ ___</span>.', ["êt hey", "ê hey", "a hey"], "êt hey"),
+        movingChoice("My sister has got three cats.\nSê pișîk __ xwişk a min ____.", 'My sister has got three cats.<br>Sê pișîk <span class="prompt-blank">__</span> xwişk a min <span class="static-blue-word">____</span>.', ["ên hene", "ê hey", "a hey"], "ên hene"),
+        movingChoice("My father has got three dogs.\nBab ê min sê se __ ____.", 'My father has got three dogs.<br>Bab ê min sê se <span class="prompt-blank">__ ____</span>.', ["êt hey", "ê hey", "yê hey", "a hey", "ya hey"], "êt hey"),
+        movingChoice("My father has got three dogs.\nSê se __ bab ê min ____.", 'My father has got three dogs.<br>Sê se <span class="prompt-blank">__</span> bab ê min <span class="static-blue-word">____</span>.', ["ên hene", "ê hey", "yê hey", "a hey", "ya hey"], "ên hene"),
+        movingChoice("My father has three dogs.\nBab ê min sê se __ ____.", 'My father has three dogs.<br>Bab ê min sê se <span class="prompt-blank">__ ____</span>.', ["êt hey", "ê hey", "yê hey", "a hey", "ya hey"], "êt hey"),
+        voiceChoice("of yours", ["___ ê te", "___ a wî", "___ a min"], "___ ê te"),
+        rawBuildStep("", "Bav ê min", ["father", "My"], ["My", "father"]),
+        rawBuildStep("", "Bav ê min kitik ek yê hey.\nMy father ____ ____ a cat.", ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]),
+        movingChoice("Your father\nBav ê te", 'Your father<br><span class="prompt-blank">Bav ê te</span>', ["Bav ê te"], "Bav ê te"),
+        rawBuildStep("", "Bav ê we(hingo)", ["father", "Your"], ["Your", "father"]),
+        rawBuildStep("", "Bab ê te se-yek yê hey.\nYour father ____ ____ a-dog.", ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]),
+        voiceChoice("aunt", ["mam", "father", "xalet"], "xalet"),
+        voiceChoice("of yours", ["___ a te", "___ a wî", "___ a min"], "___ a te"),
+        movingChoice("My aunt → Xalet __ min", 'My aunt → Xalet <span class="prompt-blank">__</span> min', ["a", "ê", "êt", "ên"], "a"),
+        movingChoice("My aunts → Xalet __ min", 'My aunts → Xalet <span class="prompt-blank">__</span> min', ["a", "ê", "êt"], "êt"),
+        movingChoice("My aunts → Xalet __ min", 'My aunts → Xalet <span class="prompt-blank">__</span> min', ["a", "ê", "ên"], "ên"),
+        movingChoice("My uncle → Xal __ min", 'My uncle → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "êt", "ên"], "ê"),
+        movingChoice("My uncles → Xal __ min", 'My uncles → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "êt"], "êt"),
+        movingChoice("My uncles → Xal __ min", 'My uncles → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "ên"], "ên")
     ];
 }
 
@@ -5175,7 +5422,8 @@ function lessonProgressIds(index, sectionIndex){
     const section = sectionsForPart(index)[sectionIndex];
     const requiresCurrentLessonIds = [
         "a-part-1i-v1",
-        "a-part-2-greetings-v5"
+        "a-part-2-greetings-v5",
+        "a-part-2-greetings-v6"
     ].includes(section?.id);
     if(!requiresCurrentLessonIds && isLegacySectionComplete(index, sectionIndex)) {
         return lessons.map(lesson => lesson.id);
@@ -5330,7 +5578,7 @@ function markLessonComplete(index, sectionIndex, lessonId){
 function isSectionComplete(index, sectionIndex){
     const section = sectionsForPart(index)[sectionIndex];
     const progress = sectionLessonProgress(index, sectionIndex);
-    if(["a-part-1i-v1", "a-part-2-greetings-v5"].includes(section?.id)) {
+    if(["a-part-1i-v1", "a-part-2-greetings-v5", "a-part-2-greetings-v6"].includes(section?.id)) {
         return progress.total > 0 && progress.completed >= progress.total;
     }
 
@@ -6935,7 +7183,7 @@ function completeStep(){
         }
 
         if(usesDirectBallFlow(partIndex)) {
-            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
+            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
                 const nextLessonIndex = completedLessonIndex + 1;
                 if(nextLessonIndex < lessonsForSection(partIndex, sectionIndex).length) {
                     startLesson(partIndex, sectionIndex, nextLessonIndex);
