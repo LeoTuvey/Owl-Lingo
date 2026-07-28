@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath58");
+    params.set("v", "lessonpath59");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=72"></script>
+<script src="course-data.js?v=73"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4818,6 +4818,12 @@ function greetingsBall4Steps(){
         ["We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.", "êt hey"],
         ["Du kitit ên we(Hingo) hene.\nYou ____ ____ two cats.", "ên hene"]
     ]);
+    const blueFamilySubjectPrompts = new Map([
+        ["My father has got three dogs.\n_______ sê se êt hey.", "My father"],
+        ["My sister has got three cats.\n_______ sê pișîk êt hey.", "My sister"],
+        ["My sister has three cats.\n_______ sê pișîk êt hey.", "My sister"]
+    ]);
+    const blueHasGotPrompt = "My sister has got three cats.\nXwişk a min sê pișîk __ ___.";
     const blueAuntPhraseByPrompt = new Map([
         ["Xalet-ek a min kitik-ek ya hey.\nAn-aunt of mine ______ a-cat.", "ya hey"],
         ["Xalet-ek a min kitik-ek yê hey.\nAn-aunt of mine ______ a-cat.", "yê hey"],
@@ -4831,13 +4837,17 @@ function greetingsBall4Steps(){
         const highlightEHeyBlank = prompt === blueEHeyBlankPrompt;
         const highlightDuKititBlank = blueDuKititBlankPrompts.has(prompt);
         const blueYouHaveGotPhrase = blueYouHaveGotPrompts.get(prompt);
+        const blueFamilySubject = blueFamilySubjectPrompts.get(prompt);
+        const highlightHasGotPhrase = prompt === blueHasGotPrompt;
         const blueAuntPhrase = blueAuntPhraseByPrompt.get(prompt);
         const highlightEnglishVerb =
             !blueAnimalWord &&
             !highlightDuKititBlank &&
+            !blueFamilySubject &&
+            !highlightHasGotPhrase &&
             prompt.trim().toLowerCase() !== "has got" &&
             /\b(?:have|has)\b/i.test(prompt);
-        if(!blueAnimalWord && !highlightEHeyBlank && !highlightDuKititBlank && !blueYouHaveGotPhrase && !blueAuntPhrase && !highlightEnglishVerb) return;
+        if(!blueAnimalWord && !highlightEHeyBlank && !highlightDuKititBlank && !blueYouHaveGotPhrase && !blueFamilySubject && !highlightHasGotPhrase && !blueAuntPhrase && !highlightEnglishVerb) return;
         if(!step.promptHtml) {
             step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
         }
@@ -4886,6 +4896,18 @@ function greetingsBall4Steps(){
                     /\bhene\b/,
                     '<span class="static-blue-word" style="text-decoration:none">hene</span>'
                 );
+        }
+        if(blueFamilySubject) {
+            step.promptHtml = step.promptHtml.replace(
+                blueFamilySubject,
+                `<span class="static-blue-word" style="text-decoration:none">${blueFamilySubject}</span>`
+            );
+        }
+        if(highlightHasGotPhrase) {
+            step.promptHtml = step.promptHtml.replace(
+                "has got",
+                '<span class="static-blue-word" style="text-decoration:none">has got</span>'
+            );
         }
         if(blueAuntPhrase) {
             step.promptHtml = step.promptHtml
