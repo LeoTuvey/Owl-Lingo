@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath59");
+    params.set("v", "lessonpath60");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=73"></script>
+<script src="course-data.js?v=74"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4784,7 +4784,14 @@ function greetingsBall4Steps(){
         movingChoice("My sister has got three cats.\n_______ sê pișîk êt hey.", 'My sister has got three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "xwişk a min"),
         movingChoice("My sister has three cats.\n_______ sê pișîk êt hey.", 'My sister has three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "Xwişk a min"),
         movingChoice("My sister has got three cats.\nXwişk a min sê pișîk __ ___.", 'My sister has got three cats.<br>Xwişk a min sê pișîk <span class="prompt-blank">__ ___</span>.', ["êt hey", "ê hey", "a hey"], "êt hey"),
-        movingChoice("My sister has got three cats.\nSê pișîk __ xwişk a min ____.", 'My sister has got three cats.<br>Sê pișîk <span class="prompt-blank">__</span> xwişk a min <span class="static-blue-word">____</span>.', ["ên hene", "ê hey", "a hey"], "ên hene"),
+        movingSplitChoiceStep(
+            "",
+            "My sister has got three cats.\nSê pișîk __ xwişk a min ____.",
+            'My sister <span class="static-blue-word" style="text-decoration:none">has got</span> three cats.<br>Sê pișîk <span class="prompt-blank">__</span> xwişk a min <span class="prompt-blank">____</span>.',
+            ["ên hene", "ê hey", "a hey"],
+            "ên hene",
+            ["ên", "hene"]
+        ),
         movingChoice("My father has got three dogs.\nBab ê min sê se __ ____.", 'My father has got three dogs.<br>Bab ê min sê se <span class="prompt-blank">__ ____</span>.', ["êt hey", "ê hey", "yê hey", "a hey", "ya hey"], "êt hey"),
         movingChoice("My father has got three dogs.\nSê se __ bab ê min ____.", 'My father has got three dogs.<br>Sê se <span class="prompt-blank">__</span> bab ê min <span class="static-blue-word">____</span>.', ["ên hene", "ê hey", "yê hey", "a hey", "ya hey"], "ên hene"),
         movingChoice("My father has three dogs.\nBab ê min sê se __ ____.", 'My father has three dogs.<br>Bab ê min sê se <span class="prompt-blank">__ ____</span>.', ["êt hey", "ê hey", "yê hey", "a hey", "ya hey"], "êt hey"),
@@ -4824,6 +4831,7 @@ function greetingsBall4Steps(){
         ["My sister has three cats.\n_______ sê pișîk êt hey.", "My sister"]
     ]);
     const blueHasGotPrompt = "My sister has got three cats.\nXwişk a min sê pișîk __ ___.";
+    const splitHasGotPrompt = "My sister has got three cats.\nSê pișîk __ xwişk a min ____.";
     const blueAuntPhraseByPrompt = new Map([
         ["Xalet-ek a min kitik-ek ya hey.\nAn-aunt of mine ______ a-cat.", "ya hey"],
         ["Xalet-ek a min kitik-ek yê hey.\nAn-aunt of mine ______ a-cat.", "yê hey"],
@@ -4845,6 +4853,7 @@ function greetingsBall4Steps(){
             !highlightDuKititBlank &&
             !blueFamilySubject &&
             !highlightHasGotPhrase &&
+            prompt !== splitHasGotPrompt &&
             prompt.trim().toLowerCase() !== "has got" &&
             /\b(?:have|has)\b/i.test(prompt);
         if(!blueAnimalWord && !highlightEHeyBlank && !highlightDuKititBlank && !blueYouHaveGotPhrase && !blueFamilySubject && !highlightHasGotPhrase && !blueAuntPhrase && !highlightEnglishVerb) return;
@@ -4955,6 +4964,16 @@ function movingRichChoiceStep(instruction, prompt, promptHtml, options, answer){
         'class="prompt-blank" data-choice-answer-target'
     );
     step.moveCorrectToBlank = true;
+    return step;
+}
+
+function movingSplitChoiceStep(instruction, prompt, promptHtml, options, answer, answerParts){
+    const step = richChoiceStep(instruction, prompt, promptHtml, options, answer);
+    step.promptHtml = step.promptHtml.replace(
+        /class="prompt-blank"/g,
+        'class="prompt-blank" data-choice-answer-target'
+    );
+    step.moveCorrectChoicePartsToBlanks = answerParts;
     return step;
 }
 
@@ -6993,6 +7012,9 @@ function checkChoice(value, button){
 }
 
 function moveCorrectChoiceIntoBlank(step, value, button){
+    if(Array.isArray(step?.moveCorrectChoicePartsToBlanks)) {
+        return moveCorrectChoicePartsIntoBlanks(step, button);
+    }
     if(!step?.moveCorrectToBlank || !button) return false;
 
     const target = document.querySelector("[data-choice-answer-target]");
@@ -7027,6 +7049,47 @@ function moveCorrectChoiceIntoBlank(step, value, button){
         token.remove();
         markCorrect();
     });
+    return true;
+}
+
+function moveCorrectChoicePartsIntoBlanks(step, button){
+    const parts = step.moveCorrectChoicePartsToBlanks;
+    const targets = [...document.querySelectorAll("[data-choice-answer-target]")];
+    if(!button || !Array.isArray(parts) || targets.length !== parts.length) return false;
+
+    document.querySelectorAll("#activity button").forEach((entry) => {
+        entry.disabled = true;
+    });
+
+    const start = button.getBoundingClientRect();
+    const animations = targets.map((target, index) => {
+        const finish = target.getBoundingClientRect();
+        const token = document.createElement("span");
+        token.className = "choice-fly-token";
+        token.textContent = parts[index];
+        token.style.left = (start.left + (index * 18)) + "px";
+        token.style.top = start.top + "px";
+        document.body.appendChild(token);
+
+        const animation = token.animate([
+            { transform:"translate(0, 0) scale(1)", opacity:1 },
+            {
+                transform:`translate(${finish.left - start.left - (index * 18)}px, ${finish.top - start.top}px) scale(0.82)`,
+                opacity:1
+            }
+        ], {
+            duration:520 + (index * 90),
+            easing:"cubic-bezier(.2,.8,.2,1)",
+            fill:"forwards"
+        });
+
+        return animation.finished.finally(() => {
+            target.textContent = parts[index];
+            token.remove();
+        });
+    });
+
+    Promise.allSettled(animations).then(() => markCorrect());
     return true;
 }
 
