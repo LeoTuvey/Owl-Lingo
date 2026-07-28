@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath35");
+    params.set("v", "lessonpath36");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=49"></script>
+<script src="course-data.js?v=50"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4577,44 +4577,44 @@ function greetingsBall4Steps(){
     });
 
     const singularA = referenceMatch("Singular", [
-        { english:"has", kurmanji:"(a/ya)", group:"has-a" },
+        { english:"has", kurmanji:"(a/ya)", group:"has-have-a" },
         { english:"got", kurmanji:"hey", group:"got-a" },
-        { english:"has got", kurmanji:"(a/ya) hey", group:"has-got-a" },
-        { english:"have", kurmanji:"(a/ya)", group:"have-a" },
-        { english:"got", kurmanji:"hey", group:"got-have-a" },
-        { english:"have got", kurmanji:"(a/ya) hey", group:"have-got-a" }
+        { english:"has got", kurmanji:"(a/ya) hey", group:"has-have-got-a" },
+        { english:"have", kurmanji:"(a/ya)", group:"has-have-a" },
+        { english:"got", kurmanji:"hey", group:"got-a" },
+        { english:"have got", kurmanji:"(a/ya) hey", group:"has-have-got-a" }
     ]);
     const singularE = referenceMatch("Singular", [
-        { english:"has", kurmanji:"(ê/yê)", group:"has-e" },
+        { english:"has", kurmanji:"(ê/yê)", group:"has-have-e" },
         { english:"got", kurmanji:"hey", group:"got-e" },
-        { english:"has got", kurmanji:"(ê/yê) hey", group:"has-got-e" },
-        { english:"have", kurmanji:"(ê/yê)", group:"have-e" },
-        { english:"got", kurmanji:"hey", group:"got-have-e" },
-        { english:"have got", kurmanji:"(ê/yê) hey", group:"have-got-e" }
+        { english:"has got", kurmanji:"(ê/yê) hey", group:"has-have-got-e" },
+        { english:"have", kurmanji:"(ê/yê)", group:"has-have-e" },
+        { english:"got", kurmanji:"hey", group:"got-e" },
+        { english:"have got", kurmanji:"(ê/yê) hey", group:"has-have-got-e" }
     ]);
     const pluralEt = referenceMatch("Plural", [
-        { english:"has", kurmanji:"yêt/êt", group:"has-et" },
+        { english:"has", kurmanji:"yêt/êt", group:"has-have-et" },
         { english:"got", kurmanji:"hey", group:"got-et" },
-        { english:"has got", kurmanji:"êt hey", group:"has-got-et" },
-        { english:"have", kurmanji:"yêt/êt", group:"have-et" },
-        { english:"got", kurmanji:"hey", group:"got-have-et" },
-        { english:"have got", kurmanji:"êt hey", group:"have-got-et" }
+        { english:"has got", kurmanji:"êt hey", group:"has-have-got-et" },
+        { english:"have", kurmanji:"yêt/êt", group:"has-have-et" },
+        { english:"got", kurmanji:"hey", group:"got-et" },
+        { english:"have got", kurmanji:"êt hey", group:"has-have-got-et" }
     ]);
     const singularHeye = referenceMatch("Singular", [
-        { english:"has", kurmanji:"e", group:"has-heye" },
+        { english:"has", kurmanji:"e", group:"has-have-heye" },
         { english:"got", kurmanji:"heye", group:"got-heye" },
-        { english:"has got", kurmanji:"e__heye", group:"has-got-heye" },
-        { english:"have", kurmanji:"e", group:"have-heye" },
-        { english:"got", kurmanji:"heye", group:"got-have-heye" },
-        { english:"have got", kurmanji:"e__heye", group:"have-got-heye" }
+        { english:"has got", kurmanji:"e__heye", group:"has-have-got-heye" },
+        { english:"have", kurmanji:"e", group:"has-have-heye" },
+        { english:"got", kurmanji:"heye", group:"got-heye" },
+        { english:"have got", kurmanji:"e__heye", group:"has-have-got-heye" }
     ]);
     const pluralHene = referenceMatch("plural", [
-        { english:"has", kurmanji:"ên", group:"has-hene" },
+        { english:"has", kurmanji:"ên", group:"has-have-hene" },
         { english:"got", kurmanji:"hene", group:"got-hene" },
-        { english:"has got", kurmanji:"ên__hene", group:"has-got-hene" },
-        { english:"have", kurmanji:"ên", group:"have-hene" },
-        { english:"got", kurmanji:"hene", group:"got-have-hene" },
-        { english:"have got", kurmanji:"ên__hene", group:"have-got-hene" }
+        { english:"has got", kurmanji:"ên__hene", group:"has-have-got-hene" },
+        { english:"have", kurmanji:"ên", group:"has-have-hene" },
+        { english:"got", kurmanji:"hene", group:"got-hene" },
+        { english:"have got", kurmanji:"ên__hene", group:"has-have-got-hene" }
     ]);
     const hasGotReference = () => referenceMatch("Has got", [
         { english:"has", kurmanji:"(ê/yê) (a/ya)", group:"has" },
