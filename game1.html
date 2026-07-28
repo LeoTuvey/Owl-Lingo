@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath38");
+    params.set("v", "lessonpath39");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=52"></script>
+<script src="course-data.js?v=53"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4699,12 +4699,8 @@ function greetingsBall4Steps(){
         ["heye", "e"],
         ["e", "heye"]
     );
-    haveCatBuild.promptHtml = haveCatBuild.promptHtml.replace(
-        "I have a cat.",
-        'I <span class="static-blue-word" style="text-decoration:none">have</span> a cat.'
-    );
 
-    return [
+    const steps = [
         singularA,
         singularE,
         pluralEt,
@@ -4776,6 +4772,19 @@ function greetingsBall4Steps(){
         movingChoice("My uncles → Xal __ min", 'My uncles → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "êt"], "êt"),
         movingChoice("My uncles → Xal __ min", 'My uncles → Xal <span class="prompt-blank">__</span> min', ["a", "ê", "ên"], "ên")
     ];
+
+    steps.forEach((step) => {
+        if(!/\b(?:have|has)\b/i.test(step.prompt || "")) return;
+        if(!step.promptHtml) {
+            step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
+        }
+        step.promptHtml = step.promptHtml.replace(
+            /\b(have|has)\b/gi,
+            '<span class="static-blue-word" style="text-decoration:none">$1</span>'
+        );
+    });
+
+    return steps;
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
