@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath42");
+    params.set("v", "lessonpath43");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1694,7 +1694,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=56"></script>
+<script src="course-data.js?v=57"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4805,8 +4805,7 @@ function greetingsBall4Steps(){
         const prompt = step.prompt || "";
         const blueAnimalWord = blueAnimalWords.get(prompt);
         const highlightEnglishVerb = /\b(?:have|has)\b/i.test(prompt);
-        const highlightEHey = /\be\b[^\n]*\bheye\b/i.test(prompt);
-        if(!blueAnimalWord && !highlightEnglishVerb && !highlightEHey) return;
+        if(!blueAnimalWord && !highlightEnglishVerb) return;
         if(!step.promptHtml) {
             step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
         }
@@ -4819,12 +4818,6 @@ function greetingsBall4Steps(){
         if(highlightEnglishVerb) {
             step.promptHtml = step.promptHtml.replace(
                 /\b(have|has)\b/gi,
-                '<span class="static-blue-word" style="text-decoration:none">$1</span>'
-            );
-        }
-        if(highlightEHey) {
-            step.promptHtml = step.promptHtml.replace(
-                /\b(e|heye)\b/gi,
                 '<span class="static-blue-word" style="text-decoration:none">$1</span>'
             );
         }
