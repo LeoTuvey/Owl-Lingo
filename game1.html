@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath67");
+    params.set("v", "lessonpath68");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=81"></script>
+<script src="course-data.js?v=82"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4980,6 +4980,56 @@ function greetingsBall4Steps(){
         );
     });
 
+    steps.forEach((step) => {
+        if(!/_{1,}/.test(step.prompt || "")) return;
+
+        if(step.type === "type") {
+            if(!step.promptHtml) {
+                step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
+            }
+            step.promptHtml = step.promptHtml.replace(
+                /class="prompt-blank"(?![^>]*data-typed-answer-target)/,
+                'class="prompt-blank" data-typed-answer-target'
+            );
+            step.moveCorrectTypedToBlank = true;
+            return;
+        }
+
+        if(step.type !== "build" || step.moveCorrectWordsToBlanks) return;
+        if(!step.promptHtml) {
+            step.promptHtml = escapeHtml(cleanPlaceholderLines(step.prompt)).replace(/\n/g, "<br>");
+        }
+
+        step.promptHtml = step.promptHtml.replace(
+            /<span class="prompt-blank">(_+\s+_+)<\/span>/g,
+            (_, blanks) => blanks
+                .split(/\s+/)
+                .map((blank) => `<span class="prompt-blank" data-build-answer-target>${blank}</span>`)
+                .join(" ")
+        );
+        step.promptHtml = step.promptHtml.replace(
+            /class="prompt-blank"(?![^>]*data-build-answer-target)/g,
+            'class="prompt-blank" data-build-answer-target'
+        );
+
+        let targetCount = (step.promptHtml.match(/data-build-answer-target/g) || []).length;
+        if(!targetCount) {
+            step.promptHtml = step.promptHtml.replace(
+                /_{1,}/g,
+                (blank) => `<span class="prompt-blank" data-build-answer-target>${blank}</span>`
+            );
+            targetCount = (step.promptHtml.match(/data-build-answer-target/g) || []).length;
+        }
+
+        step.moveCorrectWordsToBlanks = targetCount > 0;
+        if(targetCount === 1 && Array.isArray(step.answer) && step.answer.length > 1) {
+            const groupedAnswer = step.prompt.startsWith("Bim-ek e wî heye.")
+                ? "an owl"
+                : step.answer.join(" ");
+            step.moveCorrectBuildGroupsToBlanks = [groupedAnswer];
+        }
+    });
+
     return steps;
 }
 
@@ -7260,6 +7310,7 @@ function checkTyped(button){
 
     if(isAcceptedTypedAnswer(step, value)){
         showButtonResult(button, "correct");
+        if(moveCorrectTypedAnswerIntoBlank(step, value, input)) return;
         markCorrect();
         return;
     }
@@ -7274,6 +7325,45 @@ function checkTyped(button){
         }, 0);
     }
     markWrong();
+}
+
+function moveCorrectTypedAnswerIntoBlank(step, value, input){
+    if(!step?.moveCorrectTypedToBlank || !input) return false;
+
+    const target = document.querySelector("[data-typed-answer-target]");
+    if(!target) return false;
+
+    document.querySelectorAll("#activity button, #activity input").forEach((entry) => {
+        entry.disabled = true;
+    });
+
+    const start = input.getBoundingClientRect();
+    const finish = target.getBoundingClientRect();
+    const token = document.createElement("span");
+    token.className = "choice-fly-token";
+    token.textContent = value.trim();
+    token.style.left = start.left + "px";
+    token.style.top = start.top + "px";
+    document.body.appendChild(token);
+
+    const animation = token.animate([
+        { transform:"translate(0, 0) scale(1)", opacity:1 },
+        {
+            transform:`translate(${finish.left - start.left}px, ${finish.top - start.top}px) scale(0.82)`,
+            opacity:1
+        }
+    ], {
+        duration:560,
+        easing:"cubic-bezier(.2,.8,.2,1)",
+        fill:"forwards"
+    });
+
+    animation.finished.finally(() => {
+        target.textContent = value.trim();
+        token.remove();
+        markCorrect();
+    });
+    return true;
 }
 
 function selectMatch(buttonIndex, side, key){
