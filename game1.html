@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath64");
+    params.set("v", "lessonpath65");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=78"></script>
+<script src="course-data.js?v=79"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4839,7 +4839,10 @@ function greetingsBall4Steps(){
         "My sister has got three cats.\nXwişk a min sê pișîk __ ___.",
         "My father has got three dogs.\nBab ê min sê se __ ____."
     ]);
-    const blueFatherYeHeyPrompt = "Bav ê min kitik ek yê hey.\nMy father ____ ____ a cat.";
+    const blueFatherYeHeyPrompts = new Set([
+        "Bav ê min kitik ek yê hey.\nMy father ____ ____ a cat.",
+        "Bab ê te se-yek yê hey.\nYour father ____ ____ a-dog."
+    ]);
     const splitHasGotPrompts = new Set([
         "My sister has got three cats.\nSê pișîk __ xwişk a min ____.",
         "My father has got three dogs.\nSê se __ bab ê min ____."
@@ -4859,7 +4862,7 @@ function greetingsBall4Steps(){
         const blueYouHaveGotPhrase = blueYouHaveGotPrompts.get(prompt);
         const blueFamilySubject = blueFamilySubjectPrompts.get(prompt);
         const highlightHasGotPhrase = blueHasGotPrompts.has(prompt);
-        const highlightFatherYeHey = prompt === blueFatherYeHeyPrompt;
+        const highlightFatherYeHey = blueFatherYeHeyPrompts.has(prompt);
         const blueAuntPhrase = blueAuntPhraseByPrompt.get(prompt);
         const highlightEnglishVerb =
             !blueAnimalWord &&
