@@ -179,7 +179,7 @@ if (window.location.protocol === "file:") {
     window.location.replace(nextUrl);
   }
   if (params.get("coursePart") === "greetings" && params.get("v") === "lessonpath33") {
-    params.set("v", "lessonpath54");
+    params.set("v", "lessonpath55");
     const nextUrl = "game1.html?" + params.toString() + window.location.hash;
     window.location.replace(nextUrl);
   }
@@ -1703,7 +1703,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=68"></script>
+<script src="course-data.js?v=69"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js"></script>
@@ -4767,9 +4767,9 @@ function greetingsBall4Steps(){
         motherForms,
         fatherForms,
         movingChoice("(a → female) and (ê → male)\nMy mother → Dayik _ min", '<span class="minor-grammar-hint">(a → female) and (ê → male)</span>My mother → Dayik <span class="prompt-blank">_</span> min', ["a", "ê"], "a"),
-        movingChoice("(a → female) and (ê → male)\nHis mother → Dayik _ wî", '(a → female) and (ê → male)<br>His mother → Dayik <span class="prompt-blank">_</span> wî', ["a", "ê"], "a"),
-        movingChoice("(a → female) and (ê → male)\nMy father → Bab _ min", '(a → female) and (ê → male)<br>My father → Bab <span class="prompt-blank">_</span> min', ["a", "ê"], "ê"),
-        movingChoice("(a → female) and (ê → male)\nHis father → Bab _ wî", '(a → female) and (ê → male)<br>His father → Bab <span class="prompt-blank">_</span> wî', ["a", "ê"], "ê"),
+        movingChoice("(a → female) and (ê → male)\nHis mother → Dayik _ wî", '<span class="minor-grammar-hint">(a → female) and (ê → male)</span>His mother → Dayik <span class="prompt-blank">_</span> wî', ["a", "ê"], "a"),
+        movingChoice("(a → female) and (ê → male)\nMy father → Bab _ min", '<span class="minor-grammar-hint">(a → female) and (ê → male)</span>My father → Bab <span class="prompt-blank">_</span> min', ["a", "ê"], "ê"),
+        movingChoice("(a → female) and (ê → male)\nHis father → Bab _ wî", '<span class="minor-grammar-hint">(a → female) and (ê → male)</span>His father → Bab <span class="prompt-blank">_</span> wî', ["a", "ê"], "ê"),
         pluralPossessivesFive(),
         numbers(),
         rawBuildStep("", "Me du kitit êt hey.\nWe have got ___ ____.", ["cats", "two"], ["two", "cats"]),
