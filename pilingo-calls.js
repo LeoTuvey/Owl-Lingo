@@ -9,6 +9,8 @@ const PilingoCalls = {
   localStream: null,
   lastSignalSeq: 0,
   processingSignals: false,
+  toneContext: null,
+  toneTimers: [],
 
   currentEmail(){
     return String(window.PilingoAuth?.loadAccount?.()?.email || "").trim().toLowerCase();
@@ -41,6 +43,7 @@ const PilingoCalls = {
       this.call = data.call;
       this.lastSignalSeq = 0;
       this.showCall("Calling…");
+      this.startTone("outgoing");
       await this.createPeer();
       const offer = await this.peer.createOffer();
       await this.peer.setLocalDescription(offer);
@@ -53,6 +56,7 @@ const PilingoCalls = {
 
   async accept(){
     if(!this.call) return;
+    this.stopTone();
     await this.prepareMedia(this.call.mode);
     await this.post(this.actionEndpoint, {
       callId: this.call.id,
@@ -112,11 +116,15 @@ const PilingoCalls = {
     this.peer.ontrack = (event) => {
       const remoteVideo = document.getElementById("callRemoteVideo");
       if(remoteVideo) remoteVideo.srcObject = event.streams[0];
+      this.stopTone();
       this.setStatus("Connected");
     };
     this.peer.onconnectionstatechange = () => {
       const state = this.peer?.connectionState;
-      if(state === "connected") this.setStatus("Connected");
+      if(state === "connected"){
+        this.stopTone();
+        this.setStatus("Connected");
+      }
       if(["failed", "closed"].includes(state)) this.end();
     };
   },
@@ -176,7 +184,10 @@ const PilingoCalls = {
           this.cleanup(incoming.status === "declined" ? "Call declined" : "Call ended");
           return;
         }
-        if(incoming.status === "active") this.setStatus("Connecting…");
+        if(incoming.status === "active"){
+          this.stopTone();
+          this.setStatus("Connecting…");
+        }
       }
       if(this.call?.id === incoming.id && this.localStream){
         await this.handleSignals(data.signals || []);
@@ -194,6 +205,7 @@ const PilingoCalls = {
     if(incomingActions) incomingActions.hidden = false;
     if(activeActions) activeActions.hidden = true;
     this.setStatus(`${this.call.other?.name || "A learner"} is calling (${this.call.mode})`);
+    this.startTone("incoming");
   },
 
   showCall(status){
@@ -213,6 +225,56 @@ const PilingoCalls = {
     if(status) status.textContent = text;
   },
 
+  ensureToneContext(){
+    if(!this.toneContext){
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if(AudioContextClass) this.toneContext = new AudioContextClass();
+    }
+    if(this.toneContext?.state === "suspended"){
+      this.toneContext.resume().catch(() => {});
+    }
+    return this.toneContext;
+  },
+
+  playTone(frequencies, duration, volume){
+    const context = this.ensureToneContext();
+    if(!context || context.state === "closed") return;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(Number(volume || 0.08), context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+    gain.connect(context.destination);
+    frequencies.forEach((frequency) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      oscillator.connect(gain);
+      oscillator.start();
+      oscillator.stop(context.currentTime + duration);
+    });
+  },
+
+  startTone(kind){
+    this.stopTone();
+    const ring = () => {
+      if(kind === "incoming"){
+        this.playTone([660, 880], 0.38, 0.1);
+        this.toneTimers.push(window.setTimeout(() => this.playTone([660, 880], 0.38, 0.1), 560));
+      } else {
+        this.playTone([440, 480], 0.9, 0.065);
+      }
+    };
+    ring();
+    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2400 : 3000));
+  },
+
+  stopTone(){
+    this.toneTimers.forEach((timer) => {
+      window.clearTimeout(timer);
+      window.clearInterval(timer);
+    });
+    this.toneTimers = [];
+  },
+
   toggleMute(){
     const track = this.localStream?.getAudioTracks?.()[0];
     if(!track) return;
@@ -230,6 +292,7 @@ const PilingoCalls = {
   },
 
   cleanup(message){
+    this.stopTone();
     this.peer?.close();
     this.peer = null;
     this.localStream?.getTracks?.().forEach((track) => track.stop());
@@ -247,6 +310,7 @@ const PilingoCalls = {
 
   startPolling(){
     if(this.pollTimer) clearInterval(this.pollTimer);
+    document.addEventListener("pointerdown", () => this.ensureToneContext(), { once:true });
     this.poll();
     this.pollTimer = setInterval(() => this.poll(), 1800);
   }
