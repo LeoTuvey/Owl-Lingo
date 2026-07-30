@@ -1529,10 +1529,10 @@ button.is-pressed{
 
 .continue-swipe{
   width:min(100%, 430px);
-  min-height:108px;
+  min-height:96px;
   border:none;
-  border-radius:36px;
-  padding:14px;
+  border-radius:30px;
+  padding:11px;
   background:
     radial-gradient(circle at 12% 20%, rgba(255,255,255,0.88), rgba(255,255,255,0) 24%),
     radial-gradient(circle at 88% 18%, rgba(255,244,196,0.52), rgba(255,255,255,0) 22%),
@@ -1540,8 +1540,8 @@ button.is-pressed{
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,0.7),
     inset 0 -14px 28px rgba(110,147,14,0.16),
-    0 12px 0 #c99718,
-    0 26px 44px rgba(108,90,18,0.22);
+    0 8px 0 #c99718,
+    0 20px 34px rgba(108,90,18,0.2);
   display:flex;
   align-items:center;
   gap:14px;
@@ -1554,8 +1554,8 @@ button.is-pressed{
 .continue-swipe::before{
   content:"";
   position:absolute;
-  inset:12px;
-  border-radius:28px;
+  inset:9px;
+  border-radius:23px;
   background:linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 100%);
   box-shadow:
     inset 0 0 0 2px rgba(255,250,221,0.42),
@@ -1578,7 +1578,7 @@ button.is-pressed{
 
 .continue-swipe-label{
   flex:1;
-  padding:0 14px 0 10px;
+  padding:0 14px 0 22px;
   text-align:left;
   position:relative;
   z-index:1;
@@ -1596,19 +1596,20 @@ button.is-pressed{
 
 .continue-swipe-hint{
   display:block;
-  margin-top:10px;
+  margin-top:0;
   color:#5b5009;
-  font-size:12px;
+  font-size:16px;
   font-weight:1000;
-  letter-spacing:0.12em;
+  letter-spacing:0.09em;
   text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(255,255,255,0.5);
 }
 
 .continue-swipe-track{
   position:relative;
-  width:158px;
-  height:78px;
-  flex:0 0 158px;
+  width:148px;
+  height:70px;
+  flex:0 0 148px;
   border-radius:999px;
   background:linear-gradient(180deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.18) 100%);
   box-shadow:
@@ -1621,10 +1622,10 @@ button.is-pressed{
   position:absolute;
   left:0;
   top:0;
-  width:78px;
-  height:78px;
+  width:70px;
+  height:70px;
   border:2px solid rgba(255,255,255,0.75);
-  border-radius:26px;
+  border-radius:22px;
   background:
     radial-gradient(circle at 30% 22%, rgba(255,255,255,0.98), rgba(255,255,255,0.38) 28%, rgba(255,255,255,0) 36%),
     linear-gradient(180deg, #ffffff 0%, #fff4cf 48%, #f1d46c 100%);
