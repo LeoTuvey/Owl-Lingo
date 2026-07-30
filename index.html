@@ -2238,6 +2238,69 @@ button.is-pressed{
   resize:vertical;
 }
 
+.message-call-actions,
+.call-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+
+.message-call-actions button,
+.call-actions button{
+  width:auto;
+  min-width:92px;
+  margin:0;
+  padding:10px 13px;
+  border-radius:999px;
+  font-size:13px;
+}
+
+.call-card{
+  width:min(720px, calc(100vw - 24px));
+}
+
+.call-status{
+  padding:14px;
+  text-align:center;
+  color:#5e4a17;
+  font-weight:1000;
+}
+
+.call-video-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.call-video-grid[hidden]{
+  display:none;
+}
+
+.call-video-grid video{
+  width:100%;
+  min-height:180px;
+  border-radius:18px;
+  background:#18202c;
+  object-fit:cover;
+}
+
+.call-actions{
+  justify-content:center;
+}
+
+.call-end-button{
+  background:linear-gradient(180deg, #ff7b88 0%, #e74b5d 100%);
+  border-color:#ae2637;
+  box-shadow:0 4px 0 #ae2637;
+  color:#fff;
+}
+
+@media (max-width:600px){
+  .call-video-grid{grid-template-columns:1fr;}
+}
+
 .social-avatar,
 .student-profile-avatar{
   width:52px;
@@ -2748,13 +2811,39 @@ button.is-pressed{
         <div class="student-profile-card">
           <div class="student-profile-top">
             <strong id="messageModalTitle">💬 Messages</strong>
-            <button class="secondary-button student-profile-close" type="button" onclick="closeConversation()">Close</button>
+            <div class="message-call-actions">
+              <button class="secondary-button" type="button" onclick="startLearnerCall('audio')">📞 Voice</button>
+              <button class="secondary-button" type="button" onclick="startLearnerCall('video')">🎥 Video</button>
+              <button class="secondary-button student-profile-close" type="button" onclick="closeConversation()">Close</button>
+            </div>
           </div>
           <div id="messageThread" class="message-thread"></div>
           <form class="message-compose" onsubmit="sendConversationMessage(event)">
             <textarea id="messageInput" maxlength="1000" placeholder="Write a respectful message..." required></textarea>
             <button class="social-follow-button" type="submit">Send</button>
           </form>
+        </div>
+      </div>
+
+      <div id="callModal" class="student-profile-modal" hidden>
+        <div class="student-profile-card call-card">
+          <div class="student-profile-top">
+            <strong>📞 Pilingo Call</strong>
+          </div>
+          <div id="callStatus" class="call-status">Connecting…</div>
+          <div id="callVideoGrid" class="call-video-grid" hidden>
+            <video id="callRemoteVideo" autoplay playsinline></video>
+            <video id="callLocalVideo" autoplay playsinline muted></video>
+          </div>
+          <div id="callIncomingActions" class="call-actions" hidden>
+            <button class="social-follow-button" type="button" onclick="PilingoCalls.accept()">Accept</button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.decline()">Decline</button>
+          </div>
+          <div id="callActiveActions" class="call-actions" hidden>
+            <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()">🎙️ Mute</button>
+            <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()">📷 Camera off</button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.end()">End call</button>
+          </div>
         </div>
       </div>
 
@@ -2951,6 +3040,7 @@ button.is-pressed{
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
 <script src="pilingo-social.js?v=1"></script>
+<script src="pilingo-calls.js?v=1"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
@@ -3722,6 +3812,9 @@ if(window.PilingoNotify){
 }
 if(window.PilingoSocial){
   PilingoSocial.startPolling();
+}
+if(window.PilingoCalls){
+  PilingoCalls.startPolling();
 }
 updateOwnerOnlyPanels();
 refreshAppVisibilityControls(true);

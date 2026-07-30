@@ -23,6 +23,7 @@ const PUSH_SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "push-subscriptions.json");
 const PUSH_KEYS_FILE = path.join(DATA_DIR, "vapid-keys.json");
 const VISITS_FILE = path.join(DATA_DIR, "visits.json");
 const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
+const CALLS_FILE = path.join(DATA_DIR, "calls.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
@@ -153,6 +154,12 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, thread);
   }
 
+  if (req.method === "GET" && parsed.pathname === "/api/calls/poll") {
+    const email = normalizeEmail(parsed.searchParams.get("email") || "");
+    const after = Number(parsed.searchParams.get("after") || 0);
+    return sendJson(res, 200, { ok: true, ...pollCalls(email, after) });
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/track") {
     try {
       const body = await readBody(req);
@@ -240,6 +247,36 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid message request" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/calls/start") {
+    try {
+      const payload = JSON.parse((await readBody(req)) || "{}");
+      const result = startLearnerCall(payload);
+      return sendJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid call request" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/calls/action") {
+    try {
+      const payload = JSON.parse((await readBody(req)) || "{}");
+      const result = updateLearnerCall(payload);
+      return sendJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid call action" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/calls/signal") {
+    try {
+      const payload = JSON.parse((await readBody(req)) || "{}");
+      const result = addCallSignal(payload);
+      return sendJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid call signal" });
     }
   }
 
@@ -499,6 +536,139 @@ function ensureDataFile() {
   if (!fs.existsSync(PUSH_SUBSCRIPTIONS_FILE)) fs.writeFileSync(PUSH_SUBSCRIPTIONS_FILE, "[]", "utf8");
   if (!fs.existsSync(VISITS_FILE)) fs.writeFileSync(VISITS_FILE, "[]", "utf8");
   if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, "[]", "utf8");
+  if (!fs.existsSync(CALLS_FILE)) fs.writeFileSync(CALLS_FILE, "[]", "utf8");
+}
+
+function readCalls() {
+  try {
+    const calls = JSON.parse(fs.readFileSync(CALLS_FILE, "utf8"));
+    return Array.isArray(calls) ? calls : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeCalls(calls) {
+  const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+  const recent = calls.filter((call) => new Date(call.updatedAt || call.createdAt || 0).getTime() > cutoff);
+  fs.writeFileSync(CALLS_FILE, JSON.stringify(recent.slice(-500), null, 2), "utf8");
+}
+
+function callAccounts(callerEmail, recipientEmail) {
+  const accounts = readAccounts();
+  const caller = accounts.find((account) => account.email === callerEmail);
+  const recipient = accounts.find((account) => account.email === recipientEmail);
+  if (!caller || !recipient || callerEmail === recipientEmail) return null;
+  if (!messageParticipantsAllowed(caller, recipient)) return null;
+  return { caller, recipient };
+}
+
+function startLearnerCall(payload) {
+  const callerEmail = normalizeEmail(payload?.callerEmail);
+  const recipientEmail = normalizeEmail(payload?.recipientEmail);
+  const mode = payload?.mode === "audio" ? "audio" : "video";
+  const participants = callAccounts(callerEmail, recipientEmail);
+  if (!participants) return { ok: false, error: "This learner cannot be called." };
+
+  const calls = readCalls();
+  const busy = calls.some((call) =>
+    ["ringing", "active"].includes(call.status) &&
+    new Date(call.updatedAt || call.createdAt || 0).getTime() > Date.now() - (10 * 60 * 1000) &&
+    [call.callerEmail, call.recipientEmail].some((email) => [callerEmail, recipientEmail].includes(email))
+  );
+  if (busy) return { ok: false, error: "One of the learners is already in a call." };
+
+  const now = new Date().toISOString();
+  const call = {
+    id: `call-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
+    callerEmail,
+    recipientEmail,
+    mode,
+    status: "ringing",
+    signals: [],
+    createdAt: now,
+    updatedAt: now
+  };
+  calls.push(call);
+  writeCalls(calls);
+  notifyCallRecipient(participants.caller, participants.recipient, call).catch(() => {});
+  return { ok: true, call: publicCall(call, callerEmail) };
+}
+
+function updateLearnerCall(payload) {
+  const email = normalizeEmail(payload?.email);
+  const action = String(payload?.action || "");
+  const calls = readCalls();
+  const call = calls.find((item) => item.id === payload?.callId);
+  if (!call || ![call.callerEmail, call.recipientEmail].includes(email)) {
+    return { ok: false, error: "Call not found." };
+  }
+  if (action === "accept" && email === call.recipientEmail && call.status === "ringing") {
+    call.status = "active";
+  } else if (["decline", "end"].includes(action)) {
+    call.status = action === "decline" ? "declined" : "ended";
+  } else {
+    return { ok: false, error: "This call action is unavailable." };
+  }
+  call.updatedAt = new Date().toISOString();
+  writeCalls(calls);
+  return { ok: true, call: publicCall(call, email) };
+}
+
+function addCallSignal(payload) {
+  const senderEmail = normalizeEmail(payload?.senderEmail);
+  const calls = readCalls();
+  const call = calls.find((item) => item.id === payload?.callId);
+  if (!call || ![call.callerEmail, call.recipientEmail].includes(senderEmail)) {
+    return { ok: false, error: "Call not found." };
+  }
+  const targetEmail = senderEmail === call.callerEmail ? call.recipientEmail : call.callerEmail;
+  const data = payload?.data;
+  if (!data || typeof data !== "object") return { ok: false, error: "Invalid call signal." };
+  const nextSeq = Number(call.signals?.at(-1)?.seq || 0) + 1;
+  call.signals = Array.isArray(call.signals) ? call.signals : [];
+  call.signals.push({ seq: nextSeq, senderEmail, targetEmail, data, createdAt: new Date().toISOString() });
+  call.signals = call.signals.slice(-300);
+  call.updatedAt = new Date().toISOString();
+  writeCalls(calls);
+  return { ok: true, seq: nextSeq };
+}
+
+function publicCall(call, viewerEmail) {
+  const accounts = readAccounts();
+  const otherEmail = call.callerEmail === viewerEmail ? call.recipientEmail : call.callerEmail;
+  const other = accounts.find((account) => account.email === otherEmail);
+  return {
+    id: call.id,
+    callerEmail: call.callerEmail,
+    recipientEmail: call.recipientEmail,
+    mode: call.mode,
+    status: call.status,
+    other: other ? publicAccount(other) : { email: otherEmail, name: "Learner" },
+    createdAt: call.createdAt,
+    updatedAt: call.updatedAt
+  };
+}
+
+function pollCalls(email, after) {
+  if (!email) return { call: null, signals: [] };
+  const calls = readCalls();
+  const call = [...calls].reverse().find((item) =>
+    [item.callerEmail, item.recipientEmail].includes(email) &&
+    new Date(item.updatedAt || 0).getTime() > Date.now() - (10 * 60 * 1000)
+  );
+  if (!call) return { call: null, signals: [] };
+  const signals = (call.signals || []).filter((signal) => signal.targetEmail === email && signal.seq > after);
+  return { call: publicCall(call, email), signals };
+}
+
+async function notifyCallRecipient(caller, recipient, call) {
+  const label = call.mode === "audio" ? "voice" : "video";
+  await sendPushNotificationToUser(recipient.email, {
+    title: `📞 Incoming ${label} call`,
+    body: `${caller.name || "A learner"} is calling you on Pilingo.`,
+    url: "/index.html#messages"
+  });
 }
 
 function readMessages() {

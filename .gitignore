@@ -7,3 +7,4 @@ data/push-subscriptions.json
 data/vapid-keys.json
 data/visits.json
 data/messages.json
+data/calls.json
