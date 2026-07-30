@@ -4,12 +4,13 @@
   const promptedKey = "pilingo_push_prompted_v1";
   const pushStateKey = "pilingo_push_state_v1";
   const swUrl = "sw.js?v=11";
+  const apiOrigin = location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com" : "";
   const endpoints = {
-    publicKey: "/api/push/public-key",
-    subscribe: "/api/push/subscribe",
-    unsubscribe: "/api/push/unsubscribe",
-    activity: "/api/push/activity",
-    test: "/api/push/test"
+    publicKey: `${apiOrigin}/api/push/public-key`,
+    subscribe: `${apiOrigin}/api/push/subscribe`,
+    unsubscribe: `${apiOrigin}/api/push/unsubscribe`,
+    activity: `${apiOrigin}/api/push/activity`,
+    test: `${apiOrigin}/api/push/test`
   };
 
   let installPrompt = null;

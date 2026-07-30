@@ -386,6 +386,9 @@ const PilingoAuth = {
   },
 
   getPreferredApiOrigin(){
+    if(String(window.location.hostname || "").endsWith("github.io")){
+      return "https://pilingo.onrender.com";
+    }
     const origin = String(window.location.origin || "").trim();
     if(origin) return origin;
 

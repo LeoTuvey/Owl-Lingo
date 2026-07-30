@@ -1,8 +1,8 @@
 const PilingoCalls = {
-  pollEndpoint: "/api/calls/poll",
-  startEndpoint: "/api/calls/start",
-  actionEndpoint: "/api/calls/action",
-  signalEndpoint: "/api/calls/signal",
+  pollEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/calls/poll" : "/api/calls/poll",
+  startEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/calls/start" : "/api/calls/start",
+  actionEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/calls/action" : "/api/calls/action",
+  signalEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/calls/signal" : "/api/calls/signal",
   pollTimer: null,
   call: null,
   peer: null,

@@ -103,9 +103,9 @@ box-shadow:0 4px 0 #46a302 !important;
 </style>
 </head>
 <body>
-<script src="pilingo-auth.js"></script>
+<script src="pilingo-auth.js?v=9"></script>
 <script>PilingoAuth.requireAccount();</script>
-<script src="pilingo-notify.js"></script>
+<script src="pilingo-notify.js?v=9"></script>
 <script>PilingoNotify.track("page_open", "Opened Game 4", { page:"game4" });</script>
 
 <div class="card">
@@ -120,7 +120,7 @@ box-shadow:0 4px 0 #46a302 !important;
 
 <script src="engine-core.js"></script>
 <script src="pilingo-sounds.js"></script>
-<script src="pwa.js"></script>
+<script src="pwa.js?v=10"></script>
 <script>
 
 let course=window.Engine?.getCourse ? Engine.getCourse() : (localStorage.getItem("course")||"en-ku");
