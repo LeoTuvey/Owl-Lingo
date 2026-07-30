@@ -296,11 +296,13 @@ const PilingoSocial = {
       <div class="social-section-title">Messages</div>
       ${conversations.map((conversation) => {
         const participant = conversation.participant || {};
-        const preview = String(conversation.lastMessage?.text || "");
         return `
           <button class="message-card" type="button" onclick="openConversation('${escapeAttr(participant.email)}')">
-            <strong>${escapeHtml(participant.name || "Student")}${conversation.unreadCount ? ` • ${Number(conversation.unreadCount)} new` : ""}</strong>
-            <span>${escapeHtml(preview.slice(0, 120))}</span>
+            <span class="message-card-heading">
+              <strong>${escapeHtml(participant.name || "Student")}</strong>
+              ${conversation.unreadCount ? `<span class="message-unread-badge">${Number(conversation.unreadCount)}</span>` : ""}
+            </span>
+            <span>${conversation.unreadCount ? "New message — tap to open" : "Tap to open conversation"}</span>
           </button>
         `;
       }).join("")}
@@ -314,7 +316,9 @@ const PilingoSocial = {
       (total, conversation) => total + Number(conversation?.unreadCount || 0),
       0
     );
-    launcher.textContent = unreadCount ? `💬 Messages (${unreadCount} new)` : "💬 Messages";
+    launcher.innerHTML = unreadCount
+      ? `💬 Messages <span class="message-unread-badge">${unreadCount}</span>`
+      : "💬 Messages";
     launcher.classList.toggle("has-unread", unreadCount > 0);
   },
 

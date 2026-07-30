@@ -2202,6 +2202,36 @@ button.is-pressed{
   font-size:12px;
 }
 
+.message-card span.message-card-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:0;
+}
+
+.message-card .message-unread-badge,
+.message-launcher .message-unread-badge{
+  min-width:24px;
+  height:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 7px;
+  border-radius:999px;
+  background:#e53935;
+  color:#fff;
+  font-size:12px;
+  font-weight:1000;
+  line-height:1;
+  box-shadow:0 3px 0 rgba(151,29,26,0.25);
+}
+
+.message-launcher .message-unread-badge{
+  margin-left:7px;
+  vertical-align:middle;
+}
+
 .message-thread{
   max-height:360px;
   overflow:auto;
@@ -3300,7 +3330,7 @@ button.is-pressed{
 <script src="pilingo-mascot.js"></script>
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
-<script src="pilingo-social.js?v=1"></script>
+<script src="pilingo-social.js?v=2"></script>
 <script src="pilingo-calls.js?v=7"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
