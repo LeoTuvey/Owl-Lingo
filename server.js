@@ -183,6 +183,20 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && parsed.pathname === "/api/presence") {
+    try {
+      const body = await readBody(req);
+      const payload = JSON.parse(body || "{}");
+      const presence = updateLearnerPresence(payload || {});
+      if (!presence) {
+        return sendJson(res, 404, { ok: false, error: "No account was found for this email." });
+      }
+      return sendJson(res, 200, { ok: true, presence });
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid presence request" });
+    }
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/social/follow") {
     try {
       const body = await readBody(req);
@@ -1091,6 +1105,30 @@ function updateLearningProgress(payload) {
   });
   writeAccounts(accounts);
   return accounts[index].learningProgress;
+}
+
+function updateLearnerPresence(payload) {
+  const email = normalizeEmail(payload?.email);
+  if (!email) return null;
+
+  const accounts = readAccounts();
+  const index = accounts.findIndex((account) => normalizeEmail(account?.email) === email);
+  if (index < 0) return null;
+
+  const now = new Date().toISOString();
+  const online = payload?.online !== false;
+  accounts[index] = normalizeAccountRecord({
+    ...accounts[index],
+    lastPresenceAt: now,
+    lastPresencePage: String(payload?.page || "").slice(0, 160),
+    presenceOnline: online
+  });
+  writeAccounts(accounts);
+  return {
+    online,
+    lastPresenceAt: now,
+    lastPresencePage: accounts[index].lastPresencePage
+  };
 }
 
 function normalizeStudentSettings(settings) {
@@ -2080,6 +2118,9 @@ function getOwnerStudentRoster() {
       location,
       createdAt: studentLike?.createdAt || "",
       lastSeenAt: "",
+      lastPresenceAt: "",
+      lastPresencePage: "",
+      presenceOnline: false,
       latestAction: "",
       xp: 0,
       averageGrade: 0,
@@ -2114,6 +2155,9 @@ function getOwnerStudentRoster() {
     const current = rememberStudent(account);
     if (!current) return;
     current.createdAt = current.createdAt || account.createdAt || "";
+    current.lastPresenceAt = String(account?.lastPresenceAt || "");
+    current.lastPresencePage = String(account?.lastPresencePage || "");
+    current.presenceOnline = account?.presenceOnline === true;
     const fromBoard = leaderboardByEmail.get(normalizeEmail(account.email));
     if (fromBoard) {
       current.rank = current.rank || fromBoard.rank || 0;
@@ -2131,6 +2175,20 @@ function getOwnerStudentRoster() {
       current.lastSeenAt = createdAt;
       current.latestAction = String(event?.label || event?.type || "Activity");
       current.location = current.location || String(event?.studentLocation || "").trim();
+    }
+  });
+
+  const presenceCutoff = Date.now() - (75 * 1000);
+  students.forEach((student) => {
+    const presenceTime = new Date(student.lastPresenceAt || 0).getTime();
+    student.online = Boolean(
+      student.presenceOnline &&
+      Number.isFinite(presenceTime) &&
+      presenceTime >= presenceCutoff
+    );
+    if (presenceTime && (!student.lastSeenAt || presenceTime > new Date(student.lastSeenAt).getTime())) {
+      student.lastSeenAt = student.lastPresenceAt;
+      student.latestAction = student.online ? `Online on ${student.lastPresencePage || "Pilingo"}` : "Left the app";
     }
   });
 

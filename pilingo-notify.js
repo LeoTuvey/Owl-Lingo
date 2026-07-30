@@ -3,12 +3,15 @@ const PilingoNotify = {
   listEndpoint: "/api/notifications",
   leaderboardEndpoint: "/api/leaderboard",
   ownerStudentsEndpoint: "/api/owner/students",
+  presenceEndpoint: "/api/presence",
   statsEndpoint: "/api/student-stats",
   settingsEndpoint: "/api/app-settings",
   pollTimer: null,
   lastSeenEventId: null,
   lastCompetitionMessage: "",
   settingsCache: null,
+  presenceTimer: null,
+  presenceEmail: "",
 
   canUseServer(){
     return location.protocol.startsWith("http");
@@ -32,6 +35,45 @@ const PilingoNotify = {
       location: account?.location || "",
       hasAccount: !!(account?.email && account?.phone)
     };
+  },
+
+  async sendPresence(online, emailOverride){
+    const student = this.currentStudent();
+    const email = String(emailOverride || student.email || "").trim().toLowerCase();
+    if(!this.canUseServer() || !email) return false;
+    try {
+      const response = await fetch(this.presenceEndpoint, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          email,
+          online: online !== false,
+          page: location.pathname.split("/").pop() || "index.html"
+        }),
+        keepalive: true
+      });
+      return response.ok;
+    } catch(error) {
+      return false;
+    }
+  },
+
+  startPresence(){
+    if(this.presenceTimer) clearInterval(this.presenceTimer);
+    this.presenceEmail = String(this.currentStudent().email || "").trim().toLowerCase();
+    if(!this.presenceEmail) return;
+    this.sendPresence(document.visibilityState !== "hidden");
+    this.presenceTimer = setInterval(() => {
+      if(document.visibilityState !== "hidden") this.sendPresence(true);
+    }, 25000);
+  },
+
+  stopPresence(){
+    if(this.presenceTimer) clearInterval(this.presenceTimer);
+    this.presenceTimer = null;
+    const email = this.presenceEmail;
+    this.presenceEmail = "";
+    this.sendPresence(false, email);
   },
 
   defaultVisibilitySettings(){
@@ -323,9 +365,7 @@ const PilingoNotify = {
         at: event?.createdAt || ""
       };
 
-      if(createdAt && now - createdAt <= 15 * 60 * 1000) {
-        liveStudents.push(studentCard);
-      } else if(createdAt && now - createdAt <= 24 * 60 * 60 * 1000) {
+      if(createdAt && now - createdAt <= 24 * 60 * 60 * 1000) {
         recentStudents.push(studentCard);
       }
 
@@ -337,17 +377,23 @@ const PilingoNotify = {
       const phone = String(student?.phone || "").trim();
       const name = String(student?.name || "").trim();
       const key = (email || phone || name).toLowerCase();
-      if(!key || key === "unknown student" || seen.has(key)) continue;
-      seen.add(key);
+      if(!key || key === "unknown student") continue;
 
-      registeredStudents.push({
+      const studentCard = {
         name: name || "Student",
         email: email || "No email",
         phone: phone || "No phone",
         action: String(student?.latestAction || "Created account"),
         at: String(student?.lastSeenAt || student?.createdAt || ""),
-        isNew: !!student?.createdAt && (!student?.lastSeenAt || student.lastSeenAt === student.createdAt)
-      });
+        isNew: !!student?.createdAt && (!student?.lastSeenAt || student.lastSeenAt === student.createdAt),
+        online: student?.online === true,
+        page: String(student?.lastPresencePage || "")
+      };
+
+      if(studentCard.online){
+        liveStudents.push(studentCard);
+      }
+      registeredStudents.push(studentCard);
 
       if(registeredStudents.length >= 20) break;
     }
@@ -392,8 +438,8 @@ const PilingoNotify = {
       <div class="live-student-card">
         <strong>${escapeHtml(student.name)}</strong>
         <span>${escapeHtml(student.email)} • ${escapeHtml(student.phone)}</span>
-        <span>${student.isNew ? "New student" : "Latest"}: ${escapeHtml(student.action)}</span>
-        <span>${formatWhen(student.at)}</span>
+        <span>${student.online ? "🟢 Online" : (student.isNew ? "New student" : "Latest")}: ${escapeHtml(student.online ? (student.page || "Using Pilingo") : student.action)}</span>
+        <span>${student.online ? "Active now" : formatWhen(student.at)}</span>
       </div>
     `).join("");
   },
@@ -684,3 +730,25 @@ function escapeHtml(value){
 }
 
 window.PilingoNotify = PilingoNotify;
+
+PilingoNotify.startPresence();
+
+window.addEventListener("pilingo:account-changed", (event) => {
+  if(event?.detail?.account?.email){
+    PilingoNotify.startPresence();
+  } else {
+    PilingoNotify.stopPresence();
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "hidden"){
+    PilingoNotify.sendPresence(false, PilingoNotify.presenceEmail);
+  } else {
+    PilingoNotify.startPresence();
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  PilingoNotify.stopPresence();
+});
