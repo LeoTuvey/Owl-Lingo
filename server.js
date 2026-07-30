@@ -1025,14 +1025,7 @@ function appendStudentEvent(payload) {
       studentName: event.studentName,
       studentEmail: event.studentEmail,
       studentPhone: event.studentPhone,
-      studentLocation: event.studentLocation,
-      xp: 0,
-      level: 0,
-      streak: 0,
-      completedSections: 0,
-      averageGrade: 0,
-      bestGrade: 0,
-      lessonsFinished: 0
+      studentLocation: event.studentLocation
     });
   }
 
