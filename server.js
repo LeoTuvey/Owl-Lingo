@@ -169,6 +169,20 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && parsed.pathname === "/api/progress") {
+    try {
+      const body = await readBody(req);
+      const payload = JSON.parse(body || "{}");
+      const progress = updateLearningProgress(payload || {});
+      if (!progress) {
+        return sendJson(res, 404, { ok: false, error: "No account was found for this email." });
+      }
+      return sendJson(res, 200, { ok: true, progress });
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid progress request" });
+    }
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/social/follow") {
     try {
       const body = await readBody(req);
@@ -881,6 +895,8 @@ function publicAccount(account) {
     pendingFollowRequests: Array.isArray(account?.pendingFollowRequests) ? account.pendingFollowRequests.slice() : [],
     sentFollowRequests: Array.isArray(account?.sentFollowRequests) ? account.sentFollowRequests.slice() : [],
     blocked: Array.isArray(account?.blocked) ? account.blocked.slice() : [],
+    learningProgress: normalizeLearningProgress(account?.learningProgress),
+    progressUpdatedAt: String(account?.progressUpdatedAt || ""),
     isOwner,
     ownerPanelToken: isOwner ? OWNER_PANEL_TOKEN : ""
   };
@@ -911,6 +927,7 @@ function registerAccount(payload) {
     bio: "",
     statusMessage: "Ready to learn",
     settings: normalizeStudentSettings({}),
+    learningProgress: {},
     following: [],
     pendingFollowRequests: [],
     sentFollowRequests: [],
@@ -1011,12 +1028,69 @@ function normalizeAccountRecord(account) {
     avatarValue: String(account?.avatarValue || "🐯").trim() || "🐯",
     bio: String(account?.bio || "").trim(),
     statusMessage: String(account?.statusMessage || "").trim(),
+    learningProgress: normalizeLearningProgress(account?.learningProgress),
     settings: normalizeStudentSettings(account?.settings || {}),
     following: Array.from(new Set(following)),
     pendingFollowRequests: Array.from(new Set(pendingFollowRequests)),
     sentFollowRequests: Array.from(new Set(sentFollowRequests)),
     blocked: Array.from(new Set(blocked))
   };
+}
+
+const LEARNING_PROGRESS_KEYS = new Set([
+  "course",
+  "en-ku_xp",
+  "en-ku_unlocked",
+  "en-ku_course_progress_v2",
+  "streak",
+  "dailyXP",
+  "pilingo_game1_completed_parts",
+  "pilingo_game1_completed_sections",
+  "pilingo_game1_completed_lessons",
+  "pilingo_game1_completed_lesson_steps",
+  "pilingo_game1_review_lesson_cursors",
+  "pilingo_game1_lesson_statuses",
+  "pilingo_game1_grades",
+  "skill_0",
+  "skill_1",
+  "skill_2",
+  "skill_3",
+  "skill_4",
+  "skill_5",
+  "skill_6"
+]);
+
+function normalizeLearningProgress(progress) {
+  if (!progress || typeof progress !== "object" || Array.isArray(progress)) return {};
+
+  const normalized = {};
+  for (const [key, value] of Object.entries(progress)) {
+    if (!LEARNING_PROGRESS_KEYS.has(key)) continue;
+    if (typeof value !== "string") continue;
+    normalized[key] = value.slice(0, 500000);
+  }
+  return normalized;
+}
+
+function updateLearningProgress(payload) {
+  const email = normalizeEmail(payload?.email);
+  if (!email) return null;
+
+  const accounts = readAccounts();
+  const index = accounts.findIndex((account) => normalizeEmail(account?.email) === email);
+  if (index < 0) return null;
+
+  const incoming = normalizeLearningProgress(payload?.progress);
+  accounts[index] = normalizeAccountRecord({
+    ...accounts[index],
+    learningProgress: {
+      ...normalizeLearningProgress(accounts[index]?.learningProgress),
+      ...incoming
+    },
+    progressUpdatedAt: new Date().toISOString()
+  });
+  writeAccounts(accounts);
+  return accounts[index].learningProgress;
 }
 
 function normalizeStudentSettings(settings) {

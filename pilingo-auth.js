@@ -8,6 +8,112 @@ const PilingoAuth = {
   requestResetEndpoint: "/api/auth/request-reset",
   resetPasswordEndpoint: "/api/auth/reset-password",
   updateProfileEndpoint: "/api/profile/update",
+  progressEndpoint: "/api/progress",
+  progressSyncTimer: null,
+  progressSyncSuppressed: false,
+  progressKeys: [
+    "course",
+    "en-ku_xp",
+    "en-ku_unlocked",
+    "en-ku_course_progress_v2",
+    "streak",
+    "dailyXP",
+    "pilingo_game1_completed_parts",
+    "pilingo_game1_completed_sections",
+    "pilingo_game1_completed_lessons",
+    "pilingo_game1_completed_lesson_steps",
+    "pilingo_game1_review_lesson_cursors",
+    "pilingo_game1_lesson_statuses",
+    "pilingo_game1_grades",
+    "skill_0",
+    "skill_1",
+    "skill_2",
+    "skill_3",
+    "skill_4",
+    "skill_5",
+    "skill_6"
+  ],
+
+  captureLearningProgress(){
+    const progress = {};
+    this.progressKeys.forEach((key) => {
+      const value = localStorage.getItem(key);
+      if(value !== null) progress[key] = value;
+    });
+    return progress;
+  },
+
+  restoreLearningProgress(progress){
+    if(!progress || typeof progress !== "object") return;
+    this.progressSyncSuppressed = true;
+    try {
+      this.progressKeys.forEach((key) => {
+        if(typeof progress[key] === "string"){
+          localStorage.setItem(key, progress[key]);
+        }
+      });
+    } finally {
+      this.progressSyncSuppressed = false;
+    }
+  },
+
+  clearLearningProgress(){
+    this.progressSyncSuppressed = true;
+    try {
+      this.progressKeys.forEach((key) => localStorage.removeItem(key));
+    } finally {
+      this.progressSyncSuppressed = false;
+    }
+  },
+
+  hasLearningProgress(progress){
+    return !!(progress && typeof progress === "object" && Object.keys(progress).length);
+  },
+
+  saveLocalLearningProgress(email, progress){
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if(!normalizedEmail) return;
+    const accounts = this.loadLocalAccounts();
+    const index = accounts.findIndex((item) => String(item.email || "").trim().toLowerCase() === normalizedEmail);
+    if(index < 0) return;
+    accounts[index] = {
+      ...accounts[index],
+      learningProgress: {
+        ...(accounts[index].learningProgress || {}),
+        ...(progress || {})
+      },
+      progressUpdatedAt: new Date().toISOString()
+    };
+    this.saveLocalAccounts(accounts);
+  },
+
+  scheduleLearningProgressSync(){
+    if(this.progressSyncSuppressed) return;
+    clearTimeout(this.progressSyncTimer);
+    this.progressSyncTimer = setTimeout(() => {
+      this.syncLearningProgress().catch(() => {});
+    }, 600);
+  },
+
+  async syncLearningProgress(){
+    const account = this.loadAccount();
+    if(!account?.email) return null;
+    const progress = this.captureLearningProgress();
+    if(!this.hasLearningProgress(progress)) return null;
+
+    if(this.shouldUseLocalMode()){
+      this.saveLocalLearningProgress(account.email, progress);
+      this.updateAccount({ learningProgress: progress });
+      return progress;
+    }
+
+    const dataOut = await this.postJson(this.progressEndpoint, {
+      email: String(account.email || "").trim().toLowerCase(),
+      progress
+    });
+    this.updateAccount({ learningProgress: dataOut.progress || progress });
+    return dataOut.progress || progress;
+  },
 
   loadAccount(){
     try {
@@ -48,6 +154,15 @@ const PilingoAuth = {
 
   logout(){
     const account = this.loadAccount();
+    if(account?.email){
+      const progress = this.captureLearningProgress();
+      if(this.shouldUseLocalMode()){
+        this.saveLocalLearningProgress(account.email, progress);
+      } else {
+        this.syncLearningProgress().catch(() => {});
+      }
+      this.clearLearningProgress();
+    }
     this.clearAccount();
     return account;
   },
@@ -124,7 +239,8 @@ const PilingoAuth = {
         newLessonReminders: true,
         notificationTime: "18:00",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
-      }
+      },
+      learningProgress: this.captureLearningProgress()
     };
 
     accounts.push(account);
@@ -140,7 +256,8 @@ const PilingoAuth = {
       avatarValue: account.avatarValue,
       bio: account.bio,
       statusMessage: account.statusMessage,
-      settings: account.settings
+      settings: account.settings,
+      learningProgress: account.learningProgress || {}
     });
   },
 
@@ -157,6 +274,7 @@ const PilingoAuth = {
       throw new Error("Wrong password. Please try again.");
     }
 
+    this.restoreLearningProgress(account.learningProgress || {});
     return this.saveAccount({
       id: account.id,
       name: account.name,
@@ -178,7 +296,8 @@ const PilingoAuth = {
         newLessonReminders: true,
         notificationTime: "18:00",
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
-      }
+      },
+      learningProgress: account.learningProgress || {}
     });
   },
 
@@ -404,8 +523,19 @@ const PilingoAuth = {
       email: String(data?.email || "").trim().toLowerCase(),
       password: String(data?.password || "").trim()
     };
+    const browserProgress = this.captureLearningProgress();
     const dataOut = await this.postJson(this.loginEndpoint, payload);
-    return this.saveAccount(dataOut.account);
+    const serverProgress = dataOut.account?.learningProgress || {};
+    const progress = this.hasLearningProgress(serverProgress) ? serverProgress : browserProgress;
+    this.restoreLearningProgress(progress);
+    const account = this.saveAccount({
+      ...dataOut.account,
+      learningProgress: progress
+    });
+    if(!this.hasLearningProgress(serverProgress) && this.hasLearningProgress(browserProgress)){
+      this.syncLearningProgress().catch(() => {});
+    }
+    return account;
   },
 
   async requestPasswordReset(email){
@@ -513,3 +643,18 @@ const PilingoAuth = {
 };
 
 window.PilingoAuth = PilingoAuth;
+
+if(!window.__pilingoProgressStorageHook){
+  window.__pilingoProgressStorageHook = true;
+  const originalSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(key, value){
+    originalSetItem.call(this, key, value);
+    if(this === localStorage && PilingoAuth.progressKeys.includes(String(key))){
+      PilingoAuth.scheduleLearningProgressSync();
+    }
+  };
+}
+
+window.addEventListener("pagehide", () => {
+  PilingoAuth.syncLearningProgress().catch(() => {});
+});
