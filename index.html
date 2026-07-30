@@ -2391,11 +2391,26 @@ button.is-pressed{
   font-weight:1000;
 }
 
-.call-end-button{
+button.call-end-button,
+button.call-end-button:hover,
+button.call-end-button:focus,
+button.call-end-button:focus-visible,
+button.call-end-button:active,
+button.call-end-button.is-pressed,
+button.call-end-button:disabled{
   background:linear-gradient(180deg, #ff7b88 0%, #e74b5d 100%);
   border-color:#ae2637;
   box-shadow:0 4px 0 #ae2637;
   color:#fff;
+}
+
+button.call-end-button:hover{
+  background:linear-gradient(180deg, #ff8995 0%, #ed5869 100%);
+}
+
+button.call-end-button:active,
+button.call-end-button.is-pressed{
+  box-shadow:0 2px 0 #ae2637 !important;
 }
 
 @media (max-width:600px){
