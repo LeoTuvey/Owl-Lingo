@@ -22,6 +22,7 @@ const APP_SETTINGS_FILE = path.join(DATA_DIR, "app-settings.json");
 const PUSH_SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "push-subscriptions.json");
 const PUSH_KEYS_FILE = path.join(DATA_DIR, "vapid-keys.json");
 const VISITS_FILE = path.join(DATA_DIR, "visits.json");
+const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
@@ -136,6 +137,22 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if (req.method === "GET" && parsed.pathname === "/api/messages") {
+    const viewerEmail = normalizeEmail(parsed.searchParams.get("viewerEmail") || "");
+    return sendJson(res, 200, {
+      ok: true,
+      conversations: getMessageConversations(viewerEmail)
+    });
+  }
+
+  if (req.method === "GET" && parsed.pathname === "/api/messages/thread") {
+    const viewerEmail = normalizeEmail(parsed.searchParams.get("viewerEmail") || "");
+    const targetEmail = normalizeEmail(parsed.searchParams.get("targetEmail") || "");
+    const thread = getMessageThread(viewerEmail, targetEmail, true);
+    if (!thread.ok) return sendJson(res, 400, thread);
+    return sendJson(res, 200, thread);
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/track") {
     try {
       const body = await readBody(req);
@@ -211,6 +228,18 @@ const server = http.createServer(async (req, res) => {
       });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid follow request" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/messages/send") {
+    try {
+      const body = await readBody(req);
+      const payload = JSON.parse(body || "{}");
+      const result = sendDirectMessage(payload || {});
+      if (!result.ok) return sendJson(res, 400, result);
+      return sendJson(res, 200, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid message request" });
     }
   }
 
@@ -469,6 +498,129 @@ function ensureDataFile() {
   if (!fs.existsSync(APP_SETTINGS_FILE)) fs.writeFileSync(APP_SETTINGS_FILE, JSON.stringify(defaultAppSettings(), null, 2), "utf8");
   if (!fs.existsSync(PUSH_SUBSCRIPTIONS_FILE)) fs.writeFileSync(PUSH_SUBSCRIPTIONS_FILE, "[]", "utf8");
   if (!fs.existsSync(VISITS_FILE)) fs.writeFileSync(VISITS_FILE, "[]", "utf8");
+  if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, "[]", "utf8");
+}
+
+function readMessages() {
+  try {
+    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, "utf8"));
+    return Array.isArray(messages) ? messages : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeMessages(messages) {
+  fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages.slice(-20000), null, 2), "utf8");
+}
+
+function messageParticipantsAllowed(sender, recipient) {
+  const senderBlocked = new Set((sender?.blocked || []).map(normalizeEmail));
+  const recipientBlocked = new Set((recipient?.blocked || []).map(normalizeEmail));
+  return !senderBlocked.has(recipient.email) && !recipientBlocked.has(sender.email);
+}
+
+function sendDirectMessage(payload) {
+  const senderEmail = normalizeEmail(payload?.senderEmail);
+  const recipientEmail = normalizeEmail(payload?.recipientEmail);
+  const text = String(payload?.text || "").trim();
+  if (!senderEmail || !recipientEmail || !text) {
+    return { ok: false, error: "Sender, recipient, and message are required." };
+  }
+  if (senderEmail === recipientEmail) {
+    return { ok: false, error: "Students cannot message themselves." };
+  }
+  if (text.length > 1000) {
+    return { ok: false, error: "Messages can contain up to 1,000 characters." };
+  }
+
+  const accounts = readAccounts();
+  const sender = accounts.find((account) => account.email === senderEmail);
+  const recipient = accounts.find((account) => account.email === recipientEmail);
+  if (!sender || !recipient) return { ok: false, error: "Both learners need registered accounts." };
+  if (!messageParticipantsAllowed(sender, recipient)) {
+    return { ok: false, error: "Messages are unavailable because one learner blocked the other." };
+  }
+
+  const message = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
+    senderEmail,
+    recipientEmail,
+    text,
+    readAt: "",
+    createdAt: new Date().toISOString()
+  };
+  const messages = readMessages();
+  messages.push(message);
+  writeMessages(messages);
+
+  sendPushNotificationToUser(recipientEmail, {
+    title: `💬 Message from ${sender.name || "a learner"}`,
+    body: text.slice(0, 120),
+    url: "/index.html#messages"
+  }).catch(() => {});
+
+  return { ok: true, message };
+}
+
+function getMessageThread(viewerEmail, targetEmail, markRead) {
+  const accounts = readAccounts();
+  const viewer = accounts.find((account) => account.email === viewerEmail);
+  const target = accounts.find((account) => account.email === targetEmail);
+  if (!viewer || !target || viewerEmail === targetEmail) {
+    return { ok: false, error: "This conversation is unavailable." };
+  }
+  if (!messageParticipantsAllowed(viewer, target)) {
+    return { ok: false, error: "This conversation is blocked." };
+  }
+
+  const messages = readMessages();
+  const thread = messages.filter((message) =>
+    (message.senderEmail === viewerEmail && message.recipientEmail === targetEmail) ||
+    (message.senderEmail === targetEmail && message.recipientEmail === viewerEmail)
+  );
+  if (markRead) {
+    const now = new Date().toISOString();
+    let changed = false;
+    messages.forEach((message) => {
+      if (message.senderEmail === targetEmail && message.recipientEmail === viewerEmail && !message.readAt) {
+        message.readAt = now;
+        changed = true;
+      }
+    });
+    if (changed) writeMessages(messages);
+  }
+  return {
+    ok: true,
+    participant: publicAccount(target),
+    messages: thread.slice(-300)
+  };
+}
+
+function getMessageConversations(viewerEmail) {
+  if (!viewerEmail) return [];
+  const accounts = readAccounts();
+  const accountMap = new Map(accounts.map((account) => [account.email, account]));
+  if (!accountMap.has(viewerEmail)) return [];
+
+  const conversations = new Map();
+  readMessages().forEach((message) => {
+    if (message.senderEmail !== viewerEmail && message.recipientEmail !== viewerEmail) return;
+    const otherEmail = message.senderEmail === viewerEmail ? message.recipientEmail : message.senderEmail;
+    const other = accountMap.get(otherEmail);
+    if (!other) return;
+    const current = conversations.get(otherEmail) || {
+      participant: publicAccount(other),
+      lastMessage: null,
+      unreadCount: 0
+    };
+    current.lastMessage = message;
+    if (message.recipientEmail === viewerEmail && !message.readAt) current.unreadCount += 1;
+    conversations.set(otherEmail, current);
+  });
+  return Array.from(conversations.values()).sort((a, b) =>
+    new Date(b.lastMessage?.createdAt || 0).getTime() - new Date(a.lastMessage?.createdAt || 0).getTime()
+  );
 }
 
 function readVisits() {

@@ -2164,6 +2164,63 @@ button.is-pressed{
   line-height:1.5;
 }
 
+.message-card{
+  width:100%;
+  margin-top:10px;
+  padding:12px 14px;
+  border:1px solid rgba(239,215,150,0.8);
+  border-radius:18px;
+  background:#fff;
+  text-align:left;
+}
+
+.message-card strong,
+.message-card span{
+  display:block;
+}
+
+.message-card span{
+  margin-top:4px;
+  color:#8a6a22;
+  font-size:12px;
+}
+
+.message-thread{
+  max-height:360px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:10px 0;
+}
+
+.message-bubble{
+  max-width:82%;
+  padding:10px 13px;
+  border-radius:16px;
+  background:#f2ead4;
+  color:#55410d;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
+.message-bubble.mine{
+  align-self:flex-end;
+  background:#dff7c9;
+}
+
+.message-compose{
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+
+.message-compose textarea{
+  flex:1;
+  min-height:74px;
+  resize:vertical;
+}
+
 .social-avatar,
 .student-profile-avatar{
   width:52px;
@@ -2653,6 +2710,7 @@ button.is-pressed{
           <div id="socialOutgoingList" class="social-panel"></div>
           <div id="socialFollowingList" class="social-panel"></div>
           <div id="socialFollowersList" class="social-panel"></div>
+          <div id="socialMessagesList" class="social-panel"></div>
           <div id="socialDiscoverList" class="social-panel"></div>
         </div>
       </div>
@@ -2666,6 +2724,20 @@ button.is-pressed{
           <div id="studentProfileBody" class="student-profile-body">
             <div class="social-empty">Loading profile...</div>
           </div>
+        </div>
+      </div>
+
+      <div id="messageModal" class="student-profile-modal" hidden>
+        <div class="student-profile-card">
+          <div class="student-profile-top">
+            <strong id="messageModalTitle">💬 Messages</strong>
+            <button class="secondary-button student-profile-close" type="button" onclick="closeConversation()">Close</button>
+          </div>
+          <div id="messageThread" class="message-thread"></div>
+          <form class="message-compose" onsubmit="sendConversationMessage(event)">
+            <textarea id="messageInput" maxlength="1000" placeholder="Write a respectful message..." required></textarea>
+            <button class="social-follow-button" type="submit">Send</button>
+          </form>
         </div>
       </div>
 

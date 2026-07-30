@@ -4,9 +4,13 @@ const PilingoSocial = {
   followEndpoint: "/api/social/follow",
   requestEndpoint: "/api/social/request",
   blockEndpoint: "/api/social/block",
+  messagesEndpoint: "/api/messages",
+  messageThreadEndpoint: "/api/messages/thread",
+  messageSendEndpoint: "/api/messages/send",
   pollTimer: null,
   lastSnapshot: null,
   activeProfile: null,
+  activeConversationEmail: "",
 
   canUseServer(){
     return location.protocol.startsWith("http");
@@ -64,6 +68,37 @@ const PilingoSocial = {
       this.lastSnapshot = data.social;
     }
     return data;
+  },
+
+  async fetchConversations(){
+    const viewerEmail = this.currentEmail();
+    if(!viewerEmail) return [];
+    try {
+      const response = await fetch(`${this.messagesEndpoint}?viewerEmail=${encodeURIComponent(viewerEmail)}`, { cache:"no-store" });
+      const data = await response.json();
+      return Array.isArray(data?.conversations) ? data.conversations : [];
+    } catch(error) {
+      return [];
+    }
+  },
+
+  async fetchThread(targetEmail){
+    const viewerEmail = this.currentEmail();
+    if(!viewerEmail || !targetEmail) return null;
+    const url = `${this.messageThreadEndpoint}?viewerEmail=${encodeURIComponent(viewerEmail)}&targetEmail=${encodeURIComponent(targetEmail)}`;
+    const response = await fetch(url, { cache:"no-store" });
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok || !data?.ok) throw new Error(data?.error || "Could not open this conversation.");
+    return data;
+  },
+
+  async sendMessage(targetEmail, text){
+    const senderEmail = this.currentEmail();
+    return await this.postAction(this.messageSendEndpoint, {
+      senderEmail,
+      recipientEmail: targetEmail,
+      text: String(text || "").trim()
+    });
   },
 
   async setFollow(targetEmail, follow){
@@ -154,9 +189,10 @@ const PilingoSocial = {
     const outgoingList = document.getElementById("socialOutgoingList");
     const followingList = document.getElementById("socialFollowingList");
     const followersList = document.getElementById("socialFollowersList");
+    const messagesList = document.getElementById("socialMessagesList");
     const discoverList = document.getElementById("socialDiscoverList");
 
-    if(!card || !summary || !requestsList || !outgoingList || !followingList || !followersList || !discoverList) return;
+    if(!card || !summary || !requestsList || !outgoingList || !followingList || !followersList || !messagesList || !discoverList) return;
 
     const account = this.currentAccount();
     if(!account?.email){
@@ -178,6 +214,7 @@ const PilingoSocial = {
       outgoingList.innerHTML = "";
       followingList.innerHTML = "";
       followersList.innerHTML = "";
+      messagesList.innerHTML = "";
       discoverList.innerHTML = "";
       return;
     }
@@ -194,6 +231,7 @@ const PilingoSocial = {
       outgoingList.innerHTML = "";
       followingList.innerHTML = "";
       followersList.innerHTML = "";
+      messagesList.innerHTML = "";
       discoverList.innerHTML = "";
       return;
     }
@@ -242,11 +280,73 @@ const PilingoSocial = {
       "No followers yet. When students follow you, they will appear here."
     );
 
+    messagesList.innerHTML = this.renderConversations(await this.fetchConversations());
+
     discoverList.innerHTML = this.renderStudentList(
       "Explore learners",
       snapshot.suggestedStudents || [],
       "No more learners to discover right now."
     );
+  },
+
+  renderConversations(conversations){
+    if(!Array.isArray(conversations) || !conversations.length){
+      return `
+        <div class="social-section-title">Messages</div>
+        <div class="social-empty">No messages yet. Open a learner profile and press Message.</div>
+      `;
+    }
+    return `
+      <div class="social-section-title">Messages</div>
+      ${conversations.map((conversation) => {
+        const participant = conversation.participant || {};
+        const preview = String(conversation.lastMessage?.text || "");
+        return `
+          <button class="message-card" type="button" onclick="openConversation('${escapeAttr(participant.email)}')">
+            <strong>${escapeHtml(participant.name || "Student")}${conversation.unreadCount ? ` • ${Number(conversation.unreadCount)} new` : ""}</strong>
+            <span>${escapeHtml(preview.slice(0, 120))}</span>
+          </button>
+        `;
+      }).join("")}
+    `;
+  },
+
+  async openConversation(targetEmail){
+    const modal = document.getElementById("messageModal");
+    const title = document.getElementById("messageModalTitle");
+    const threadElement = document.getElementById("messageThread");
+    if(!modal || !title || !threadElement) return;
+    this.activeConversationEmail = String(targetEmail || "").trim().toLowerCase();
+    modal.hidden = false;
+    threadElement.innerHTML = `<div class="social-empty">Loading messages...</div>`;
+    try {
+      const thread = await this.fetchThread(this.activeConversationEmail);
+      title.textContent = `💬 ${thread.participant?.name || "Messages"}`;
+      const viewerEmail = this.currentEmail();
+      threadElement.innerHTML = (thread.messages || []).length
+        ? thread.messages.map((message) => `
+            <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""}">
+              ${escapeHtml(message.text)}
+            </div>
+          `).join("")
+        : `<div class="social-empty">Start the conversation with a friendly message.</div>`;
+      threadElement.scrollTop = threadElement.scrollHeight;
+      await this.render();
+    } catch(error) {
+      threadElement.innerHTML = `<div class="social-empty">${escapeHtml(error?.message || "Could not load messages.")}</div>`;
+    }
+  },
+
+  closeConversation(){
+    const modal = document.getElementById("messageModal");
+    if(modal) modal.hidden = true;
+    this.activeConversationEmail = "";
+  },
+
+  async submitConversationMessage(text){
+    if(!this.activeConversationEmail) return;
+    await this.sendMessage(this.activeConversationEmail, text);
+    await this.openConversation(this.activeConversationEmail);
   },
 
   renderStudentList(title, students, emptyMessage){
@@ -334,6 +434,9 @@ const PilingoSocial = {
   },
 
   renderProfile(profile){
+    const messageButton = (!profile.isCurrentStudent && !profile.blockedYou && !profile.isBlocked)
+      ? `<button class="secondary-button" type="button" onclick="openConversation('${escapeAttr(profile.email)}')">Message</button>`
+      : "";
     const actionButton = profile.isCurrentStudent
       ? ""
       : profile.blockedYou
@@ -399,6 +502,7 @@ const PilingoSocial = {
       ${this.renderProfileConnections("Following", profile.followingStudents, "Not following anyone yet.")}
       ${profile.isCurrentStudent ? this.renderProfileConnections("Waiting requests", profile.pendingRequestStudents, "No pending requests.") : ""}
       ${profile.isCurrentStudent ? this.renderProfileConnections("Sent requests", profile.sentRequestStudents, "No sent requests.") : ""}
+      ${messageButton ? `<div class="student-profile-actions">${messageButton}</div>` : ""}
       ${actionButton}
     `;
   },
@@ -477,6 +581,27 @@ function closeStudentProfile(){
   PilingoSocial.closeProfile();
 }
 
+async function openConversation(targetEmail){
+  await PilingoSocial.openConversation(targetEmail);
+}
+
+function closeConversation(){
+  PilingoSocial.closeConversation();
+}
+
+async function sendConversationMessage(event){
+  event.preventDefault();
+  const input = document.getElementById("messageInput");
+  const text = String(input?.value || "").trim();
+  if(!text) return;
+  try {
+    await PilingoSocial.submitConversationMessage(text);
+    if(input) input.value = "";
+  } catch(error) {
+    alert(error?.message || "Could not send this message.");
+  }
+}
+
 async function toggleStudentFollow(targetEmail, shouldFollow){
   try {
     if(shouldFollow){
@@ -539,3 +664,6 @@ window.toggleStudentFollow = toggleStudentFollow;
 window.toggleProfileFollow = toggleProfileFollow;
 window.respondToFollowRequest = respondToFollowRequest;
 window.toggleProfileBlock = toggleProfileBlock;
+window.openConversation = openConversation;
+window.closeConversation = closeConversation;
+window.sendConversationMessage = sendConversationMessage;
