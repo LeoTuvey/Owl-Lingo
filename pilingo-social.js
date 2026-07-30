@@ -320,6 +320,19 @@ const PilingoSocial = {
       ? `💬 Messages <span class="message-unread-badge">${unreadCount}</span>`
       : "💬 Messages";
     launcher.classList.toggle("has-unread", unreadCount > 0);
+    this.updateAppBadge(unreadCount);
+  },
+
+  async updateAppBadge(unreadCount){
+    try {
+      if(unreadCount > 0 && "setAppBadge" in navigator){
+        await navigator.setAppBadge(unreadCount);
+      } else if(unreadCount === 0 && "clearAppBadge" in navigator){
+        await navigator.clearAppBadge();
+      }
+    } catch(error) {
+      // App icon badges are optional and device-controlled.
+    }
   },
 
   async openConversation(targetEmail){

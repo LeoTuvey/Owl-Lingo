@@ -30,7 +30,13 @@ self.addEventListener("push", (event) => {
   const payload = event.data ? event.data.json() : {};
   const title = payload?.title || "Pilingo";
   const options = notificationOptionsFromPayload(payload);
-  event.waitUntil(self.registration.showNotification(title, options));
+  const tasks = [self.registration.showNotification(title, options)];
+  const shouldBadge = payload?.appBadge === true ||
+    ["direct-message", "incoming-call"].includes(payload?.data?.type);
+  if (shouldBadge && "setAppBadge" in self.navigator) {
+    tasks.push(self.navigator.setAppBadge().catch(() => {}));
+  }
+  event.waitUntil(Promise.all(tasks));
 });
 
 self.addEventListener("notificationclick", (event) => {

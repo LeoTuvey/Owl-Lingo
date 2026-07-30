@@ -668,6 +668,7 @@ async function notifyCallRecipient(caller, recipient, call) {
     title: `📞 Incoming ${label} call`,
     body: `${caller.name || "A learner"} is calling you on Pilingo.`,
     url: "/index.html#messages",
+    appBadge: true,
     tag: `pilingo-call-${call.id}`,
     renotify: true,
     requireInteraction: true,
@@ -743,7 +744,11 @@ async function notifyMessageRecipient(sender, recipient, message) {
   await sendPushNotificationToUser(recipient.email, {
     title: `💬 Message from ${sender.name || "a learner"}`,
     body: message.text.slice(0, 120),
-    url: "/index.html#messages"
+    url: "/index.html#messages",
+    appBadge: true,
+    data: {
+      type: "direct-message"
+    }
   });
 
   if (!RESEND_API_KEY || !EMAIL_FROM) return;
