@@ -5,3 +5,4 @@ data/student-events.json
 data/student-stats.json
 data/push-subscriptions.json
 data/vapid-keys.json
+data/visits.json

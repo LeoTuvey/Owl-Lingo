@@ -21,6 +21,7 @@ const RESETS_FILE = path.join(DATA_DIR, "password-resets.json");
 const APP_SETTINGS_FILE = path.join(DATA_DIR, "app-settings.json");
 const PUSH_SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "push-subscriptions.json");
 const PUSH_KEYS_FILE = path.join(DATA_DIR, "vapid-keys.json");
+const VISITS_FILE = path.join(DATA_DIR, "visits.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
@@ -90,6 +91,19 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if (req.method === "GET" && parsed.pathname === "/api/owner/visits") {
+    if (!hasOwnerAccess(req)) {
+      return sendJson(res, 403, {
+        ok: false,
+        error: "Owner access only"
+      });
+    }
+    return sendJson(res, 200, {
+      ok: true,
+      ...getVisitSummary()
+    });
+  }
+
   if (req.method === "GET" && parsed.pathname === "/api/leaderboard") {
     return sendJson(res, 200, {
       ok: true,
@@ -130,6 +144,17 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true, event });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid request body" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/visit") {
+    try {
+      const body = await readBody(req);
+      const payload = JSON.parse(body || "{}");
+      const visit = await recordVisit(req, payload);
+      return sendJson(res, 200, { ok: true, visit });
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid visit request" });
     }
   }
 
@@ -415,6 +440,141 @@ function ensureDataFile() {
   if (!fs.existsSync(RESETS_FILE)) fs.writeFileSync(RESETS_FILE, "[]", "utf8");
   if (!fs.existsSync(APP_SETTINGS_FILE)) fs.writeFileSync(APP_SETTINGS_FILE, JSON.stringify(defaultAppSettings(), null, 2), "utf8");
   if (!fs.existsSync(PUSH_SUBSCRIPTIONS_FILE)) fs.writeFileSync(PUSH_SUBSCRIPTIONS_FILE, "[]", "utf8");
+  if (!fs.existsSync(VISITS_FILE)) fs.writeFileSync(VISITS_FILE, "[]", "utf8");
+}
+
+function readVisits() {
+  try {
+    const visits = JSON.parse(fs.readFileSync(VISITS_FILE, "utf8"));
+    return Array.isArray(visits) ? visits : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeVisits(visits) {
+  fs.writeFileSync(VISITS_FILE, JSON.stringify(visits.slice(-20000), null, 2), "utf8");
+}
+
+function getClientIp(req) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const raw = forwarded || String(req.socket?.remoteAddress || "").trim();
+  return raw.replace(/^::ffff:/, "");
+}
+
+async function lookupCoarseLocation(ip) {
+  if (!ip || ip === "::1" || ip === "127.0.0.1" || !/^[0-9a-f:.]+$/i.test(ip)) {
+    return { city: "Local", region: "", country: "Local", countryCode: "", continent: "" };
+  }
+
+  try {
+    const response = await fetch(
+      `https://ipwho.is/${encodeURIComponent(ip)}?fields=success,city,region,country,country_code,continent`,
+      { headers: { "User-Agent": "Pilingo coarse visit analytics" } }
+    );
+    if (!response.ok) throw new Error("Location lookup failed");
+    const data = await response.json();
+    if (data?.success === false) throw new Error("Location unavailable");
+    return {
+      city: String(data?.city || "Unknown"),
+      region: String(data?.region || ""),
+      country: String(data?.country || "Unknown"),
+      countryCode: String(data?.country_code || "").toUpperCase(),
+      continent: String(data?.continent || "Unknown")
+    };
+  } catch (error) {
+    return { city: "Unknown", region: "", country: "Unknown", countryCode: "", continent: "Unknown" };
+  }
+}
+
+async function recordVisit(req, payload) {
+  const sessionId = String(payload?.sessionId || "").trim().slice(0, 100);
+  if (!/^[a-z0-9_-]{12,100}$/i.test(sessionId)) {
+    throw new Error("Invalid session");
+  }
+
+  const visits = readVisits();
+  const existing = visits.find((item) => item.sessionId === sessionId);
+  if (existing) return existing;
+
+  const location = await lookupCoarseLocation(getClientIp(req));
+  const visit = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    sessionId,
+    city: location.city,
+    region: location.region,
+    country: location.country,
+    countryCode: location.countryCode,
+    continent: location.continent,
+    entryPage: String(payload?.entryPage || "").slice(0, 160),
+    referrerHost: String(payload?.referrerHost || "").slice(0, 160),
+    timezone: String(payload?.timezone || "").slice(0, 100),
+    createdAt: new Date().toISOString()
+  };
+  visits.push(visit);
+  writeVisits(visits);
+  sendNewVisitorNotifications(visit).catch(() => {});
+  return visit;
+}
+
+async function sendNewVisitorNotifications(visit) {
+  const locationParts = [
+    visit.city,
+    visit.region,
+    visit.country,
+    visit.continent ? `(${visit.continent})` : ""
+  ].filter((part) => part && part !== "Unknown");
+  const locationLabel = locationParts.join(", ") || "Location unavailable";
+  const event = {
+    type: "new_visitor",
+    label: "New person opened Pilingo",
+    studentName: "Website visitor",
+    studentEmail: "",
+    studentPhone: "",
+    studentLocation: locationLabel,
+    page: visit.entryPage || "/",
+    createdAt: visit.createdAt,
+    details: {
+      city: visit.city,
+      region: visit.region,
+      country: visit.country,
+      continent: visit.continent,
+      referrerHost: visit.referrerHost
+    }
+  };
+
+  const pushTasks = OWNER_EMAILS.map((email) =>
+    sendPushNotificationToUser(email, {
+      title: "🌍 New Pilingo visitor",
+      body: `${locationLabel} opened ${visit.entryPage || "the app"}.`,
+      url: "/index.html"
+    })
+  );
+  await Promise.allSettled([
+    sendNotifications(event),
+    ...pushTasks
+  ]);
+}
+
+function getVisitSummary() {
+  const visits = readVisits();
+  const countBy = (field) => {
+    const counts = new Map();
+    visits.forEach((visit) => {
+      const value = String(visit?.[field] || "Unknown").trim() || "Unknown";
+      counts.set(value, (counts.get(value) || 0) + 1);
+    });
+    return Array.from(counts, ([name, visits]) => ({ name, visits }))
+      .sort((a, b) => b.visits - a.visits || a.name.localeCompare(b.name));
+  };
+
+  return {
+    totalVisits: visits.length,
+    countries: countBy("country"),
+    cities: countBy("city"),
+    continents: countBy("continent"),
+    recentVisits: visits.slice(-100).reverse().map(({ sessionId, ...visit }) => visit)
+  };
 }
 
 function loadEnvFile() {

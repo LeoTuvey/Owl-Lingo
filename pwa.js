@@ -15,6 +15,66 @@
   let installPrompt = null;
   let swRegistrationPromise = null;
   let lastRecordedActivity = "";
+  const visitSessionKey = "pilingo_visit_session_v1";
+
+  function createVisitSessionId(){
+    if(window.crypto?.randomUUID){
+      return window.crypto.randomUUID().replace(/-/g, "");
+    }
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+  }
+
+  async function recordCoarseVisit(){
+    if(!canUseServer()) return false;
+
+    let sessionId = "";
+    try {
+      sessionId = sessionStorage.getItem(visitSessionKey) || "";
+      if(sessionId) return true;
+      sessionId = createVisitSessionId();
+      sessionStorage.setItem(visitSessionKey, sessionId);
+    } catch(error) {
+      sessionId = createVisitSessionId();
+    }
+
+    let referrerHost = "";
+    try {
+      referrerHost = document.referrer ? new URL(document.referrer).hostname : "";
+    } catch(error) {
+      referrerHost = "";
+    }
+
+    const payload = {
+      sessionId,
+      entryPage: `${location.pathname || "/"}${location.search || ""}`,
+      referrerHost,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+    };
+    const origins = [
+      String(location.origin || ""),
+      "https://pilingo.onrender.com"
+    ].filter((value, index, values) => value && values.indexOf(value) === index);
+
+    for(const origin of origins){
+      try {
+        const response = await fetch(new URL("/api/visit", origin), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+        if(response.ok) return true;
+      } catch(error) {
+        // Try the next configured backend.
+      }
+    }
+    try {
+      sessionStorage.removeItem(visitSessionKey);
+    } catch(error) {
+      // A future page load can retry when storage is available.
+    }
+    return false;
+  }
 
   function currentAccount(){
     return window.PilingoAuth?.loadAccount?.() || null;
@@ -475,6 +535,7 @@
     setInstallButtonVisible(false);
     bindSettingsInputs();
     updateSettingsInputs();
+    recordCoarseVisit();
 
     if(supportsPush()){
       try {
