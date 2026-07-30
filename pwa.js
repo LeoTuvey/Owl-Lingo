@@ -3,7 +3,7 @@
   const usageKey = "pilingo_push_usage_count_v1";
   const promptedKey = "pilingo_push_prompted_v1";
   const pushStateKey = "pilingo_push_state_v1";
-  const swUrl = "sw.js";
+  const swUrl = "sw.js?v=11";
   const endpoints = {
     publicKey: "/api/push/public-key",
     subscribe: "/api/push/subscribe",

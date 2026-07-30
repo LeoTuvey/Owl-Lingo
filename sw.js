@@ -34,7 +34,13 @@ self.addEventListener("push", (event) => {
   const shouldBadge = payload?.appBadge === true ||
     ["direct-message", "incoming-call"].includes(payload?.data?.type);
   if (shouldBadge && "setAppBadge" in self.navigator) {
-    tasks.push(self.navigator.setAppBadge().catch(() => {}));
+    const badgeCount = Number(payload?.data?.badgeCount || 0);
+    tasks.push(
+      (badgeCount > 0
+        ? self.navigator.setAppBadge(badgeCount)
+        : self.navigator.setAppBadge()
+      ).catch(() => {})
+    );
   }
   event.waitUntil(Promise.all(tasks));
 });

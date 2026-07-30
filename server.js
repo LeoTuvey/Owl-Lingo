@@ -664,6 +664,7 @@ function pollCalls(email, after) {
 
 async function notifyCallRecipient(caller, recipient, call) {
   const label = call.mode === "audio" ? "voice" : "video";
+  const badgeCount = Math.max(1, getUnreadMessageCount(recipient.email) + 1);
   await sendPushNotificationToUser(recipient.email, {
     title: `📞 Incoming ${label} call`,
     body: `${caller.name || "A learner"} is calling you on Pilingo.`,
@@ -677,7 +678,8 @@ async function notifyCallRecipient(caller, recipient, call) {
     timestamp: Date.now(),
     data: {
       type: "incoming-call",
-      callId: call.id
+      callId: call.id,
+      badgeCount
     }
   });
 }
@@ -741,13 +743,15 @@ function sendDirectMessage(payload) {
 }
 
 async function notifyMessageRecipient(sender, recipient, message) {
+  const badgeCount = Math.max(1, getUnreadMessageCount(recipient.email));
   await sendPushNotificationToUser(recipient.email, {
     title: `💬 Message from ${sender.name || "a learner"}`,
     body: message.text.slice(0, 120),
     url: "/index.html#messages",
     appBadge: true,
     data: {
-      type: "direct-message"
+      type: "direct-message",
+      badgeCount
     }
   });
 
@@ -835,6 +839,14 @@ function getMessageConversations(viewerEmail) {
   return Array.from(conversations.values()).sort((a, b) =>
     new Date(b.lastMessage?.createdAt || 0).getTime() - new Date(a.lastMessage?.createdAt || 0).getTime()
   );
+}
+
+function getUnreadMessageCount(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return 0;
+  return readMessages().reduce((count, message) =>
+    count + (message.recipientEmail === normalizedEmail && !message.readAt ? 1 : 0),
+  0);
 }
 
 function readVisits() {
@@ -1968,6 +1980,12 @@ async function sendPushNotificationRecord(record, payload) {
     icon: "/pilingo-icon-192.png",
     badge: "/pilingo-icon-192.png",
     tag: payload.tag || "pilingo-reminder",
+    appBadge: payload.appBadge === true,
+    renotify: payload.renotify !== false,
+    requireInteraction: !!payload.requireInteraction,
+    silent: payload.silent === true,
+    vibrate: Array.isArray(payload.vibrate) ? payload.vibrate : undefined,
+    timestamp: Number(payload.timestamp || Date.now()),
     url: payload.url || "/index.html",
     data: payload.data || {}
   });
