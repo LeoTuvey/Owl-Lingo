@@ -2001,6 +2001,23 @@ button.is-pressed{
   margin-bottom:10px;
 }
 
+.message-launcher{
+  width:auto;
+  min-width:132px;
+  margin:0;
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:14px;
+}
+
+.message-launcher.has-unread{
+  animation:messageLauncherPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes messageLauncherPulse{
+  50%{transform:scale(1.04);}
+}
+
 .social-note{
   margin:0 0 14px;
   font-size:13px;
@@ -2699,9 +2716,9 @@ button.is-pressed{
       <div id="socialCard" class="social-card" hidden>
         <div class="social-top">
           <strong>👥 Learner Circle</strong>
-          <span class="notify-status">Follow learners</span>
+          <button id="messageLauncher" class="social-follow-button message-launcher" type="button" onclick="jumpToSocialSection('messages')">💬 Messages</button>
         </div>
-        <div class="social-note">Tap any student to open the full profile, send follow requests, accept new requests, and explore who follows who.</div>
+        <div class="social-note">Message any learner, reply to conversations, follow learners, and explore the community.</div>
         <div id="socialSummary" class="social-summary">
           <div class="social-empty">Loading your circle...</div>
         </div>
@@ -3635,11 +3652,10 @@ function applyAppVisibilitySettings(settings){
   const rankingCard = document.getElementById("leaderboardCard");
   const socialCard = document.getElementById("socialCard");
   const canShowRanking = window.PilingoNotify?.canShowRankingList?.(settings);
-  const canShowLearners = window.PilingoNotify?.canShowLearnersList?.(settings);
   const hasAccount = window.PilingoAuth?.hasAccount?.();
 
   if(rankingCard) rankingCard.hidden = !canShowRanking;
-  if(socialCard && hasAccount) socialCard.hidden = !canShowLearners;
+  if(socialCard) socialCard.hidden = !hasAccount;
 }
 
 async function refreshAppVisibilityControls(force){

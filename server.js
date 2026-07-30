@@ -554,13 +554,42 @@ function sendDirectMessage(payload) {
   messages.push(message);
   writeMessages(messages);
 
-  sendPushNotificationToUser(recipientEmail, {
-    title: `💬 Message from ${sender.name || "a learner"}`,
-    body: text.slice(0, 120),
-    url: "/index.html#messages"
-  }).catch(() => {});
+  notifyMessageRecipient(sender, recipient, message).catch(() => {});
 
   return { ok: true, message };
+}
+
+async function notifyMessageRecipient(sender, recipient, message) {
+  await sendPushNotificationToUser(recipient.email, {
+    title: `💬 Message from ${sender.name || "a learner"}`,
+    body: message.text.slice(0, 120),
+    url: "/index.html#messages"
+  });
+
+  if (!RESEND_API_KEY || !EMAIL_FROM) return;
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${RESEND_API_KEY}`
+    },
+    body: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [recipient.email],
+      subject: `${sender.name || "A learner"} sent you a message on Pilingo`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.5">
+          <h2>You have a new Pilingo message</h2>
+          <p><strong>${escapeHtml(sender.name || "A learner")}:</strong></p>
+          <p style="padding:12px 14px;background:#fff7e8;border-radius:12px">${escapeHtml(message.text.slice(0, 500))}</p>
+          <p><a href="https://pilingoacademy.com/index.html#messages">Open Pilingo to reply</a></p>
+        </div>
+      `
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`Message email failed with status ${response.status}`);
+  }
 }
 
 function getMessageThread(viewerEmail, targetEmail, markRead) {

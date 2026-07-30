@@ -200,12 +200,6 @@ const PilingoSocial = {
       return;
     }
 
-    const visibilitySettings = await window.PilingoNotify?.fetchVisibilitySettings?.();
-    if(visibilitySettings && !window.PilingoNotify?.canShowLearnersList?.(visibilitySettings)){
-      card.hidden = true;
-      return;
-    }
-
     card.hidden = false;
 
     if(!this.canUseServer()){
@@ -280,7 +274,9 @@ const PilingoSocial = {
       "No followers yet. When students follow you, they will appear here."
     );
 
-    messagesList.innerHTML = this.renderConversations(await this.fetchConversations());
+    const conversations = await this.fetchConversations();
+    messagesList.innerHTML = this.renderConversations(conversations);
+    this.updateMessageLauncher(conversations);
 
     discoverList.innerHTML = this.renderStudentList(
       "Explore learners",
@@ -309,6 +305,17 @@ const PilingoSocial = {
         `;
       }).join("")}
     `;
+  },
+
+  updateMessageLauncher(conversations){
+    const launcher = document.getElementById("messageLauncher");
+    if(!launcher) return;
+    const unreadCount = (conversations || []).reduce(
+      (total, conversation) => total + Number(conversation?.unreadCount || 0),
+      0
+    );
+    launcher.textContent = unreadCount ? `💬 Messages (${unreadCount} new)` : "💬 Messages";
+    launcher.classList.toggle("has-unread", unreadCount > 0);
   },
 
   async openConversation(targetEmail){
@@ -538,6 +545,7 @@ const PilingoSocial = {
       sent: "socialOutgoingList",
       following: "socialFollowingList",
       followers: "socialFollowersList",
+      messages: "socialMessagesList",
       discover: "socialDiscoverList",
       rank: "leaderList"
     };
@@ -557,10 +565,13 @@ const PilingoSocial = {
   startPolling(){
     if(this.pollTimer) clearInterval(this.pollTimer);
     this.render();
+    if(location.hash === "#messages"){
+      window.setTimeout(() => this.jumpToSection("messages"), 500);
+    }
     this.pollTimer = setInterval(() => {
       this.lastSnapshot = null;
       this.render();
-    }, 18000);
+    }, 8000);
   }
 };
 
