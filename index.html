@@ -2361,6 +2361,14 @@ button.is-pressed{
   color:#3a2d08;
 }
 
+.call-audio-avatar img{
+  width:100%;
+  height:100%;
+  display:block;
+  border-radius:inherit;
+  object-fit:cover;
+}
+
 .call-video-grid video{
   width:100%;
   min-height:180px;
@@ -3158,7 +3166,7 @@ button.call-end-button.is-pressed{
           <div id="callStatus" class="call-status">Connecting…</div>
           <div class="social-note" style="text-align:center">Keep Pilingo open during the call. Phone browsers may pause the microphone if you lock the screen or switch apps.</div>
           <div id="callAudioStage" class="call-audio-stage">
-            <div class="call-audio-avatar">🐯</div>
+            <div id="callAudioAvatar" class="call-audio-avatar">P</div>
             <div id="callAudioName" class="call-audio-name">Learner</div>
           </div>
           <div id="callVideoGrid" class="call-video-grid" hidden>
@@ -3372,7 +3380,7 @@ button.call-end-button.is-pressed{
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
 <script src="pilingo-social.js?v=3"></script>
-<script src="pilingo-calls.js?v=7"></script>
+<script src="pilingo-calls.js?v=8"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>

@@ -286,6 +286,7 @@ const PilingoCalls = {
   updateCallStage(){
     const videoGrid = document.getElementById("callVideoGrid");
     const audioStage = document.getElementById("callAudioStage");
+    const audioAvatar = document.getElementById("callAudioAvatar");
     const audioName = document.getElementById("callAudioName");
     const switchButton = document.getElementById("callSwitchCameraButton");
     const activeActions = document.getElementById("callActiveActions");
@@ -293,8 +294,37 @@ const PilingoCalls = {
     if(videoGrid) videoGrid.hidden = !isVideo;
     if(audioStage) audioStage.hidden = isVideo;
     if(audioName) audioName.textContent = this.call?.other?.name || "Learner";
+    if(audioAvatar) this.renderCallAvatar(audioAvatar, this.call?.other || {});
     if(switchButton) switchButton.hidden = !isVideo;
     if(activeActions) activeActions.classList.toggle("video-call", isVideo);
+  },
+
+  avatarLetters(name){
+    return String(name || "Learner")
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "L";
+  },
+
+  renderCallAvatar(element, learner){
+    const name = String(learner?.name || "Learner");
+    const avatarType = learner?.avatarType === "image" ? "image" : "emoji";
+    const avatarValue = String(learner?.avatarValue || "").trim();
+    element.replaceChildren();
+    if(avatarType === "image" && avatarValue){
+      const image = document.createElement("img");
+      image.src = avatarValue;
+      image.alt = name;
+      image.onerror = () => {
+        element.replaceChildren();
+        element.textContent = this.avatarLetters(name);
+      };
+      element.appendChild(image);
+      return;
+    }
+    element.textContent = avatarValue || this.avatarLetters(name);
   },
 
   setStatus(text){
