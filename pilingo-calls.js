@@ -261,6 +261,7 @@ const PilingoCalls = {
     const modal = document.getElementById("callModal");
     const incomingActions = document.getElementById("callIncomingActions");
     const activeActions = document.getElementById("callActiveActions");
+    this.updateCallStage();
     if(modal) modal.hidden = false;
     if(incomingActions) incomingActions.hidden = false;
     if(activeActions) activeActions.hidden = true;
@@ -273,11 +274,22 @@ const PilingoCalls = {
     const incomingActions = document.getElementById("callIncomingActions");
     const activeActions = document.getElementById("callActiveActions");
     const videoGrid = document.getElementById("callVideoGrid");
+    this.updateCallStage();
     if(modal) modal.hidden = false;
     if(incomingActions) incomingActions.hidden = true;
     if(activeActions) activeActions.hidden = false;
     if(videoGrid) videoGrid.hidden = this.call?.mode !== "video";
     this.setStatus(status);
+  },
+
+  updateCallStage(){
+    const videoGrid = document.getElementById("callVideoGrid");
+    const audioStage = document.getElementById("callAudioStage");
+    const audioName = document.getElementById("callAudioName");
+    const isVideo = this.call?.mode === "video";
+    if(videoGrid) videoGrid.hidden = !isVideo;
+    if(audioStage) audioStage.hidden = isVideo;
+    if(audioName) audioName.textContent = this.call?.other?.name || "Learner";
   },
 
   setStatus(text){
@@ -375,7 +387,9 @@ const PilingoCalls = {
     if(!track) return;
     track.enabled = !track.enabled;
     const button = document.getElementById("callMuteButton");
-    if(button) button.textContent = track.enabled ? "🎙️ Mute" : "🔇 Unmute";
+    if(button) button.innerHTML = track.enabled
+      ? '<span class="call-control-icon">🎙️</span><span class="call-control-label">Mute</span>'
+      : '<span class="call-control-icon">🔇</span><span class="call-control-label">Unmute</span>';
   },
 
   toggleCamera(){
@@ -383,7 +397,9 @@ const PilingoCalls = {
     if(!track) return;
     track.enabled = !track.enabled;
     const button = document.getElementById("callCameraButton");
-    if(button) button.textContent = track.enabled ? "📷 Camera off" : "📷 Camera on";
+    if(button) button.innerHTML = track.enabled
+      ? '<span class="call-control-icon">📷</span><span class="call-control-label">Camera off</span>'
+      : '<span class="call-control-icon">📷</span><span class="call-control-label">Camera on</span>';
   },
 
   cleanup(message){

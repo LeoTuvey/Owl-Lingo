@@ -2258,6 +2258,10 @@ button.is-pressed{
 
 .call-card{
   width:min(720px, calc(100vw - 24px));
+  min-height:min(680px, calc(100vh - 40px));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 
 .call-status{
@@ -2272,10 +2276,43 @@ button.is-pressed{
   grid-template-columns:1fr 1fr;
   gap:10px;
   margin-bottom:14px;
+  flex:1;
 }
 
 .call-video-grid[hidden]{
   display:none;
+}
+
+.call-audio-stage{
+  flex:1;
+  min-height:260px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+
+.call-audio-stage[hidden]{
+  display:none;
+}
+
+.call-audio-avatar{
+  width:132px;
+  height:132px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:linear-gradient(180deg, #7de43a 0%, #58cc02 100%);
+  box-shadow:0 12px 0 rgba(62,140,8,0.28), 0 22px 38px rgba(62,140,8,0.2);
+  font-size:60px;
+}
+
+.call-audio-name{
+  font-size:24px;
+  font-weight:1000;
+  color:#3a2d08;
 }
 
 .call-video-grid video{
@@ -2290,11 +2327,34 @@ button.is-pressed{
   justify-content:center;
   gap:18px;
   margin-top:18px;
-  padding:4px 0;
+  padding:16px 0 4px;
+  border-top:1px solid rgba(239,215,150,0.72);
 }
 
 .call-actions button{
-  min-width:124px;
+  width:82px;
+  min-width:82px;
+  min-height:82px;
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:10px;
+  border-radius:50%;
+}
+
+.call-control-icon{
+  display:block;
+  font-size:24px;
+  line-height:1;
+}
+
+.call-control-label{
+  display:block;
+  font-size:11px;
+  line-height:1;
+  font-weight:1000;
 }
 
 .call-end-button{
@@ -2313,6 +2373,7 @@ button.is-pressed{
   body .student-profile-card,
   body .call-card{
     width:100%;
+    min-height:calc(100svh - 12px);
     max-height:calc(100svh - 12px);
     padding:18px 14px calc(18px + env(safe-area-inset-bottom));
     border-radius:26px 26px 18px 18px;
@@ -2378,6 +2439,7 @@ button.is-pressed{
   .call-card .student-profile-top{
     align-items:center;
     margin-bottom:2px;
+    flex:none;
   }
 
   .call-card .student-profile-top > strong{
@@ -2394,6 +2456,7 @@ button.is-pressed{
     position:relative;
     display:block;
     margin:4px 0 18px;
+    flex:1;
   }
 
   .call-video-grid[hidden]{
@@ -2421,7 +2484,8 @@ button.is-pressed{
     gap:16px;
     width:100%;
     margin-top:20px;
-    padding:4px 2px;
+    padding:18px 2px 4px;
+    flex:none;
   }
 
   #callIncomingActions{
@@ -2437,9 +2501,18 @@ button.is-pressed{
   }
 
   .call-actions button{
-    min-height:60px;
-    border-radius:18px;
+    width:76px;
+    min-width:76px;
+    min-height:76px;
+    justify-self:center;
+    border-radius:50%;
     line-height:1.2;
+  }
+
+  #callActiveActions .call-end-button{
+    width:86px;
+    min-width:86px;
+    min-height:86px;
   }
 
   .social-top{
@@ -2986,19 +3059,23 @@ button.is-pressed{
           </div>
           <div id="callStatus" class="call-status">Connecting…</div>
           <div class="social-note" style="text-align:center">Keep Pilingo open during the call. Phone browsers may pause the microphone if you lock the screen or switch apps.</div>
+          <div id="callAudioStage" class="call-audio-stage">
+            <div class="call-audio-avatar">🐯</div>
+            <div id="callAudioName" class="call-audio-name">Learner</div>
+          </div>
           <div id="callVideoGrid" class="call-video-grid" hidden>
             <video id="callRemoteVideo" autoplay playsinline></video>
             <video id="callLocalVideo" autoplay playsinline muted></video>
           </div>
           <audio id="callRemoteAudio" autoplay playsinline></audio>
           <div id="callIncomingActions" class="call-actions" hidden>
-            <button class="social-follow-button" type="button" onclick="PilingoCalls.accept()">Accept</button>
-            <button class="call-end-button" type="button" onclick="PilingoCalls.decline()">Decline</button>
+            <button class="social-follow-button" type="button" onclick="PilingoCalls.accept()"><span class="call-control-icon">📞</span><span class="call-control-label">Accept</span></button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.decline()"><span class="call-control-icon">☎️</span><span class="call-control-label">Decline</span></button>
           </div>
           <div id="callActiveActions" class="call-actions" hidden>
-            <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()">🎙️ Mute</button>
-            <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()">📷 Camera off</button>
-            <button class="call-end-button" type="button" onclick="PilingoCalls.end()">End call</button>
+            <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()"><span class="call-control-icon">🎙️</span><span class="call-control-label">Mute</span></button>
+            <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()"><span class="call-control-icon">📷</span><span class="call-control-label">Camera</span></button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.end()"><span class="call-control-icon">☎️</span><span class="call-control-label">End</span></button>
           </div>
         </div>
       </div>
@@ -3196,7 +3273,7 @@ button.is-pressed{
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
 <script src="pilingo-social.js?v=1"></script>
-<script src="pilingo-calls.js?v=5"></script>
+<script src="pilingo-calls.js?v=6"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
