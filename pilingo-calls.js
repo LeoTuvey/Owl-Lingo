@@ -115,7 +115,23 @@ const PilingoCalls = {
     };
     this.peer.ontrack = (event) => {
       const remoteVideo = document.getElementById("callRemoteVideo");
-      if(remoteVideo) remoteVideo.srcObject = event.streams[0];
+      const remoteAudio = document.getElementById("callRemoteAudio");
+      const remoteStream = event.streams[0];
+      if(this.call?.mode === "video"){
+        if(remoteAudio) remoteAudio.srcObject = null;
+        if(remoteVideo){
+          remoteVideo.srcObject = remoteStream;
+          remoteVideo.play().catch(() => this.setStatus("Tap the screen to hear the call"));
+        }
+      } else {
+        if(remoteVideo) remoteVideo.srcObject = null;
+        if(remoteAudio){
+          remoteAudio.srcObject = remoteStream;
+          remoteAudio.volume = 1;
+          remoteAudio.muted = false;
+          remoteAudio.play().catch(() => this.showAudioUnlock());
+        }
+      }
       this.stopTone();
       this.setStatus("Connected");
     };
@@ -225,6 +241,21 @@ const PilingoCalls = {
     if(status) status.textContent = text;
   },
 
+  showAudioUnlock(){
+    this.setStatus("Connected — tap here to turn on sound");
+    const status = document.getElementById("callStatus");
+    if(!status) return;
+    status.style.cursor = "pointer";
+    status.onclick = () => {
+      const remoteAudio = document.getElementById("callRemoteAudio");
+      const remoteVideo = document.getElementById("callRemoteVideo");
+      Promise.allSettled([remoteAudio?.play?.(), remoteVideo?.play?.()]);
+      status.style.cursor = "";
+      status.onclick = null;
+      this.setStatus("Connected");
+    };
+  },
+
   ensureToneContext(){
     if(!this.toneContext){
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -302,8 +333,10 @@ const PilingoCalls = {
     const modal = document.getElementById("callModal");
     const localVideo = document.getElementById("callLocalVideo");
     const remoteVideo = document.getElementById("callRemoteVideo");
+    const remoteAudio = document.getElementById("callRemoteAudio");
     if(localVideo) localVideo.srcObject = null;
     if(remoteVideo) remoteVideo.srcObject = null;
+    if(remoteAudio) remoteAudio.srcObject = null;
     if(message) this.setStatus(message);
     if(modal) modal.hidden = true;
   },
