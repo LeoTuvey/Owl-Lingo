@@ -2500,6 +2500,10 @@ button.is-pressed{
     grid-column:1 / -1;
   }
 
+  #callActiveActions.video-call .call-end-button{
+    grid-column:auto;
+  }
+
   .call-actions button{
     width:76px;
     min-width:76px;
@@ -3075,6 +3079,7 @@ button.is-pressed{
           <div id="callActiveActions" class="call-actions" hidden>
             <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()"><span class="call-control-icon">🎙️</span><span class="call-control-label">Mute</span></button>
             <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()"><span class="call-control-icon">📷</span><span class="call-control-label">Camera</span></button>
+            <button class="secondary-button" id="callSwitchCameraButton" type="button" onclick="PilingoCalls.switchCamera()"><span class="call-control-icon">🔄</span><span class="call-control-label">Back</span></button>
             <button class="call-end-button" type="button" onclick="PilingoCalls.end()"><span class="call-control-icon">☎️</span><span class="call-control-label">End</span></button>
           </div>
         </div>
@@ -3273,7 +3278,7 @@ button.is-pressed{
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
 <script src="pilingo-social.js?v=1"></script>
-<script src="pilingo-calls.js?v=6"></script>
+<script src="pilingo-calls.js?v=7"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>

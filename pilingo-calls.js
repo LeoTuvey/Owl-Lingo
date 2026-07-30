@@ -12,6 +12,7 @@ const PilingoCalls = {
   toneContext: null,
   toneTimers: [],
   wakeLock: null,
+  facingMode: "user",
 
   currentEmail(){
     return String(window.PilingoAuth?.loadAccount?.()?.email || "").trim().toLowerCase();
@@ -98,7 +99,7 @@ const PilingoCalls = {
     if(this.localStream) return;
     this.localStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: mode === "video"
+      video: mode === "video" ? { facingMode:{ ideal:this.facingMode } } : false
     });
     const localVideo = document.getElementById("callLocalVideo");
     if(localVideo) localVideo.srcObject = this.localStream;
@@ -125,7 +126,7 @@ const PilingoCalls = {
     try {
       const restoredStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: this.call.mode === "video"
+        video: this.call.mode === "video" ? { facingMode:{ ideal:this.facingMode } } : false
       });
       const newAudio = restoredStream.getAudioTracks()[0];
       const audioSender = this.peer?.getSenders?.().find((sender) => sender.track?.kind === "audio");
@@ -286,10 +287,14 @@ const PilingoCalls = {
     const videoGrid = document.getElementById("callVideoGrid");
     const audioStage = document.getElementById("callAudioStage");
     const audioName = document.getElementById("callAudioName");
+    const switchButton = document.getElementById("callSwitchCameraButton");
+    const activeActions = document.getElementById("callActiveActions");
     const isVideo = this.call?.mode === "video";
     if(videoGrid) videoGrid.hidden = !isVideo;
     if(audioStage) audioStage.hidden = isVideo;
     if(audioName) audioName.textContent = this.call?.other?.name || "Learner";
+    if(switchButton) switchButton.hidden = !isVideo;
+    if(activeActions) activeActions.classList.toggle("video-call", isVideo);
   },
 
   setStatus(text){
@@ -402,6 +407,43 @@ const PilingoCalls = {
       : '<span class="call-control-icon">📷</span><span class="call-control-label">Camera on</span>';
   },
 
+  async switchCamera(){
+    if(this.call?.mode !== "video" || !this.peer) return;
+    const nextFacingMode = this.facingMode === "user" ? "environment" : "user";
+    const button = document.getElementById("callSwitchCameraButton");
+    if(button) button.disabled = true;
+    try {
+      const cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode:{ ideal:nextFacingMode } },
+        audio: false
+      });
+      const newVideoTrack = cameraStream.getVideoTracks()[0];
+      if(!newVideoTrack) throw new Error("No camera was found.");
+      const videoSender = this.peer.getSenders().find((sender) => sender.track?.kind === "video");
+      if(!videoSender) throw new Error("The video connection is unavailable.");
+      await videoSender.replaceTrack(newVideoTrack);
+      const oldVideoTrack = this.localStream?.getVideoTracks?.()[0];
+      oldVideoTrack?.stop();
+      const audioTracks = this.localStream?.getAudioTracks?.() || [];
+      this.localStream = new MediaStream([...audioTracks, newVideoTrack]);
+      const localVideo = document.getElementById("callLocalVideo");
+      if(localVideo){
+        localVideo.srcObject = this.localStream;
+        await localVideo.play().catch(() => {});
+      }
+      this.facingMode = nextFacingMode;
+      if(button){
+        button.innerHTML = this.facingMode === "environment"
+          ? '<span class="call-control-icon">🤳</span><span class="call-control-label">Front</span>'
+          : '<span class="call-control-icon">🔄</span><span class="call-control-label">Back</span>';
+      }
+    } catch(error) {
+      alert(error?.message || "Could not switch cameras on this device.");
+    } finally {
+      if(button) button.disabled = false;
+    }
+  },
+
   cleanup(message){
     this.stopTone();
     this.wakeLock?.release?.().catch(() => {});
@@ -411,6 +453,12 @@ const PilingoCalls = {
     this.localStream?.getTracks?.().forEach((track) => track.stop());
     this.localStream = null;
     this.call = null;
+    this.facingMode = "user";
+    const switchButton = document.getElementById("callSwitchCameraButton");
+    if(switchButton){
+      switchButton.disabled = false;
+      switchButton.innerHTML = '<span class="call-control-icon">🔄</span><span class="call-control-label">Back</span>';
+    }
     this.lastSignalSeq = 0;
     const modal = document.getElementById("callModal");
     const localVideo = document.getElementById("callLocalVideo");
