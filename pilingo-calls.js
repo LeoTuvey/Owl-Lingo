@@ -267,6 +267,26 @@ const PilingoCalls = {
     return this.toneContext;
   },
 
+  async enableCallSound(){
+    const context = this.ensureToneContext();
+    if(!context){
+      alert("Call sounds are not supported by this browser.");
+      return;
+    }
+    await context.resume().catch(() => {});
+    localStorage.setItem("pilingo-call-sound-enabled", "1");
+    this.updateCallSoundButton();
+    this.playTone([660, 880], 0.45, 0.1);
+  },
+
+  updateCallSoundButton(){
+    const button = document.getElementById("callSoundButton");
+    if(!button) return;
+    const enabled = localStorage.getItem("pilingo-call-sound-enabled") === "1";
+    button.textContent = enabled ? "🔔 Call sound ON" : "🔔 Enable call sound";
+    button.classList.toggle("has-unread", enabled);
+  },
+
   playTone(frequencies, duration, volume){
     const context = this.ensureToneContext();
     if(!context || context.state === "closed") return;
@@ -343,7 +363,12 @@ const PilingoCalls = {
 
   startPolling(){
     if(this.pollTimer) clearInterval(this.pollTimer);
-    document.addEventListener("pointerdown", () => this.ensureToneContext(), { once:true });
+    document.addEventListener("pointerdown", () => {
+      if(localStorage.getItem("pilingo-call-sound-enabled") === "1"){
+        this.ensureToneContext();
+      }
+    });
+    this.updateCallSoundButton();
     this.poll();
     this.pollTimer = setInterval(() => this.poll(), 1800);
   }
@@ -351,6 +376,7 @@ const PilingoCalls = {
 
 async function startLearnerCall(mode){
   try {
+    PilingoCalls.ensureToneContext();
     await PilingoCalls.start(window.PilingoSocial?.activeConversationEmail, mode);
   } catch(error) {
     alert(error?.message || "Could not start the call. Allow microphone and camera access.");

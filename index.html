@@ -2779,7 +2779,10 @@ button.is-pressed{
       <div id="socialCard" class="social-card" hidden>
         <div class="social-top">
           <strong>👥 Learner Circle</strong>
-          <button id="messageLauncher" class="social-follow-button message-launcher" type="button" onclick="jumpToSocialSection('messages')">💬 Messages</button>
+          <div class="message-call-actions">
+            <button id="callSoundButton" class="secondary-button message-launcher" type="button" onclick="PilingoCalls.enableCallSound()">🔔 Enable call sound</button>
+            <button id="messageLauncher" class="social-follow-button message-launcher" type="button" onclick="jumpToSocialSection('messages')">💬 Messages</button>
+          </div>
         </div>
         <div class="social-note">Message any learner, reply to conversations, follow learners, and explore the community.</div>
         <div id="socialSummary" class="social-summary">
@@ -3041,7 +3044,7 @@ button.is-pressed{
 <script src="pilingo-auth.js?v=8"></script>
 <script src="pilingo-notify.js?v=8"></script>
 <script src="pilingo-social.js?v=1"></script>
-<script src="pilingo-calls.js?v=3"></script>
+<script src="pilingo-calls.js?v=4"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
