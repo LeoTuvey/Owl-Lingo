@@ -2298,7 +2298,145 @@ button.is-pressed{
 }
 
 @media (max-width:600px){
-  .call-video-grid{grid-template-columns:1fr;}
+  body .student-profile-modal{
+    align-items:flex-end;
+    padding:8px;
+  }
+
+  body .student-profile-card,
+  body .call-card{
+    width:100%;
+    max-height:calc(100svh - 12px);
+    padding:18px 14px calc(18px + env(safe-area-inset-bottom));
+    border-radius:26px 26px 18px 18px;
+  }
+
+  body .student-profile-top{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:14px;
+    margin-bottom:12px;
+  }
+
+  .student-profile-top > strong{
+    width:100%;
+    font-size:18px;
+    line-height:1.35;
+  }
+
+  .message-call-actions{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:10px;
+    width:100%;
+  }
+
+  .message-call-actions button,
+  .call-actions button{
+    width:100%;
+    min-width:0;
+    min-height:50px;
+    padding:11px 8px;
+    font-size:14px;
+  }
+
+  .message-thread{
+    max-height:46svh;
+    padding:8px 2px 14px;
+  }
+
+  .message-bubble{
+    max-width:88%;
+    padding:11px 14px;
+  }
+
+  .message-compose{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .message-compose textarea{
+    width:100%;
+    min-height:84px;
+    max-height:150px;
+  }
+
+  .message-compose .social-follow-button{
+    width:100%;
+    min-height:52px;
+    margin:0;
+  }
+
+  .call-card .student-profile-top{
+    align-items:center;
+    margin-bottom:2px;
+  }
+
+  .call-card .student-profile-top > strong{
+    text-align:center;
+    font-size:20px;
+  }
+
+  .call-status{
+    padding:12px 8px;
+    font-size:17px;
+  }
+
+  .call-video-grid{
+    position:relative;
+    display:block;
+    margin:4px 0 18px;
+  }
+
+  .call-video-grid[hidden]{
+    display:none;
+  }
+
+  #callRemoteVideo{
+    min-height:42svh;
+    max-height:52svh;
+  }
+
+  #callLocalVideo{
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    width:30%;
+    min-height:100px;
+    max-height:130px;
+    border:2px solid #fff;
+    box-shadow:0 8px 20px rgba(0,0,0,0.28);
+  }
+
+  .call-actions{
+    display:grid;
+    gap:12px;
+    width:100%;
+  }
+
+  #callIncomingActions{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  #callActiveActions{
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+
+  .call-actions button{
+    min-height:58px;
+    border-radius:18px;
+    line-height:1.2;
+  }
+
+  .social-top{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .social-top .message-call-actions{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
 .social-avatar,
