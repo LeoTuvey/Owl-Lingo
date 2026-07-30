@@ -11,6 +11,7 @@ const PilingoCalls = {
   processingSignals: false,
   toneContext: null,
   toneTimers: [],
+  wakeLock: null,
 
   currentEmail(){
     return String(window.PilingoAuth?.loadAccount?.()?.email || "").trim().toLowerCase();
@@ -42,6 +43,7 @@ const PilingoCalls = {
       });
       this.call = data.call;
       this.lastSignalSeq = 0;
+      await this.requestWakeLock();
       this.showCall("Calling…");
       this.startTone("outgoing");
       await this.createPeer();
@@ -64,6 +66,7 @@ const PilingoCalls = {
       action: "accept"
     });
     this.call.status = "active";
+    await this.requestWakeLock();
     this.showCall("Connecting…");
     await this.createPeer();
     await this.poll();
@@ -99,6 +102,47 @@ const PilingoCalls = {
     });
     const localVideo = document.getElementById("callLocalVideo");
     if(localVideo) localVideo.srcObject = this.localStream;
+  },
+
+  async requestWakeLock(){
+    if(!navigator.wakeLock?.request || document.visibilityState !== "visible") return;
+    try {
+      this.wakeLock = await navigator.wakeLock.request("screen");
+    } catch(error) {
+      this.wakeLock = null;
+    }
+  },
+
+  async restoreMediaAfterBackground(){
+    if(!this.call || document.visibilityState !== "visible") return;
+    await this.requestWakeLock();
+    if(!this.localStream) return;
+    const currentAudio = this.localStream.getAudioTracks()[0];
+    if(currentAudio && currentAudio.readyState === "live" && !currentAudio.muted){
+      this.setStatus(this.peer?.connectionState === "connected" ? "Connected" : "Connecting…");
+      return;
+    }
+    try {
+      const restoredStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: this.call.mode === "video"
+      });
+      const newAudio = restoredStream.getAudioTracks()[0];
+      const audioSender = this.peer?.getSenders?.().find((sender) => sender.track?.kind === "audio");
+      if(audioSender && newAudio) await audioSender.replaceTrack(newAudio);
+      currentAudio?.stop();
+      const oldVideo = this.localStream.getVideoTracks()[0];
+      const newVideo = restoredStream.getVideoTracks()[0];
+      const videoSender = this.peer?.getSenders?.().find((sender) => sender.track?.kind === "video");
+      if(videoSender && newVideo) await videoSender.replaceTrack(newVideo);
+      oldVideo?.stop();
+      this.localStream = restoredStream;
+      const localVideo = document.getElementById("callLocalVideo");
+      if(localVideo) localVideo.srcObject = restoredStream;
+      this.setStatus("Connected — microphone restored");
+    } catch(error) {
+      this.setStatus("Microphone paused — tap Mute twice or rejoin the call");
+    }
   },
 
   async createPeer(){
@@ -344,6 +388,8 @@ const PilingoCalls = {
 
   cleanup(message){
     this.stopTone();
+    this.wakeLock?.release?.().catch(() => {});
+    this.wakeLock = null;
     this.peer?.close();
     this.peer = null;
     this.localStream?.getTracks?.().forEach((track) => track.stop());
@@ -369,6 +415,14 @@ const PilingoCalls = {
       }
     });
     this.updateCallSoundButton();
+    document.addEventListener("visibilitychange", () => {
+      if(!this.call) return;
+      if(document.visibilityState === "visible"){
+        this.restoreMediaAfterBackground();
+      } else {
+        this.setStatus("Keep Pilingo open so the other learner can hear you");
+      }
+    });
     this.poll();
     this.pollTimer = setInterval(() => this.poll(), 1800);
   }
