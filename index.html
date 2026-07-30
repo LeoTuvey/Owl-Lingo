@@ -143,12 +143,19 @@ body.account-gate-open{
   margin:0;
   max-width:540px;
   font-size:56px;
-  line-height:0.92;
+  line-height:1;
   letter-spacing:-0.04em;
-  text-shadow:0 10px 24px rgba(100,31,0,0.16);
   display:inline-flex;
   align-items:center;
-  gap:8px;
+  gap:13px;
+  padding:10px 22px 10px 10px;
+  border:2px solid rgba(255,255,255,0.72);
+  border-radius:28px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(255,250,226,0.9) 100%);
+  box-shadow:
+    0 12px 0 rgba(86,151,15,0.18),
+    0 22px 42px rgba(67,107,10,0.18),
+    inset 0 2px 0 rgba(255,255,255,0.88);
 }
 
 .hero-title-icon{
@@ -162,15 +169,15 @@ body.account-gate-open{
 
 .hero-title-word{
   display:inline-block;
-  background:linear-gradient(180deg, #86eb3f 0%, #58cc02 56%, #3ea100 100%);
-  padding:6px 14px 10px;
-  border-radius:22px;
-  box-shadow:
-    0 8px 16px rgba(56,130,9,0.24),
-    inset 0 2px 0 rgba(255,255,255,0.42),
-    inset 0 -4px 0 rgba(37,111,2,0.32);
-  color:#fffdf2;
-  text-shadow:0 1px 0 rgba(38,92,4,0.24);
+  padding:0 0 4px;
+  font-family:ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  font-weight:1000;
+  letter-spacing:-0.065em;
+  background:linear-gradient(180deg, #79df2c 0%, #58cc02 52%, #338f05 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 3px 0 rgba(46,126,10,0.14));
 }
 
 
@@ -2848,6 +2855,11 @@ button.call-end-button.is-pressed{
   }
   .header h1{font-size:38px;}
   .hero-title{font-size:42px;}
+  .hero-title{
+    gap:10px;
+    padding:8px 16px 8px 8px;
+    border-radius:23px;
+  }
   .hero-title-icon{
     width:52px;
     height:52px;
@@ -2927,7 +2939,7 @@ button.call-end-button.is-pressed{
   <div id="xp">XP: 0</div>
   <div class="hero-wrap">
     <div class="hero-copy">
-      <h1 class="hero-title"><img class="hero-title-icon" src="pilingo-icon-192.png" alt="Pilingo"><span class="hero-title-word">PilinGO</span></h1>
+      <h1 class="hero-title"><img class="hero-title-icon" src="pilingo-icon-192.png" alt="Pilingo"><span class="hero-title-word">Pilingo</span></h1>
       <div class="hero-text-block">
         <p class="hero-subtitle">Learn Kurmanji and English step by step</p>
         <p class="hero-motto">Learn daily. Build streaks. Stay consistent.</p>
