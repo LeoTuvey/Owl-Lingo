@@ -2325,34 +2325,38 @@ button.is-pressed{
 
 .call-actions{
   justify-content:center;
-  gap:18px;
-  margin-top:18px;
-  padding:16px 0 4px;
-  border-top:1px solid rgba(239,215,150,0.72);
+  gap:14px;
+  margin:18px auto 0;
+  padding:16px;
+  width:fit-content;
+  max-width:100%;
+  border:1px solid rgba(239,215,150,0.78);
+  border-radius:26px;
+  background:rgba(255,255,255,0.84);
+  box-shadow:0 12px 30px rgba(75,54,8,0.13);
 }
 
 .call-actions button{
-  width:82px;
-  min-width:82px;
-  min-height:82px;
+  width:auto;
+  min-width:126px;
+  min-height:58px;
   display:inline-flex;
-  flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:5px;
-  padding:10px;
-  border-radius:50%;
+  gap:9px;
+  padding:12px 16px;
+  border-radius:18px;
 }
 
 .call-control-icon{
   display:block;
-  font-size:24px;
+  font-size:22px;
   line-height:1;
 }
 
 .call-control-label{
   display:block;
-  font-size:11px;
+  font-size:13px;
   line-height:1;
   font-weight:1000;
 }
@@ -2484,8 +2488,9 @@ button.is-pressed{
     gap:16px;
     width:100%;
     margin-top:20px;
-    padding:18px 2px 4px;
+    padding:14px;
     flex:none;
+    border-radius:24px;
   }
 
   #callIncomingActions{
@@ -2505,18 +2510,18 @@ button.is-pressed{
   }
 
   .call-actions button{
-    width:76px;
-    min-width:76px;
-    min-height:76px;
+    width:100%;
+    min-width:0;
+    min-height:62px;
     justify-self:center;
-    border-radius:50%;
+    border-radius:18px;
     line-height:1.2;
   }
 
   #callActiveActions .call-end-button{
-    width:86px;
-    min-width:86px;
-    min-height:86px;
+    width:100%;
+    min-width:0;
+    min-height:62px;
   }
 
   .social-top{
