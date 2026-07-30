@@ -667,7 +667,17 @@ async function notifyCallRecipient(caller, recipient, call) {
   await sendPushNotificationToUser(recipient.email, {
     title: `📞 Incoming ${label} call`,
     body: `${caller.name || "A learner"} is calling you on Pilingo.`,
-    url: "/index.html#messages"
+    url: "/index.html#messages",
+    tag: `pilingo-call-${call.id}`,
+    renotify: true,
+    requireInteraction: true,
+    silent: false,
+    vibrate: [350, 180, 350, 180, 700],
+    timestamp: Date.now(),
+    data: {
+      type: "incoming-call",
+      callId: call.id
+    }
   });
 }
 

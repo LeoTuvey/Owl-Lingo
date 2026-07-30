@@ -16,6 +16,9 @@ function notificationOptionsFromPayload(payload){
     tag: payload?.tag || "pilingo-reminder",
     renotify: payload?.renotify !== false,
     requireInteraction: !!payload?.requireInteraction,
+    vibrate: Array.isArray(payload?.vibrate) ? payload.vibrate : undefined,
+    silent: payload?.silent === true,
+    timestamp: Number(payload?.timestamp || Date.now()),
     data: {
       url: payload?.url || "/index.html",
       ...(payload?.data || {})
