@@ -1,6 +1,6 @@
 {
-  "name": "🐯 Pilingo",
-  "short_name": "🐯 Pilingo",
+  "name": "Pilingo",
+  "short_name": "Pilingo",
   "description": "Kurmanji to English lessons with Pilingo.",
   "start_url": "./index.html",
   "scope": "./",
