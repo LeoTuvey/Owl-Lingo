@@ -1706,7 +1706,7 @@ button.wrong{
 <script src="course-data.js?v=90"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
-<script src="pilingo-mascot.js"></script>
+<script src="pilingo-mascot.js?v=2"></script>
 <script src="pwa.js?v=10"></script>
 
 <script>
@@ -7675,6 +7675,15 @@ function showLessonComplete(){
 <h2>Great job!</h2>
 <p>You finished this lesson.</p>
 `;
+    if(window.showPilingoReward){
+      showPilingoReward({
+        title:activeLessonIsQuiz() ? "Quiz complete!" : "Lesson complete!",
+        message:"Fantastic work—keep learning!",
+        animation:activeLessonIsQuiz() ? "trophy" : "celebrate",
+        duration:2000,
+        speak:true
+      });
+    }
     if(window.PilingoMascot){
       PilingoMascot.mount("#lessonCompleteMascot", {
         size: 132,

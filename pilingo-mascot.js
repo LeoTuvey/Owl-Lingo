@@ -2,7 +2,12 @@
   const STYLE_ID = "pilingo-mascot-styles";
   const BUBBLE_LAYER_ID = "pilingo-mascot-bubble-layer";
   const DEFAULT_STATE = "idle";
-  const TRANSIENT_STATES = new Set(["wave", "smile", "jump", "laugh", "think", "read", "write", "talk", "listen", "celebrate", "sad"]);
+  const TRANSIENT_STATES = new Set([
+    "wave", "high-five", "thumbs-up", "point-left", "point-right", "nod", "shake",
+    "smile", "jump", "laugh", "think", "read", "write", "talk", "listen", "clap",
+    "dance", "celebrate", "trophy", "star", "heart", "sleep", "yawn", "stretch",
+    "surprised", "sad", "encourage"
+  ]);
   const INSTANCES = new Map();
   const MESSAGE_GROUPS = {
     correct: [
@@ -107,6 +112,27 @@
         z-index:12000;
       }
 
+      .pilingo-reward-video{
+        position:fixed;
+        inset:0;
+        z-index:15000;
+        display:grid;
+        place-items:center;
+        padding:24px;
+        background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.98),rgba(255,247,205,.96) 46%,rgba(224,250,230,.96));
+        opacity:0;
+        transition:opacity .2s ease;
+        overflow:hidden;
+      }
+      .pilingo-reward-video.show{opacity:1}
+      .pilingo-reward-video-card{text-align:center;position:relative;z-index:2;animation:pilingoRewardCard .55s cubic-bezier(.2,.9,.25,1.2)}
+      .pilingo-reward-video-mascot{width:min(260px,62vw);height:min(300px,52vh);display:grid;place-items:center;margin:auto}
+      .pilingo-reward-video h2{margin:2px 0 8px;color:#195f37;font-size:clamp(30px,7vw,58px);font-weight:1000}
+      .pilingo-reward-video p{margin:0;color:#4a5b4e;font-size:clamp(17px,3.8vw,23px);font-weight:900}
+      .pilingo-reward-video-spark{position:absolute;font-size:clamp(24px,5vw,52px);animation:pilingoRewardSpark 1.2s ease-in-out infinite}
+      .pilingo-reward-video-spark.s1{left:12%;top:18%}.pilingo-reward-video-spark.s2{right:12%;top:22%;animation-delay:.2s}
+      .pilingo-reward-video-spark.s3{left:20%;bottom:15%;animation-delay:.4s}.pilingo-reward-video-spark.s4{right:20%;bottom:14%;animation-delay:.6s}
+
       .pilingo-speech-bubble{
         position:fixed;
         max-width:min(260px, calc(100vw - 24px));
@@ -168,6 +194,7 @@
       .pilingo-mascot [data-part="tail"]{ transform-origin: 260px 300px; }
       .pilingo-mascot [data-part="brow-left"],
       .pilingo-mascot [data-part="brow-right"]{ transform-origin: center center; }
+      .pilingo-mascot [data-prop]{ display:none; }
 
       .pilingo-mascot [data-face="eyes-smile"],
       .pilingo-mascot [data-face="mouth-open"],
@@ -254,6 +281,40 @@
       .pilingo-mascot.is-sad [data-part="brow-left"]{ animation: pilingoBrowLeftSad 1.1s infinite ease-in-out; }
       .pilingo-mascot.is-sad [data-part="brow-right"]{ animation: pilingoBrowRightSad 1.1s infinite ease-in-out; }
 
+      .pilingo-mascot.is-high-five [data-part="right-arm"],
+      .pilingo-mascot.is-thumbs-up [data-part="right-arm"]{ animation:pilingoHighFive .7s ease-in-out infinite; }
+      .pilingo-mascot.is-point-left [data-part="left-arm"]{ animation:pilingoPointLeft .8s ease-in-out infinite; }
+      .pilingo-mascot.is-point-right [data-part="right-arm"]{ animation:pilingoPointRight .8s ease-in-out infinite; }
+      .pilingo-mascot.is-nod [data-part="head"]{ animation:pilingoNod .65s ease-in-out infinite; }
+      .pilingo-mascot.is-shake [data-part="head"]{ animation:pilingoShake .55s ease-in-out infinite; }
+      .pilingo-mascot.is-clap [data-part="left-arm"]{ animation:pilingoClapLeft .48s ease-in-out infinite; }
+      .pilingo-mascot.is-clap [data-part="right-arm"]{ animation:pilingoClapRight .48s ease-in-out infinite; }
+      .pilingo-mascot.is-dance [data-part="pilingo"]{ animation:pilingoDance .72s ease-in-out infinite; }
+      .pilingo-mascot.is-dance [data-part="left-arm"]{ animation:pilingoArmUpLeft .72s ease-in-out infinite; }
+      .pilingo-mascot.is-dance [data-part="right-arm"]{ animation:pilingoArmUpRight .72s ease-in-out infinite reverse; }
+      .pilingo-mascot.is-sleep [data-part="pilingo"]{ animation:pilingoSleep 2.4s ease-in-out infinite; }
+      .pilingo-mascot.is-sleep [data-face="eye-left"],
+      .pilingo-mascot.is-sleep [data-face="eye-right"]{ transform:scaleY(.08); }
+      .pilingo-mascot.is-yawn [data-face="mouth-happy"]{ display:none; }
+      .pilingo-mascot.is-yawn [data-face="mouth-open"]{ display:block; animation:pilingoYawn 1.2s ease-in-out infinite; }
+      .pilingo-mascot.is-stretch [data-part="pilingo"]{ animation:pilingoStretch 1.1s ease-in-out infinite; }
+      .pilingo-mascot.is-stretch [data-part="left-arm"]{ animation:pilingoArmUpLeft 1.1s ease-in-out infinite; }
+      .pilingo-mascot.is-stretch [data-part="right-arm"]{ animation:pilingoArmUpRight 1.1s ease-in-out infinite; }
+      .pilingo-mascot.is-surprised [data-face="mouth-happy"]{ display:none; }
+      .pilingo-mascot.is-surprised [data-face="mouth-open"]{ display:block; }
+      .pilingo-mascot.is-surprised [data-part="pilingo"]{ animation:pilingoSurprised .7s ease-in-out infinite; }
+      .pilingo-mascot.is-encourage [data-part="pilingo"]{ animation:pilingoEncourage .9s ease-in-out infinite; }
+      .pilingo-mascot.is-encourage [data-part="right-arm"]{ animation:pilingoHighFive .9s ease-in-out infinite; }
+      .pilingo-mascot.is-trophy [data-prop="trophy"],
+      .pilingo-mascot.is-star [data-prop="star"],
+      .pilingo-mascot.is-heart [data-prop="heart"],
+      .pilingo-mascot.is-read [data-prop="book"],
+      .pilingo-mascot.is-write [data-prop="paper"],
+      .pilingo-mascot.is-write [data-prop="pencil"]{ display:block; }
+      .pilingo-mascot.is-trophy [data-part="pilingo"],
+      .pilingo-mascot.is-star [data-part="pilingo"],
+      .pilingo-mascot.is-heart [data-part="pilingo"]{ animation:pilingoPrize 1s ease-in-out infinite; }
+
       .pilingo-mascot [data-decor="confetti"]{ display: none; }
 
       @keyframes pilingoFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
@@ -296,6 +357,26 @@
       @keyframes pilingoBrowRightSad { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-8deg) translateY(2px)} }
       @keyframes pilingoTalkHead { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-1px)} }
       @keyframes pilingoTalkMouth { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.82)} }
+      @keyframes pilingoHighFive { 0%,100%{transform:rotate(-36deg)} 50%{transform:rotate(-82deg)} }
+      @keyframes pilingoPointLeft { 0%,100%{transform:rotate(38deg) translateX(0)} 50%{transform:rotate(52deg) translateX(-7px)} }
+      @keyframes pilingoPointRight { 0%,100%{transform:rotate(-38deg) translateX(0)} 50%{transform:rotate(-52deg) translateX(7px)} }
+      @keyframes pilingoNod { 0%,100%{transform:rotate(0) translateY(0)} 50%{transform:rotate(2deg) translateY(8px)} }
+      @keyframes pilingoShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) rotate(-3deg)} 75%{transform:translateX(8px) rotate(3deg)} }
+      @keyframes pilingoClapLeft { 0%,100%{transform:rotate(8deg)} 50%{transform:rotate(-48deg) translate(15px,-4px)} }
+      @keyframes pilingoClapRight { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(48deg) translate(-15px,-4px)} }
+      @keyframes pilingoDance { 0%,100%{transform:translateY(0) rotate(-7deg)} 50%{transform:translateY(-18px) rotate(7deg)} }
+      @keyframes pilingoSleep { 0%,100%{transform:translateY(8px) rotate(-3deg) scaleY(.985)} 50%{transform:translateY(8px) rotate(-3deg) scaleY(1.015)} }
+      @keyframes pilingoYawn { 0%,100%{transform:scale(.65)} 50%{transform:scale(1.15)} }
+      @keyframes pilingoStretch { 0%,100%{transform:scaleY(1)} 50%{transform:translateY(-10px) scaleY(1.08)} }
+      @keyframes pilingoSurprised { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-14px) scale(1.04)} }
+      @keyframes pilingoEncourage { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
+      @keyframes pilingoPrize { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+      @keyframes pilingoRewardCard{from{transform:translateY(40px) scale(.72);opacity:0}to{transform:none;opacity:1}}
+      @keyframes pilingoRewardSpark{0%,100%{transform:translateY(0) rotate(-8deg) scale(.9)}50%{transform:translateY(-18px) rotate(8deg) scale(1.16)}}
+
+      @media (prefers-reduced-motion: reduce){
+        .pilingo-mascot, .pilingo-mascot *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -359,12 +440,12 @@
           </g>
           <g data-part="head">
             <g data-part="right-ear-bob">
-              <circle cx="145" cy="96" r="33" fill="#ffb21a" stroke="#1e1e1e" stroke-width="6"></circle>
-              <circle cx="255" cy="96" r="33" fill="#ffb21a" stroke="#1e1e1e" stroke-width="6"></circle>
+              <path d="M119 73 Q143 50 171 70 Q164 105 132 111 Q118 96 119 73Z" fill="#f5a900" stroke="#5b3508" stroke-width="5"></path>
+              <path d="M281 73 Q257 50 229 70 Q236 105 268 111 Q282 96 281 73Z" fill="#f5a900" stroke="#5b3508" stroke-width="5"></path>
             </g>
-            <circle cx="145" cy="96" r="17" fill="#ffc9b8"></circle>
-            <circle cx="255" cy="96" r="17" fill="#ffc9b8"></circle>
-            <ellipse cx="200" cy="128" rx="78" ry="72" fill="#ffb21a" stroke="#1e1e1e" stroke-width="6"></ellipse>
+            <path d="M128 77 Q146 66 160 76 Q153 92 134 96Z" fill="#ef8e77"></path>
+            <path d="M272 77 Q254 66 240 76 Q247 92 266 96Z" fill="#ef8e77"></path>
+            <ellipse cx="200" cy="128" rx="82" ry="74" fill="#ffb21a" stroke="#5b3508" stroke-width="6"></ellipse>
             <ellipse cx="170" cy="150" rx="35" ry="30" fill="#fff1cf"></ellipse>
             <ellipse cx="230" cy="150" rx="35" ry="30" fill="#fff1cf"></ellipse>
             <ellipse cx="200" cy="164" rx="38" ry="30" fill="#fff1cf"></ellipse>
@@ -396,13 +477,17 @@
             <path data-face="mouth-open" d="M178 171 Q200 208 222 171 Q200 188 178 171" fill="#ff6b6b" stroke="#1e1e1e" stroke-width="5"></path>
             <path data-face="mouth-small" d="M188 178 Q200 184 212 178" fill="none" stroke="#1e1e1e" stroke-width="5" stroke-linecap="round"></path>
 
-            <circle cx="176" cy="72" r="6" fill="#1e1e1e"></circle>
-            <circle cx="200" cy="67" r="5" fill="#1e1e1e"></circle>
-            <circle cx="224" cy="72" r="6" fill="#1e1e1e"></circle>
-            <circle cx="160" cy="88" r="5" fill="#1e1e1e"></circle>
-            <circle cx="240" cy="88" r="5" fill="#1e1e1e"></circle>
-            <path d="M180 92 Q200 78 220 92" fill="none" stroke="#1e1e1e" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M177 72 Q184 82 186 94 M200 67 Q200 82 200 94 M223 72 Q216 82 214 94" fill="none" stroke="#c97900" stroke-width="7" stroke-linecap="round"></path>
           </g>
+          <g data-prop="book">
+            <path d="M126 270 Q164 252 199 276 L199 347 Q161 327 126 340Z" fill="#176b3a" stroke="#5b3508" stroke-width="5"></path>
+            <path d="M274 270 Q236 252 201 276 L201 347 Q239 327 274 340Z" fill="#238a50" stroke="#5b3508" stroke-width="5"></path>
+          </g>
+          <g data-prop="paper"><rect x="150" y="287" width="112" height="72" rx="8" fill="#fffdf4" stroke="#5b3508" stroke-width="5"></rect></g>
+          <g data-prop="pencil" transform="rotate(-22 258 276)"><rect x="250" y="238" width="10" height="82" rx="4" fill="#ffd43b" stroke="#5b3508" stroke-width="3"></rect></g>
+          <g data-prop="trophy"><path d="M163 254 H237 L227 315 Q200 338 173 315Z" fill="#ffc928" stroke="#8d5b00" stroke-width="5"></path><path d="M173 270 Q138 264 146 299 Q153 317 180 308 M227 270 Q262 264 254 299 Q247 317 220 308" fill="none" stroke="#8d5b00" stroke-width="8"></path><rect x="189" y="325" width="22" height="24" fill="#ffc928"></rect><rect x="168" y="345" width="64" height="14" rx="7" fill="#d99b00"></rect></g>
+          <g data-prop="star"><path d="M200 250 L217 286 L257 291 L228 318 L236 357 L200 338 L164 357 L172 318 L143 291 L183 286Z" fill="#ffd43b" stroke="#8d5b00" stroke-width="6"></path></g>
+          <g data-prop="heart"><path d="M200 355 C170 330 142 309 147 280 C152 250 188 249 200 275 C212 249 248 250 253 280 C258 309 230 330 200 355Z" fill="#ef476f" stroke="#8f1834" stroke-width="6"></path></g>
         </g>
       </svg>
     `;
@@ -495,6 +580,44 @@
     return bubble;
   }
 
+  function showRewardVideo(options = {}){
+    document.querySelector(".pilingo-reward-video")?.remove();
+    const overlay = document.createElement("div");
+    overlay.className = "pilingo-reward-video";
+    overlay.setAttribute("role", "status");
+    overlay.setAttribute("aria-label", options.title || "Lesson complete");
+    overlay.innerHTML = `
+      <span class="pilingo-reward-video-spark s1">✦</span>
+      <span class="pilingo-reward-video-spark s2">★</span>
+      <span class="pilingo-reward-video-spark s3">✦</span>
+      <span class="pilingo-reward-video-spark s4">★</span>
+      <div class="pilingo-reward-video-card">
+        <div class="pilingo-reward-video-mascot"></div>
+        <h2>${escapeHtml(options.title || "Amazing work!")}</h2>
+        <p>${escapeHtml(options.message || "Keep learning—you are doing great!")}</p>
+      </div>`;
+    document.body.appendChild(overlay);
+    const slot = overlay.querySelector(".pilingo-reward-video-mascot");
+    const instance = createInstance(slot, {
+      size: Number(options.size) || 245,
+      screen:"reward-video",
+      state:options.animation || "celebrate",
+      float:false
+    });
+    instance.play(options.animation || "celebrate", {
+      returnTo:"smile",
+      duration:Number(options.duration) || 2400
+    });
+    requestAnimationFrame(() => overlay.classList.add("show"));
+    const duration = Number(options.duration) || 2400;
+    window.setTimeout(() => {
+      overlay.classList.remove("show");
+      window.setTimeout(() => overlay.remove(), 220);
+    }, duration);
+    if(options.speak !== false) speakMessage(options.message || "Keep learning. You are doing great!", options);
+    return overlay;
+  }
+
   function triggerZoom(instance, duration){
     if(!instance?.host) return;
     if(instance._zoomTimer){
@@ -533,6 +656,39 @@
     window.speechSynthesis.speak(utterance);
   }
 
+  function syncToAudio(instance, audio){
+    if(!instance?.host || !audio || !(window.AudioContext || window.webkitAudioContext)) return null;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const context = instance._audioContext || new AudioContext();
+    const analyser = instance._audioAnalyser || context.createAnalyser();
+    analyser.fftSize = 64;
+    if(!instance._audioSource){
+      instance._audioSource = context.createMediaElementSource(audio);
+      instance._audioSource.connect(analyser);
+      analyser.connect(context.destination);
+    }
+    instance._audioContext = context;
+    instance._audioAnalyser = analyser;
+    const samples = new Uint8Array(analyser.frequencyBinCount);
+    setState(instance, "talk");
+    const tick = () => {
+      if(audio.paused || audio.ended){
+        instance.host.classList.remove("is-speaking");
+        setState(instance, DEFAULT_STATE);
+        instance._lipSyncFrame = null;
+        return;
+      }
+      analyser.getByteFrequencyData(samples);
+      const energy = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+      instance.host.classList.toggle("is-speaking", energy > 18);
+      instance._lipSyncFrame = requestAnimationFrame(tick);
+    };
+    if(instance._lipSyncFrame) cancelAnimationFrame(instance._lipSyncFrame);
+    context.resume();
+    tick();
+    return instance;
+  }
+
   function scheduleReturn(instance, nextState, duration){
     if(instance._timer){
       clearTimeout(instance._timer);
@@ -569,7 +725,10 @@
       states: [
         "is-idle", "is-blink", "is-smile", "is-wave", "is-walk", "is-run",
         "is-jump", "is-laugh", "is-think", "is-read", "is-write", "is-talk",
-        "is-listen", "is-celebrate", "is-sad"
+        "is-listen", "is-celebrate", "is-sad", "is-high-five", "is-thumbs-up",
+        "is-point-left", "is-point-right", "is-nod", "is-shake", "is-clap",
+        "is-dance", "is-trophy", "is-star", "is-heart", "is-sleep", "is-yawn",
+        "is-stretch", "is-surprised", "is-encourage"
       ],
       renderer: "svg",
       play(state, playOptions = {}){
@@ -604,6 +763,10 @@
     listen: 1200,
     celebrate: 1600,
     sad: 1200
+    , "high-five": 1100, "thumbs-up": 1200, "point-left": 1200,
+    "point-right": 1200, nod: 1000, shake: 1000, clap: 1300, dance: 1800,
+    trophy: 1800, star: 1600, heart: 1600, sleep: 2400, yawn: 1500,
+    stretch: 1500, surprised: 1200, encourage: 1800
   };
 
   const api = {
@@ -680,6 +843,33 @@
       const instance = resolved ? INSTANCES.get(resolved) : Array.from(INSTANCES.values())[0];
       if(instance) clearBubble(instance);
     },
+    syncToAudio(audio, target){
+      const resolved = resolveTarget(target);
+      const instance = resolved ? INSTANCES.get(resolved) : Array.from(INSTANCES.values())[0];
+      return syncToAudio(instance, audio);
+    },
+    showReward(options){
+      return showRewardVideo(options || {});
+    },
+    react(eventName, target, options = {}){
+      const reactions = {
+        beforeLesson:["wave", "Welcome! Let's learn together!"],
+        afterLesson:["celebrate", "Lesson complete! Amazing work!"],
+        afterQuiz:["trophy", "Quiz complete! You did it!"],
+        correct:["thumbs-up", "Excellent!"],
+        wrong:["encourage", "Almost! You can do it!"],
+        levelUnlocked:["star", "A new level is unlocked!"],
+        trophyEarned:["trophy", "You earned a trophy!"],
+        dailyStreak:["celebrate", "Your streak is growing!"],
+        welcome:["wave", "Welcome to Pilingo!"],
+        loading:["walk", ""],
+        empty:["point-left", "Let's find something to learn!"]
+      };
+      const reaction = reactions[eventName] || ["smile", ""];
+      return api.showMessage(Object.assign({
+        target, animation:reaction[0], message:reaction[1], duration:1800
+      }, options));
+    },
     replaceRenderer(){
       return "svg";
     }
@@ -694,5 +884,11 @@
   };
   window.showPilingoReaction = function(config){
     return api.showReaction(config || {});
+  };
+  window.syncPilingoToAudio = function(audio, target){
+    return api.syncToAudio(audio, target);
+  };
+  window.showPilingoReward = function(options){
+    return api.showReward(options || {});
   };
 })();
