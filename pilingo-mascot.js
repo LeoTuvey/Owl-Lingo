@@ -127,6 +127,14 @@
       .pilingo-reward-video.show{opacity:1}
       .pilingo-reward-video-card{text-align:center;position:relative;z-index:2;animation:pilingoRewardCard .55s cubic-bezier(.2,.9,.25,1.2)}
       .pilingo-reward-video-mascot{width:min(260px,62vw);height:min(300px,52vh);display:grid;place-items:center;margin:auto}
+      .pilingo-reward-video-mascot img{
+        width:100%;
+        height:100%;
+        object-fit:contain;
+        display:block;
+        filter:drop-shadow(0 18px 18px rgba(77,55,8,.2));
+        animation:pilingoNewMascotCelebrate .72s ease-in-out infinite;
+      }
       .pilingo-reward-video h2{margin:2px 0 8px;color:#195f37;font-size:clamp(30px,7vw,58px);font-weight:1000}
       .pilingo-reward-video p{margin:0;color:#4a5b4e;font-size:clamp(17px,3.8vw,23px);font-weight:900}
       .pilingo-reward-video-spark{position:absolute;font-size:clamp(24px,5vw,52px);animation:pilingoRewardSpark 1.2s ease-in-out infinite}
@@ -373,6 +381,7 @@
       @keyframes pilingoPrize { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
       @keyframes pilingoRewardCard{from{transform:translateY(40px) scale(.72);opacity:0}to{transform:none;opacity:1}}
       @keyframes pilingoRewardSpark{0%,100%{transform:translateY(0) rotate(-8deg) scale(.9)}50%{transform:translateY(-18px) rotate(8deg) scale(1.16)}}
+      @keyframes pilingoNewMascotCelebrate{0%,100%{transform:translateY(0) rotate(-1deg) scale(1)}50%{transform:translateY(-14px) rotate(1deg) scale(1.025)}}
 
       @media (prefers-reduced-motion: reduce){
         .pilingo-mascot, .pilingo-mascot *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; }
@@ -592,22 +601,13 @@
       <span class="pilingo-reward-video-spark s3">✦</span>
       <span class="pilingo-reward-video-spark s4">★</span>
       <div class="pilingo-reward-video-card">
-        <div class="pilingo-reward-video-mascot"></div>
+        <div class="pilingo-reward-video-mascot">
+          <img src="${escapeAttr(options.asset || "assets/mascot/pilingo-celebrate.png?v=1")}" alt="Pilingo celebrating">
+        </div>
         <h2>${escapeHtml(options.title || "Amazing work!")}</h2>
         <p>${escapeHtml(options.message || "Keep learning—you are doing great!")}</p>
       </div>`;
     document.body.appendChild(overlay);
-    const slot = overlay.querySelector(".pilingo-reward-video-mascot");
-    const instance = createInstance(slot, {
-      size: Number(options.size) || 245,
-      screen:"reward-video",
-      state:options.animation || "celebrate",
-      float:false
-    });
-    instance.play(options.animation || "celebrate", {
-      returnTo:"smile",
-      duration:Number(options.duration) || 2400
-    });
     requestAnimationFrame(() => overlay.classList.add("show"));
     const duration = Number(options.duration) || 2400;
     window.setTimeout(() => {
