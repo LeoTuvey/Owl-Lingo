@@ -595,6 +595,15 @@
     overlay.className = "pilingo-reward-video";
     overlay.setAttribute("role", "status");
     overlay.setAttribute("aria-label", options.title || "Lesson complete");
+    const quizAssets = [
+      "assets/mascot/pilingo-trophy.png?v=1",
+      "assets/mascot/pilingo-high-five.png?v=1",
+      "assets/mascot/pilingo-thumbs-up.png?v=1",
+      "assets/mascot/pilingo-celebrate.png?v=1"
+    ];
+    const variantKey = String(options.variantKey || options.title || "pilingo");
+    const variantIndex = Array.from(variantKey).reduce((sum, char) => sum + char.charCodeAt(0), 0) % quizAssets.length;
+    const rewardAsset = options.asset || (options.quiz ? quizAssets[variantIndex] : "assets/mascot/pilingo-celebrate.png?v=1");
     overlay.innerHTML = `
       <span class="pilingo-reward-video-spark s1">✦</span>
       <span class="pilingo-reward-video-spark s2">★</span>
@@ -602,7 +611,7 @@
       <span class="pilingo-reward-video-spark s4">★</span>
       <div class="pilingo-reward-video-card">
         <div class="pilingo-reward-video-mascot">
-          <img src="${escapeAttr(options.asset || "assets/mascot/pilingo-celebrate.png?v=1")}" alt="Pilingo celebrating">
+          <img src="${escapeAttr(rewardAsset)}" alt="Pilingo celebrating">
         </div>
         <h2>${escapeHtml(options.title || "Amazing work!")}</h2>
         <p>${escapeHtml(options.message || "Keep learning—you are doing great!")}</p>
