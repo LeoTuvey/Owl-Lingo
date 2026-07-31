@@ -7499,8 +7499,10 @@ function completeStep(){
         hearts = window.Engine?.addHeart ? Engine.addHeart(1) : Math.min(heartsMax, heartsBeforeRestore + 1);
         renderHearts();
         const lessonPercent = currentGradePercent();
-        const completionCategory = activeLessonIsQuiz() ? "quizComplete" : "lessonComplete";
-        const completionScore = activeLessonIsQuiz()
+        const completedLessonId = activeLesson.id;
+        const completedWasQuiz = activeLessonIsQuiz();
+        const completionCategory = completedWasQuiz ? "quizComplete" : "lessonComplete";
+        const completionScore = completedWasQuiz
             ? `${gradeLetter(lessonPercent)} • ${lessonPercent}%`
             : "";
         const nowComplete = isSectionComplete(partIndex, sectionIndex);
@@ -7515,9 +7517,20 @@ function completeStep(){
             speak:true,
             zoomIn:true
         });
+        if(window.showPilingoReward){
+            showPilingoReward({
+                title:completedWasQuiz ? "Quiz complete!" : "Lesson complete!",
+                message:completedWasQuiz
+                    ? "Excellent work—you're ready for the next challenge!"
+                    : "Fantastic work—keep learning!",
+                animation:completedWasQuiz ? "trophy" : "celebrate",
+                duration:1900,
+                speak:false
+            });
+        }
         window.PilingoPush?.recordLessonCompletion?.({
             page:"game1.html",
-            lessonId: activeLesson?.id || "",
+            lessonId: completedLessonId,
             partId: activeCoursePartRoute?.slug || `part-${partIndex + 1}`,
             label: completionCategory,
             score: completionScore
@@ -7530,7 +7543,9 @@ function completeStep(){
             const routeCompleted = syncActiveCoursePartCompletion(partIndex);
 
             if(usesDirectBallFlow(partIndex)) {
-                window.location.href = "engine.html";
+                window.setTimeout(() => {
+                    window.location.href = "engine.html";
+                }, 1950);
                 return;
             }
 
@@ -7562,7 +7577,9 @@ function completeStep(){
                 return;
             }
 
-            window.location.href = "engine.html";
+            window.setTimeout(() => {
+                window.location.href = "engine.html";
+            }, 1950);
             return;
         }
 
@@ -7578,7 +7595,9 @@ function completeStep(){
                     return;
                 }
             }
-            window.location.href = "engine.html";
+            window.setTimeout(() => {
+                window.location.href = "engine.html";
+            }, 1950);
             return;
         }
 
@@ -7615,6 +7634,15 @@ function showPartComplete(completedIndex){
         speak:true,
         zoomIn:true
     });
+    if(window.showPilingoReward){
+        showPilingoReward({
+            title:"Part complete!",
+            message:"Amazing progress—keep going!",
+            animation:"trophy",
+            duration:2000,
+            speak:false
+        });
+    }
 
     const openPart = nextOpenPart();
     const isAllDone = allPartsComplete();
