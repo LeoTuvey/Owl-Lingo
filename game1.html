@@ -4612,12 +4612,12 @@ function greetingsBall4Steps(){
         referenceMatch("Has / have forms", [
             { english:"has", kurmanji:"y / ye / ne", group:"has" },
             { english:"have", kurmanji:"y / ye / ne", group:"have" },
-            { english:"has got", kurmanji:"he-y", group:"has-y" },
-            { english:"has got", kurmanji:"he-ye", group:"has-ye" },
-            { english:"has got", kurmanji:"he-ne", group:"has-ne" },
-            { english:"have got", kurmanji:"he-y", group:"have-y" },
-            { english:"have got", kurmanji:"he-ye", group:"have-ye" },
-            { english:"have got", kurmanji:"he-ne", group:"have-ne" }
+            { english:"has got", kurmanji:"he-y", group:"has-have-got" },
+            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
+            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         referenceMatch("To be and have endings", [
             { english:"e / ye", kurmanji:"is", group:"is-e" },
@@ -4643,12 +4643,12 @@ function greetingsBall4Steps(){
         referenceMatch("Has / have forms", [
             { english:"has", kurmanji:"y / ye / ne", group:"has" },
             { english:"have", kurmanji:"y / ye / ne", group:"have" },
-            { english:"has got", kurmanji:"he-y", group:"has-y" },
-            { english:"has got", kurmanji:"he-ye", group:"has-ye" },
-            { english:"has got", kurmanji:"he-ne", group:"has-ne" },
-            { english:"have got", kurmanji:"he-y", group:"have-y" },
-            { english:"have got", kurmanji:"he-ye", group:"have-ye" },
-            { english:"have got", kurmanji:"he-ne", group:"have-ne" }
+            { english:"has got", kurmanji:"he-y", group:"has-have-got" },
+            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
+            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
+            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         movingRichChoiceStep("", "Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat", "a dog"], "a cat"),
         rawBuildStep("", "Kitik-ek e min he ye.\nI ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
