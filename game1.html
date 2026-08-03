@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v5";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v6";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4765,8 +4765,6 @@ function greetingsBall4Steps(){
         )
     ];
 
-    return replacementSteps;
-
     const singularA = referenceMatch("Singular", [
         { english:"has", kurmanji:"(a/ya)", group:"has-have-a" },
         { english:"got", kurmanji:"hey", group:"got-a" },
@@ -5203,7 +5201,103 @@ function greetingsBall4Steps(){
         }
     });
 
-    return steps;
+    const fullHaveHasMatch = () => silentReferenceMatch("Has / have forms", [
+        { english:"have / has", kurmanji:"y / ye / ne", group:"have-has" },
+        { english:"has got", kurmanji:"he-y", group:"has-have-got" },
+        { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
+        { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
+        { english:"have got", kurmanji:"he-y", group:"has-have-got" },
+        { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
+        { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
+    ]);
+    const haveGotReference = () => silentReferenceMatch("Have got", [
+        { english:"has", kurmanji:"y / ye / ne", group:"has" },
+        { english:"has got", kurmanji:"hey", group:"has-got" },
+        { english:"You - you", kurmanji:"Tu - te", group:"you" },
+        { english:"He - him", kurmanji:"Ew - wî", group:"he" },
+        { english:"Father", kurmanji:"Bab / Bav", group:"father" },
+        { english:"My", kurmanji:"ê min", group:"my" }
+    ]);
+    const finalEndingsMatch = () => silentReferenceMatch("To be and have endings", [
+        { english:"e / ye", kurmanji:"is", group:"is-e" },
+        { english:"in / ne", kurmanji:"are", group:"are-ne" },
+        { english:"ye", kurmanji:"is / has / have", group:"ye" },
+        { english:"y", kurmanji:"has / have", group:"y" },
+        { english:"ne", kurmanji:"are / has / have", group:"ne" },
+        { english:"eve", kurmanji:"this", group:"this" }
+    ]);
+    const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
+        "",
+        "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
+        'Xalet-ek a min kitik-ek ê <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.',
+        englishAnswer === "has got" ? ["Has got", "Have got"] : ["Has", "Have"],
+        englishAnswer
+    );
+    const haveGotBuilds = [
+        rawBuildStep("", "have got", ["he", "-y"], ["he", "-y"]),
+        rawBuildStep("", "have got", ["he", "y"], ["he", "y"]),
+        rawBuildStep("", "have got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "have got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "have got", ["he", "ne"], ["he", "ne"]),
+        rawBuildStep("", "have got", ["he", "ne"], ["he", "ne"])
+    ];
+    const continuationSteps = [
+        blueHeYChoice("has got"),
+        blueHeYChoice("has"),
+        fullHaveHasMatch(),
+        haveGotReference(),
+        ...haveGotBuilds,
+        possessiveA(),
+        possessiveE(),
+        fullHaveHasMatch(),
+        { ...motherForms, leftSpeakMap:{} },
+        { ...fatherForms, leftSpeakMap:{} },
+        steps[35],
+        steps[36],
+        steps[37],
+        steps[38],
+        { ...pluralPossessivesFive(), leftSpeakMap:{} },
+        { ...numbers(), leftSpeakMap:{} },
+        fullHaveHasMatch(),
+        movingSeparatedAnswerBuildStep("", "Me du kitit êt hey.\nWe have got ___ ____.", 'Me <span class="static-blue-word" style="text-decoration:none">du kitit</span> êt hey.<br>We have got <span class="prompt-blank">___</span> <span class="prompt-blank">____</span>.', ["cats", "two"], ["two", "cats"]),
+        movingSeparatedAnswerBuildStep("", "Du kitit ên me hene.\nWe have got ___ ____.", '<span class="static-blue-word" style="text-decoration:none">Du kitit</span> ên me hene.<br>We have got <span class="prompt-blank">___</span> <span class="prompt-blank">____</span>.', ["cats", "two"], ["two", "cats"]),
+        movingSeparatedAnswerBuildStep("", "We(Hingo) du kitit êt he y.\nYou ____ ____ two cats.", 'We(Hingo) du kitit êt <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
+        movingSeparatedAnswerBuildStep("", "Du kitit ên we(Hingo) he ne.\nYou ____ ____ two cats.", 'Du kitit ên we(Hingo) <span class="static-blue-word" style="text-decoration:none">he ne</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
+        { ...pluralPossessivesSix, leftSpeakMap:{} },
+        { ...numbers(), leftSpeakMap:{} },
+        movingRichChoiceStep("", "My father has got three dogs.\n_______ sê se êt hey.", '<span class="static-blue-word" style="text-decoration:none">My father</span> has got three dogs.<br><span class="prompt-blank">_______</span> sê se êt hey.', ["Bab ê min", "Bab a min"], "Bab ê min"),
+        rawBuildStep("", "Bab ê min sê se êt hey.", ["dogs", "has", "got", "My-father", "three"], ["My-father", "has", "got", "three", "dogs"]),
+        rawBuildStep("", "Bab ê min sê se yêt hey.", ["Has", "My-father", "three", "dogs"], ["My-father", "has", "three", "dogs"]),
+        movingRichChoiceStep("", "My sister has got three cats.\n_______ sê pișîk êt hey.", '<span class="static-blue-word" style="text-decoration:none">My sister</span> has got three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "xwişk a min"),
+        movingRichChoiceStep("", "My sister has three cats.\n_______ sê pișîk êt hey.", '<span class="static-blue-word" style="text-decoration:none">My sister</span> has three cats.<br><span class="prompt-blank">_______</span> sê pișîk êt hey.', ["xwişk ê min", "xwişk a min"], "Xwişk a min"),
+        movingRichChoiceStep("", "My sister has got three cats.\nXwişk a min sê pișîk êt ___ __.", 'My sister <span class="static-blue-word" style="text-decoration:none">has got</span> three cats.<br>Xwişk a min sê pișîk êt <span class="prompt-blank">___ __</span>.', ["he-y", "heye"], "he-y"),
+        movingRichChoiceStep("", "My sister has got three cats.\nSê pișîk ên xwişk a min __ __.", 'My sister <span class="static-blue-word" style="text-decoration:none">has got</span> three cats.<br>Sê pișîk ên xwişk a min <span class="prompt-blank">__ __</span>.', ["he ne", "he ye"], "he ne"),
+        movingRichChoiceStep("", "My father has got three dogs.\nBab ê min sê se yêt __ _.", 'My father <span class="static-blue-word" style="text-decoration:none">has got</span> three dogs.<br>Bab ê min sê se yêt <span class="prompt-blank">__ _</span>.', ["he y", "he ye"], "he y"),
+        movingRichChoiceStep("", "My father has got three dogs.\nSê se yên bab ê min __ __.", 'My father <span class="static-blue-word" style="text-decoration:none">has got</span> three dogs.<br>Sê se yên bab ê min <span class="prompt-blank">__ __</span>.', ["he ne", "he y", "he ye"], "he ne"),
+        movingRichChoiceStep("", "My father has three dogs.\nBab ê min sê se yêt __ _.", 'My father <span class="static-blue-word" style="text-decoration:none">has got</span> three dogs.<br>Bab ê min sê se yêt <span class="prompt-blank">__ _</span>.', ["he y", "he ye", "he ne"], "he y"),
+        voiceChoice("of yours", ["___ ê te", "___ a wî", "___ a min"], "___ ê te"),
+        Object.assign(movingSeparatedAnswerBuildStep("", "Bav ê min kitik ek yê he y.\nMy father ____ ____ a cat.", 'Bav ê min kitik ek yê <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>My father <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> a cat.', ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]), { moveCorrectBuildGroupsToBlanks:["has", "got"] }),
+        rawBuildStep("Arrange the words", "Your father", ["ê", "te", "Bav"], ["Bav", "ê", "te"]),
+        rawBuildStep("Arrange the words", "Bav ê we(hingo)\nfather Your", ["father", "Your"], ["Your", "father"]),
+        Object.assign(movingSeparatedAnswerBuildStep("", "Bab ê te se-yek ê he y.\nYour father ____ ____ a-dog.", 'Bab ê te se-yek ê <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>Your father <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> a-dog.', ["a", "s", "g", "o", "t", "h"], ["h", "a", "s", "g", "o", "t"]), { moveCorrectBuildGroupsToBlanks:["has", "got"] }),
+        voiceChoice("aunt", ["mam", "father", "xalet"], "xalet"),
+        voiceChoice("of yours", ["___ a te", "___ a wî", "___ a min"], "___ a te"),
+        steps[64],
+        steps[65],
+        steps[66],
+        steps[67],
+        steps[68],
+        steps[69],
+        fullHaveHasMatch(),
+        finalEndingsMatch(),
+        voiceChoice("is", ["e", "in"], "e"),
+        voiceChoice("this", ["eve", "ew"], "eve"),
+        voiceChoice("this", ["eve"], "eve"),
+        replacementSteps[5],
+        replacementSteps[6]
+    ];
+
+    return [...replacementSteps, ...continuationSteps];
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
