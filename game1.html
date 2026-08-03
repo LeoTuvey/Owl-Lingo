@@ -1733,7 +1733,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v2";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v3";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4605,6 +4605,105 @@ function greetingsBall4Steps(){
         compactOnPhone:pairs.length >= 6,
         leftSpeakMap:Object.fromEntries(pairs.map((pair) => [pair.english, pair.english]))
     });
+
+    // Ball 4 replacement content. Keep the established Ball 4 activity system;
+    // only this ordered lesson material comes from the supplied specification.
+    const replacementSteps = [
+        referenceMatch("Has / have forms", [
+            { english:"has", kurmanji:"y / ye / ne", group:"has" },
+            { english:"have", kurmanji:"y / ye / ne", group:"have" },
+            { english:"has got", kurmanji:"he-y", group:"has-y" },
+            { english:"has got", kurmanji:"he-ye", group:"has-ye" },
+            { english:"has got", kurmanji:"he-ne", group:"has-ne" },
+            { english:"have got", kurmanji:"he-y", group:"have-y" },
+            { english:"have got", kurmanji:"he-ye", group:"have-ye" },
+            { english:"have got", kurmanji:"he-ne", group:"have-ne" }
+        ]),
+        referenceMatch("To be and have endings", [
+            { english:"e / ye", kurmanji:"is", group:"is-e" },
+            { english:"in / ne", kurmanji:"are", group:"are-ne" },
+            { english:"ye", kurmanji:"is / has / have", group:"ye" },
+            { english:"y", kurmanji:"has / have", group:"y" },
+            { english:"ne", kurmanji:"are / has / have", group:"ne" },
+            { english:"eve", kurmanji:"this", group:"this" }
+        ]),
+        voiceChoice("is", ["e", "in"], "e"),
+        voiceChoice("this", ["eve", "ew"], "eve"),
+        voiceChoice("this", ["eve", "ew"], "eve"),
+        rawBuildStep("", "this cat\n__ kitik_", ["v", "e", "e"], ["e", "v", "e"]),
+        movingRichChoiceStep("", "this cat\nev _____e", 'this cat<br>ev <span class="prompt-blank">_____</span>e', ["kitik", "se"], "kitik"),
+        voiceChoice("is", ["e", "in"], "e"),
+        referenceMatch("Colours", [
+            { english:"yellow", kurmanji:"zer", group:"yellow" },
+            { english:"blue", kurmanji:"şîn", group:"blue" },
+            { english:"white", kurmanji:"spî", group:"white" },
+            { english:"black", kurmanji:"reş", group:"black" }
+        ]),
+        movingRichChoiceStep("", "🐈 This cat is yellow.\nEv kitike ya zer _.", '🐈 This cat is yellow.<br>Ev kitike ya zer <span class="prompt-blank">_</span>.', ["ye", "e", "in"], "e"),
+        referenceMatch("Has / have forms", [
+            { english:"has", kurmanji:"y / ye / ne", group:"has" },
+            { english:"have", kurmanji:"y / ye / ne", group:"have" },
+            { english:"has got", kurmanji:"he-y", group:"has-y" },
+            { english:"has got", kurmanji:"he-ye", group:"has-ye" },
+            { english:"has got", kurmanji:"he-ne", group:"has-ne" },
+            { english:"have got", kurmanji:"he-y", group:"have-y" },
+            { english:"have got", kurmanji:"he-ye", group:"have-ye" },
+            { english:"have got", kurmanji:"he-ne", group:"have-ne" }
+        ]),
+        movingRichChoiceStep("", "Kitik-ek e min heye.\nI have got _____.", 'Kitik-ek e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat", "a dog"], "a cat"),
+        rawBuildStep("", "Kitik-ek e min he ye.\nI ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
+        movingRichChoiceStep("", "I have a cat.\nKitik-ek e min __ __.", 'I have a cat.<br>Kitik-ek e min <span class="prompt-blank">__ __</span>.', ["he ye", "he ne"], "he ye"),
+        {
+            type:"type",
+            instruction:"Type the Missing Words",
+            prompt:"Bim-ek e te heye.\nYou have got _____.",
+            answer:"an owl"
+        },
+        rawBuildStep("", "Kitik-ek e te he ye.\nYou ___ ___ a-cat.", ["got", "have"], ["have", "got"]),
+        rawBuildStep("Type the Missing Words", "Bim-ek e wî heye.\nHe has got _____.", ["o", "l", "w", "n", "a"], ["a", "n", "o", "w", "l"]),
+        rawBuildStep("", "Kitik-ek e wî he ye.\nHe ___ ___ a-cat.", ["got", "has"], ["has", "got"]),
+        voiceChoice("of mine", ["___ a te", "___ a wî", "___ a min"], "___ a min"),
+        referenceMatch("Has / have forms", [
+            { english:"has", kurmanji:"y / ye / ne", group:"has" },
+            { english:"have", kurmanji:"y / ye / ne", group:"have" },
+            { english:"has got", kurmanji:"he-y / he-ye / he-ne", group:"has-got" },
+            { english:"have got", kurmanji:"he-y / he-ye / he-ne", group:"have-got" }
+        ]),
+        {
+            type:"type",
+            instruction:"Type the Missing Words",
+            prompt:"A cat",
+            spoken:"A cat",
+            inputPlaceholder:"Type the missing words",
+            answer:"kitik ek"
+        },
+        rawBuildStep("", "Kûnd-ek e min\n___ ____ of mine", ["owl", "An"], ["An", "owl"]),
+        rawBuildStep("", "Se-yek ê min\n__ ___ of mine", ["dog", "A"], ["A", "dog"]),
+        voiceChoice("An aunt", ["mam", "mam ek", "met ek"], "met ek"),
+        voiceChoice("An aunt", ["xalet", "xal", "xalet ek"], "xalet ek"),
+        rawBuildStep("", "Xalet ek a min\n__ ___ of mine", ["aunt", "An"], ["An", "aunt"]),
+        referenceMatch("Has / have forms", [
+            { english:"has", kurmanji:"y / ye / ne", group:"has" },
+            { english:"have", kurmanji:"y / ye / ne", group:"have" },
+            { english:"has got", kurmanji:"he-y / he-ye / he-ne", group:"has-got" },
+            { english:"have got", kurmanji:"he-y / he-ye / he-ne", group:"have-got" }
+        ]),
+        referenceMatch("Has got", [
+            { english:"has", kurmanji:"y / ye / ne", group:"has" },
+            { english:"has got", kurmanji:"he-y", group:"has-got" },
+            { english:"You - you", kurmanji:"Tu - te", group:"you" },
+            { english:"He - him", kurmanji:"Ew - wî", group:"he" },
+            { english:"Father", kurmanji:"Bab / Bav", group:"father" },
+            { english:"My", kurmanji:"ê min", group:"my" }
+        ]),
+        rawBuildStep("", "has got", ["he", "-y"], ["he", "-y"]),
+        rawBuildStep("", "has got", ["he", "y"], ["he", "y"]),
+        rawBuildStep("", "has got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "has got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "has got", ["he", "ne"], ["he", "ne"])
+    ];
+
+    return replacementSteps;
 
     const singularA = referenceMatch("Singular", [
         { english:"has", kurmanji:"(a/ya)", group:"has-have-a" },
