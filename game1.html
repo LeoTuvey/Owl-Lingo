@@ -4606,6 +4606,11 @@ function greetingsBall4Steps(){
         leftSpeakMap:Object.fromEntries(pairs.map((pair) => [pair.english, pair.english]))
     });
 
+    const silentReferenceMatch = (instruction, pairs, prompt = "") => ({
+        ...referenceMatch(instruction, pairs, prompt),
+        leftSpeakMap:{}
+    });
+
     // Ball 4 replacement content. Keep the established Ball 4 activity system;
     // only this ordered lesson material comes from the supplied specification.
     const replacementSteps = [
@@ -4618,13 +4623,13 @@ function greetingsBall4Steps(){
             { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
             { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
-        referenceMatch("To be and have endings", [
-            { english:"e / ye", kurmanji:"is", group:"is-e" },
+        silentReferenceMatch("To be and have endings", [
             { english:"in / ne", kurmanji:"are", group:"are-ne" },
+            { english:"e / ye", kurmanji:"is", group:"is-e" },
+            { english:"eve", kurmanji:"this", group:"this" },
             { english:"ye", kurmanji:"is / has / have", group:"ye" },
-            { english:"y", kurmanji:"has / have", group:"y" },
             { english:"ne", kurmanji:"are / has / have", group:"ne" },
-            { english:"eve", kurmanji:"this", group:"this" }
+            { english:"y", kurmanji:"has / have", group:"y" }
         ]),
         voiceChoice("is", ["e", "in"], "e"),
         voiceChoice("this", ["eve", "ew"], "eve"),
