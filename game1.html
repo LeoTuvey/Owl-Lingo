@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v4";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v5";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4719,7 +4719,50 @@ function greetingsBall4Steps(){
             { english:"He - him", kurmanji:"Ew - wî", group:"he" },
             { english:"Father", kurmanji:"Bab / Bav", group:"father" },
             { english:"My", kurmanji:"ê min", group:"my" }
-        ])
+        ]),
+        rawBuildStep("", "has got", ["he", "-y"], ["he", "-y"]),
+        rawBuildStep("", "has got", ["he", "y"], ["he", "y"]),
+        rawBuildStep("", "has got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "has got", ["ye", "he"], ["he", "ye"]),
+        rawBuildStep("", "has got", ["he", "ne"], ["he", "ne"]),
+        rawBuildStep("", "has got", ["he", "ne"], ["he", "ne"]),
+        movingSeparatedAnswerBuildStep(
+            "",
+            "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ___ ___ a-cat.",
+            'Xalet-ek a min kitik-ek a <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>An-aunt of mine <span class="prompt-blank">___</span> <span class="prompt-blank">___</span> a-cat.',
+            ["got", "has"],
+            ["has", "got"]
+        ),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "Xalet-ek a min kitik-ek yê he y.\nAn-aunt of mine ______ a-cat.",
+                'Xalet-ek a min kitik-ek yê <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.',
+                ["has", "got"],
+                ["has", "got"]
+            ),
+            { moveCorrectBuildGroupsToBlanks:["has got"] }
+        ),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ______ a-cat.",
+                'Xalet-ek a min kitik-ek a <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.',
+                ["has", "got"],
+                ["has", "got"]
+            ),
+            { moveCorrectBuildGroupsToBlanks:["has got"] }
+        ),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
+                'Xalet-ek a min kitik-ek ê <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>An-aunt of mine <span class="prompt-blank">______</span> a-cat.',
+                ["has", "got"],
+                ["has", "got"]
+            ),
+            { moveCorrectBuildGroupsToBlanks:["has got"] }
+        )
     ];
 
     return replacementSteps;
