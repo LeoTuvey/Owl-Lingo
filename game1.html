@@ -4634,7 +4634,16 @@ function greetingsBall4Steps(){
         voiceChoice("is", ["e", "in"], "e"),
         voiceChoice("this", ["eve", "ew"], "eve"),
         voiceChoice("this", ["eve", "ew"], "eve"),
-        rawBuildStep("", "this cat\n__ kitik_", ["v", "e", "e"], ["e", "v", "e"]),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "this cat\n__ kitik_",
+                'this cat<br><span class="prompt-blank">__</span> kitik<span class="prompt-blank">_</span>',
+                ["v", "e", "e"],
+                ["e", "v", "e"]
+            ),
+            { moveCorrectBuildGroupsToBlanks:["ev", "e"] }
+        ),
         movingRichChoiceStep("", "this cat\nev _____e", 'this cat<br>ev <span class="prompt-blank">_____</span>e', ["kitik", "se"], "kitik"),
         voiceChoice("is", ["e", "in"], "e"),
         referenceMatch("Colours", [
