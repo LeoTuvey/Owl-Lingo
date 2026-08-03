@@ -1187,15 +1187,18 @@ button.wrong{
     height:122px;
     border-radius:50%;
     position:relative;
-    background:
-        radial-gradient(circle at 50% 50%, transparent 67%, rgba(255,255,255,0.92) 67.5%, rgba(255,255,255,0.92) 100%),
-        conic-gradient(#58cc02 var(--egg-progress), #dfe7f1 0deg);
+    background:conic-gradient(
+        from 0deg,
+        #58cc02 0deg var(--egg-progress),
+        #dfe7f1 var(--egg-progress) 360deg
+    );
     display:grid;
     place-items:center;
     padding:9px;
     box-shadow:
         0 12px 22px rgba(37,48,68,0.13),
         inset 0 0 0 2px rgba(255,255,255,0.82);
+    transition:background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .lesson-egg-ring::after{
@@ -1208,22 +1211,20 @@ button.wrong{
 }
 
 .lesson-egg-button.current .lesson-egg-ring{
-    background:
-        radial-gradient(circle at 50% 50%, transparent 67%, rgba(255,255,255,0.92) 67.5%, rgba(255,255,255,0.92) 100%),
-        conic-gradient(#ffbf32 var(--egg-progress), #dfe7f1 0deg);
+    background:conic-gradient(
+        from 0deg,
+        #ffbf32 0deg var(--egg-progress),
+        #dfe7f1 var(--egg-progress) 360deg
+    );
     box-shadow:0 14px 24px rgba(176,135,29,0.16);
 }
 
 .lesson-egg-button.completed .lesson-egg-ring{
-    background:
-        radial-gradient(circle at 50% 50%, transparent 67%, rgba(255,255,255,0.92) 67.5%, rgba(255,255,255,0.92) 100%),
-        conic-gradient(#58cc02 360deg, #58cc02 360deg);
+    background:#58cc02;
 }
 
 .lesson-egg-button.locked .lesson-egg-ring{
-    background:
-        radial-gradient(circle at 50% 50%, transparent 67%, rgba(255,255,255,0.92) 67.5%, rgba(255,255,255,0.92) 100%),
-        conic-gradient(#dbe5ef 360deg, #dbe5ef 360deg);
+    background:#dbe5ef;
     box-shadow:none;
 }
 
