@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v35";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v36";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4826,9 +4826,7 @@ function greetingsBall4Steps(){
         { english:"have got", kurmanji:"ên__hene", group:"has-have-got-hene" }
     ]);
     const hasGotReference = () => referenceMatch("Has got", [
-        { english:"has", kurmanji:"(ê/yê) (a/ya)", group:"has" },
-        { english:"got", kurmanji:"hey", group:"got" },
-        { english:"has got", kurmanji:"yê hey", group:"has-got" },
+        { english:"has got", kurmanji:"a/ê/êt hey", group:"has-got" },
         { english:"You - you", kurmanji:"Tu - te", group:"you" },
         { english:"He - him", kurmanji:"Ew - wî", group:"he" },
         { english:"Father", kurmanji:"Bab / Bav", group:"father" },
