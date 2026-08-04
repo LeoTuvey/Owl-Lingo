@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v9";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v10";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5371,7 +5371,7 @@ function greetingsBall4Steps(){
         replacementSteps[6]
     ];
 
-    return [colouredHasGotMatch(), colouredHaveGotMatch(), ...replacementSteps, ...continuationSteps];
+    return [colouredHasGotMatch(), colouredHaveGotMatch(), ...replacementSteps.slice(1), ...continuationSteps];
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
