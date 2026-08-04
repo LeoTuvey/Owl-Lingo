@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v32";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v33";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1958,7 +1958,12 @@ const GREETINGS_BALL5_PROMPTS = new Set([
     "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ___ ___ a-cat.",
     "Xalet-ek a min kitik-ek yê he y.\nAn-aunt of mine ______ a-cat.",
     "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ______ a-cat.",
-    "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat."
+    "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
+    "My sister has got three cats.\nXwişk a min sê pișîk êt ___ __.",
+    "My sister has got three cats.\nSê pișîk ên xwişk a min __ __.",
+    "My father has got three dogs.\nBab ê min sê se yêt __ _.",
+    "My father has got three dogs.\nSê se yên bab ê min __ __.",
+    "My father has three dogs.\nBab ê min sê se yêt __ _."
 ]);
 const GREETINGS_BALL4_AND_5_STEPS = greetingsBall4Steps();
 const isGreetingsBall5Step = (step) => (
