@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v26";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v27";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5314,6 +5314,52 @@ function greetingsBall4Steps(){
         ["Ev", "e", "ya"],
         ["Ev", "e", "ya"]
     );
+    const typedRedHeStep = (englishSentence, kurmanjiPrompt, kurmanjiHtml) => ({
+        type:"type",
+        instruction:"Type the Missing Words",
+        prompt:`${englishSentence}\n${kurmanjiPrompt}`,
+        promptHtml:`I <span style="color:#1c80cf;font-weight:1000">have</span> <span style="color:#ff4b4b;font-weight:1000">got</span>${englishSentence.slice("I have got".length)}<br>${kurmanjiHtml}`,
+        inputPlaceholder:"Type the missing word",
+        answer:"he",
+        moveCorrectTypedToBlank:true,
+        typedAnswerColor:"#ff4b4b"
+    });
+    const twoAnswerCatBuild = () => Object.assign(
+        rawBuildStepMulti(
+            "",
+            "I have got a cat.\nMin kitik ek _ he _.",
+            ["a", "ê", "y"],
+            [["a", "y"], ["ê", "y"]]
+        ),
+        {
+            promptHtml:'I <span style="color:#1c80cf;font-weight:1000">have</span> <span style="color:#ff4b4b;font-weight:1000">got</span> a cat.<br>Min kitik ek <span class="prompt-blank" data-build-answer-target>_</span> <span style="color:#ff4b4b;font-weight:1000">he</span> <span class="prompt-blank" data-build-answer-target>_</span>.',
+            moveCorrectWordsToBlanks:true
+        }
+    );
+    const newHaveGotFormSteps = () => [
+        typedRedHeStep(
+            "I have got a cat.",
+            "Min kitik ek a__y.",
+            'Min kitik ek <span style="color:#1c80cf;font-weight:1000">a</span><span class="prompt-blank" data-typed-answer-target>__</span><span style="color:#1c80cf;font-weight:1000">y</span>.'
+        ),
+        typedRedHeStep(
+            "I have got a cat.",
+            "Min kitik ek ê__y.",
+            'Min kitik ek <span style="color:#1c80cf;font-weight:1000">ê</span><span class="prompt-blank" data-typed-answer-target>__</span><span style="color:#1c80cf;font-weight:1000">y</span>.'
+        ),
+        typedRedHeStep(
+            "I have got two cats.",
+            "Min du kitik êt__y.",
+            'Min du kitik <span style="color:#1c80cf;font-weight:1000">êt</span><span class="prompt-blank" data-typed-answer-target>__</span><span style="color:#1c80cf;font-weight:1000">y</span>.'
+        ),
+        typedRedHeStep(
+            "I have got three owls.",
+            "Min sê bim êt__y.",
+            'Min sê bim <span style="color:#1c80cf;font-weight:1000">êt</span><span class="prompt-blank" data-typed-answer-target>__</span><span style="color:#1c80cf;font-weight:1000">y</span>.'
+        ),
+        twoAnswerCatBuild(),
+        twoAnswerCatBuild()
+    ];
     const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
         "",
         "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
@@ -5392,6 +5438,7 @@ function greetingsBall4Steps(){
         ...replacementSteps.slice(1, 10),
         yellowCatBuild(),
         ...replacementSteps.slice(10),
+        ...newHaveGotFormSteps(),
         yellowCatBuild(),
         thisTheseVoiceMatch(),
         ...continuationSteps,
@@ -7734,6 +7781,7 @@ function moveCorrectTypedAnswerIntoBlank(step, value, input){
 
     animation.finished.finally(() => {
         target.textContent = value.trim();
+        if(step.typedAnswerColor) target.style.color = step.typedAnswerColor;
         token.remove();
         markCorrect();
     });
