@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v6";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v7";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5226,6 +5226,43 @@ function greetingsBall4Steps(){
         { english:"ne", kurmanji:"are / has / have", group:"ne" },
         { english:"eve", kurmanji:"this", group:"this" }
     ]);
+    const colouredHasGotMatch = () => silentReferenceMatch("Has got", [
+        {
+            english:"has got",
+            englishHtml:'<span style="color:#1c80cf;font-weight:1000">has</span> <span style="color:#ff4b4b;font-weight:1000">got</span>',
+            kurmanji:"ahey",
+            kurmanjiHtml:'<span style="color:#1c80cf;font-weight:1000">a</span><span style="color:#ff4b4b;font-weight:1000">he</span><span style="color:#1c80cf;font-weight:1000">y</span>',
+            group:"coloured-has-got"
+        },
+        {
+            english:"has got",
+            englishHtml:'<span style="color:#1c80cf;font-weight:1000">has</span> <span style="color:#ff4b4b;font-weight:1000">got</span>',
+            kurmanji:"êhey",
+            kurmanjiHtml:'<span style="color:#1c80cf;font-weight:1000">ê</span><span style="color:#ff4b4b;font-weight:1000">he</span><span style="color:#1c80cf;font-weight:1000">y</span>',
+            group:"coloured-has-got"
+        },
+        {
+            english:"has got",
+            englishHtml:'<span style="color:#1c80cf;font-weight:1000">has</span> <span style="color:#ff4b4b;font-weight:1000">got</span>',
+            kurmanji:"êthey",
+            kurmanjiHtml:'<span style="color:#1c80cf;font-weight:1000">êt</span><span style="color:#ff4b4b;font-weight:1000">he</span><span style="color:#1c80cf;font-weight:1000">y</span>',
+            group:"coloured-has-got"
+        },
+        {
+            english:"has got",
+            englishHtml:'<span style="color:#1c80cf;font-weight:1000">has</span> <span style="color:#ff4b4b;font-weight:1000">got</span>',
+            kurmanji:"he ye",
+            kurmanjiHtml:'<span style="color:#ff4b4b;font-weight:1000">he</span> <span style="color:#1c80cf;font-weight:1000">ye</span>',
+            group:"coloured-has-got"
+        },
+        {
+            english:"has got",
+            englishHtml:'<span style="color:#1c80cf;font-weight:1000">has</span> <span style="color:#ff4b4b;font-weight:1000">got</span>',
+            kurmanji:"he ne",
+            kurmanjiHtml:'<span style="color:#ff4b4b;font-weight:1000">he</span> <span style="color:#1c80cf;font-weight:1000">ne</span>',
+            group:"coloured-has-got"
+        }
+    ]);
     const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
         "",
         "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
@@ -5294,7 +5331,8 @@ function greetingsBall4Steps(){
         voiceChoice("this", ["eve", "ew"], "eve"),
         voiceChoice("this", ["eve"], "eve"),
         replacementSteps[5],
-        replacementSteps[6]
+        replacementSteps[6],
+        colouredHasGotMatch()
     ];
 
     return [...replacementSteps, ...continuationSteps];
