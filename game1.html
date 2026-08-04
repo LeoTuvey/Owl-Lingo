@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v20";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v21";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5274,6 +5274,10 @@ function greetingsBall4Steps(){
             group:"coloured-have-got"
         }
     ]);
+    const thisTheseVoiceMatch = () => referenceMatch("This / These", [
+        { english:"This", kurmanji:"ev____e ya/yê", group:"this-form" },
+        { english:"These", kurmanji:"ev____et", group:"these-form" }
+    ]);
     const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
         "",
         "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
@@ -5345,7 +5349,15 @@ function greetingsBall4Steps(){
         replacementSteps[6]
     ];
 
-    return [colouredHasGotMatch(), colouredHaveGotMatch(), ...replacementSteps.slice(1), ...continuationSteps];
+    return [
+        colouredHasGotMatch(),
+        colouredHaveGotMatch(),
+        thisTheseVoiceMatch(),
+        ...replacementSteps.slice(1),
+        thisTheseVoiceMatch(),
+        ...continuationSteps,
+        thisTheseVoiceMatch()
+    ];
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
