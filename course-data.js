@@ -135,14 +135,14 @@ const SECTION_ONE_PARTS = [
       "Listen and choose",
       "Verb note",
       ...Array.from({ length:77 }, (_, index) => `Ball 3 activity ${index + 1}`),
-      ...Array.from({ length:95 }, (_, index) => `Ball 4 activity ${index + 1}`),
+      ...Array.from({ length:107 }, (_, index) => `Ball 4 activity ${index + 1}`),
       ...Array.from({ length:7 }, (_, index) => `Ball 5 activity ${index + 1}`)
     ),
     balls: [
       ball("a-part-2-greetings-v1", 1, "Ball 1", "Subject pronouns, times of day, greetings, and basic conversation", 9),
       ball("a-part-2-greetings-v2", 2, "Ball 2", "Greeting conversations, grammar endings, typing, and listening", 11),
       ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb note, animals, have got, possessives, and articles", 78),
-      ball("a-part-2-greetings-v6", 4, "Ball 4", "Has, have, this, colours, animals, and possessives", 95),
+      ball("a-part-2-greetings-v6", 4, "Ball 4", "Has, have, this, colours, animals, and possessives", 107),
       ball("a-part-2-greetings-v7", 5, "Ball 5", "Have got and has got animal sentences", 7)
     ]
   },
