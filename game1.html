@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v14";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v15";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4617,11 +4617,6 @@ function greetingsBall4Steps(){
     const replacementSteps = [
         silentReferenceMatch("Has / have forms", [
             { english:"has got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         silentReferenceMatch("To be and have endings", [
             { english:"e / ye", kurmanji:"is", group:"is-e" },
@@ -4655,11 +4650,6 @@ function greetingsBall4Steps(){
         movingRichChoiceStep("", "🐈 This cat is yellow.\nEv kitike ya zer _.", '🐈 This cat <span class="static-blue-word" style="text-decoration:none">is</span> yellow.<br>Ev kitike ya zer <span class="prompt-blank">_</span>.', ["ye", "e", "in"], "e"),
         silentReferenceMatch("Has / have forms", [
             { english:"has got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         movingRichChoiceStep("", "Kitik-ek e min heye.\nI have got _____.", '<span class="static-blue-word" style="text-decoration:none">Kitik-ek</span> e min heye.<br>I have got <span class="prompt-blank">_____</span>.', ["a cat", "a dog"], "a cat"),
         movingSeparatedAnswerBuildStep("", "Kitik-ek e min he ye.\nI ____ ___ a-cat.", 'Kitik-ek e min <span class="static-blue-word" style="text-decoration:none">he ye</span>.<br>I <span class="prompt-blank">____</span> <span class="prompt-blank">___</span> a-cat.', ["got", "have"], ["have", "got"]),
@@ -4681,11 +4671,6 @@ function greetingsBall4Steps(){
         voiceChoice("of mine", ["___ a te", "___ a wî", "___ a min"], "___ a min"),
         silentReferenceMatch("Has / have forms", [
             { english:"has got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         {
             type:"type",
@@ -4702,11 +4687,6 @@ function greetingsBall4Steps(){
         movingSeparatedAnswerBuildStep("", "Xalet ek a min\n__ ___ of mine", '<span class="static-blue-word" style="text-decoration:none">Xalet ek</span> a min<br><span class="prompt-blank">__</span> <span class="prompt-blank">___</span> of mine', ["aunt", "An"], ["An", "aunt"]),
         silentReferenceMatch("Has / have forms", [
             { english:"has got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-y", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
-            { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
         ]),
         referenceMatch("Has got", [
             {
@@ -5203,11 +5183,6 @@ function greetingsBall4Steps(){
 
     const fullHaveHasMatch = () => silentReferenceMatch("Has / have forms", [
         { english:"has got", kurmanji:"he-y", group:"has-have-got" },
-        { english:"has got", kurmanji:"he-ye", group:"has-have-got" },
-        { english:"has got", kurmanji:"he-ne", group:"has-have-got" },
-        { english:"have got", kurmanji:"he-y", group:"has-have-got" },
-        { english:"have got", kurmanji:"he-ye", group:"has-have-got" },
-        { english:"have got", kurmanji:"he-ne", group:"has-have-got" }
     ]);
     const haveGotReference = () => silentReferenceMatch("Have got", [
         { english:"has", kurmanji:"y / ye / ne", group:"has" },
