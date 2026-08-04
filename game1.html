@@ -1732,6 +1732,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
+const TEMPORARILY_LOCKED_BALL_IDS = new Set(["a-part-2-greetings-v7"]);
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
 const GREETINGS_BALL4_VERSION = "greetings-ball4-v36";
@@ -6336,6 +6337,7 @@ function isSectionComplete(index, sectionIndex){
 
 function isSectionUnlocked(index, sectionIndex){
     const section = sectionsForPart(index)[sectionIndex];
+    if(TEMPORARILY_LOCKED_BALL_IDS.has(section?.id)) return false;
     if(
         activeCoursePartRoute?.slug === "family" &&
         (
@@ -6743,6 +6745,11 @@ function startSectionById(index, sectionId){
     const sectionIndex = sectionsForPart(index).findIndex((section) => section.id === sectionId);
     if(sectionIndex < 0) {
         showSectionSelect(index, "That ball could not be found.");
+        return;
+    }
+
+    if(TEMPORARILY_LOCKED_BALL_IDS.has(sectionId)) {
+        showSectionSelect(index, "🔒 Ball 5 is temporarily locked while its lessons and quizzes are improved.");
         return;
     }
 
