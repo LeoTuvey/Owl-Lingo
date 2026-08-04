@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v28";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v29";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1954,11 +1954,19 @@ const GREETINGS_BALL5_PROMPTS = new Set([
     "bim ek e te heye.\nYou have got __ ___.",
     "Kitik-ek e te he ye.\nYou ___ ___ a-cat.",
     "Bim-ek e wî heye.\nHe has got __ ___.",
-    "Kitik-ek e wî he ye.\nHe ___ ___ a-cat."
+    "Kitik-ek e wî he ye.\nHe ___ ___ a-cat.",
+    "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ___ ___ a-cat.",
+    "Xalet-ek a min kitik-ek yê he y.\nAn-aunt of mine ______ a-cat.",
+    "Xalet-ek a min kitik-ek a he y.\nAn-aunt of mine ______ a-cat.",
+    "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat."
 ]);
 const GREETINGS_BALL4_AND_5_STEPS = greetingsBall4Steps();
-const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !GREETINGS_BALL5_PROMPTS.has(step.prompt));
-const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => GREETINGS_BALL5_PROMPTS.has(step.prompt));
+const isGreetingsBall5Step = (step) => (
+    GREETINGS_BALL5_PROMPTS.has(step.prompt) ||
+    (step.prompt === "has got" && Array.isArray(step.options) && step.options.includes("he"))
+);
+const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
+const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
 const gameParts = [
     {
