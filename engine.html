@@ -1313,8 +1313,8 @@ function getDirectBallProgress(ball, sectionId = "", partId = ""){
     }
   }
 
-  const progressParts = Math.max(0, Number(ball?.progressParts) || 0);
-  if (progressParts && activityTotal) {
+  const progressParts = Math.max(1, Number(ball?.progressParts) || 5);
+  if (activityTotal) {
     const completedParts = activityCompleted >= activityTotal
       ? progressParts
       : Math.floor((activityCompleted * progressParts) / activityTotal);
@@ -1323,6 +1323,7 @@ function getDirectBallProgress(ball, sectionId = "", partId = ""){
       total:progressParts,
       percent:completedParts / progressParts,
       started:activityCompleted > 0,
+      segmented:true,
       unitLabel:"parts",
       activityCompleted,
       activityTotal
@@ -1334,6 +1335,7 @@ function getDirectBallProgress(ball, sectionId = "", partId = ""){
     total:activityTotal,
     percent: activityTotal ? activityCompleted / activityTotal : 0,
     started:activityCompleted > 0,
+    segmented:false,
     unitLabel:"done",
     activityCompleted,
     activityTotal
@@ -1462,7 +1464,7 @@ function renderMap(){
                           style="--part-top:${partColors.top}; --part-bottom:${partColors.bottom}; --part-shadow:${partColors.shadow};"
                           onclick="openPartBall('${section.id}','${part.id}','${ball.id}')"
                           ${ballUnlocked ? "" : "disabled"}>
-                            <span class="part-orb-ring ${ball.progressParts ? "segmented" : ""}" style="--part-progress:${progressDeg}deg">
+                            <span class="part-orb-ring ${ballProgress.segmented ? "segmented" : ""}" style="--part-progress:${progressDeg}deg">
                               <span class="part-orb-core">
                                 <span class="part-orb-icon">${ball.icon || part.icon}</span>
                                 <span class="part-orb-index">${ball.title}</span>
