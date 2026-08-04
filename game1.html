@@ -1970,7 +1970,11 @@ const GREETINGS_BALL5_PROMPTS = new Set([
 const GREETINGS_BALL4_AND_5_STEPS = greetingsBall4Steps();
 const isGreetingsBall5Step = (step) => (
     GREETINGS_BALL5_PROMPTS.has(step.prompt) ||
-    (step.prompt === "has got" && Array.isArray(step.options) && step.options.includes("he"))
+    (
+        (step.prompt === "has got" || step.prompt === "have got") &&
+        Array.isArray(step.options) &&
+        step.options.includes("he")
+    )
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
 const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
