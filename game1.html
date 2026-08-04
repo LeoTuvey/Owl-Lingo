@@ -5891,6 +5891,13 @@ function activeLessonIsQuiz(){
     return label.includes("quiz") || label.includes("boss");
 }
 
+function shouldShowCompletionEncouragement(index, sectionIndex, completedLessonIndex){
+    const lessonCount = lessonsForSection(index, sectionIndex).length;
+    if(!lessonCount || typeof completedLessonIndex !== "number") return true;
+    const completedNumber = completedLessonIndex + 1;
+    return completedNumber % 5 === 0 || completedNumber === lessonCount;
+}
+
 function playSound(type){
     if(type === "correct"){
         setLessonMascot("smile", { returnTo:"idle", duration:900 });
@@ -7893,11 +7900,16 @@ function markCorrect(){
     registerCorrectForGrade();
     playSound("correct");
     document.getElementById("feedback").innerText = "✅ Correct";
-    showLessonMascotMessage({
-        category:"correct",
-        animation:Math.random() > 0.45 ? "smile" : "wave",
-        duration:1900
-    });
+    const isCompletingActiveLesson = activeLesson &&
+        Array.isArray(activeLesson.stepOrder) &&
+        activeLesson.orderPosition >= activeLesson.stepOrder.length - 1;
+    if(!isCompletingActiveLesson){
+        showLessonMascotMessage({
+            category:"correct",
+            animation:Math.random() > 0.45 ? "smile" : "wave",
+            duration:1900
+        });
+    }
     if(pendingAdvanceTimer) clearTimeout(pendingAdvanceTimer);
     pendingAdvanceTimer = setTimeout(() => {
         pendingAdvanceTimer = null;
@@ -7959,19 +7971,26 @@ function completeStep(){
         const completionScore = completedWasQuiz
             ? `${gradeLetter(lessonPercent)} • ${lessonPercent}%`
             : "";
+        const showCompletionEncouragement = shouldShowCompletionEncouragement(
+            partIndex,
+            sectionIndex,
+            completedLessonIndex
+        );
         const nowComplete = isSectionComplete(partIndex, sectionIndex);
         const nextSection = sections[sectionIndex + 1];
         activeLesson = null;
 
-        showLessonMascotReaction({
-            category:completionCategory,
-            animation:"celebrate",
-            duration:2600,
-            score:completionScore,
-            speak:true,
-            zoomIn:true
-        });
-        if(window.showPilingoReward){
+        if(showCompletionEncouragement){
+            showLessonMascotReaction({
+                category:completionCategory,
+                animation:"celebrate",
+                duration:2600,
+                score:completionScore,
+                speak:true,
+                zoomIn:true
+            });
+        }
+        if(showCompletionEncouragement && window.showPilingoReward){
             showPilingoReward({
                 title:completedWasQuiz ? "Quiz complete!" : "Lesson complete!",
                 message:completedWasQuiz
