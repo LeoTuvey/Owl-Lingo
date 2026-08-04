@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v21";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v22";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5276,7 +5276,9 @@ function greetingsBall4Steps(){
     ]);
     const thisTheseVoiceMatch = () => referenceMatch("This / These", [
         { english:"This", kurmanji:"ev____e ya/yê", group:"this-form" },
-        { english:"These", kurmanji:"ev____et", group:"these-form" }
+        { english:"These", kurmanji:"ev____et", group:"these-form" },
+        { english:"male", kurmanji:"nêr", group:"male" },
+        { english:"female", kurmanji:"mê", group:"female" }
     ]);
     const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
         "",
