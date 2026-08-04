@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v31";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v32";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5420,8 +5420,14 @@ function greetingsBall4Steps(){
         fullHaveHasMatch(),
         movingSeparatedAnswerBuildStep("", "Me du kitit êt hey.\nWe have got ___ ____.", 'Me <span class="static-blue-word" style="text-decoration:none">du kitit</span> êt hey.<br>We have got <span class="prompt-blank">___</span> <span class="prompt-blank">____</span>.', ["cats", "two"], ["two", "cats"]),
         movingSeparatedAnswerBuildStep("", "Du kitit ên me hene.\nWe have got ___ ____.", '<span class="static-blue-word" style="text-decoration:none">Du kitit</span> ên me hene.<br>We have got <span class="prompt-blank">___</span> <span class="prompt-blank">____</span>.', ["cats", "two"], ["two", "cats"]),
-        movingSeparatedAnswerBuildStep("", "We(Hingo) du kitit êt he y.\nYou ____ ____ two cats.", 'We(Hingo) du kitit êt <span class="static-blue-word" style="text-decoration:none">he y</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
-        movingSeparatedAnswerBuildStep("", "Du kitit ên we(Hingo) he ne.\nYou ____ ____ two cats.", 'Du kitit ên we(Hingo) <span class="static-blue-word" style="text-decoration:none">he ne</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
+        Object.assign(
+            movingSeparatedAnswerBuildStep("", "We(Hingo) du kitit êt he y.\nYou ____ ____ two cats.", 'We(Hingo) du kitit <span style="color:#1c80cf;font-weight:1000">êt</span> <span style="color:#ff4b4b;font-weight:1000">he</span> <span style="color:#1c80cf;font-weight:1000">y</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
+            { buildAnswerColors:["#1c80cf", "#ff4b4b"] }
+        ),
+        Object.assign(
+            movingSeparatedAnswerBuildStep("", "Du kitit ên we(Hingo) he ne.\nYou ____ ____ two cats.", 'Du kitit ên we(Hingo) <span style="color:#ff4b4b;font-weight:1000">he</span> <span style="color:#1c80cf;font-weight:1000">ne</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.', ["got", "have"], ["have", "got"]),
+            { buildAnswerColors:["#1c80cf", "#ff4b4b"] }
+        ),
         { ...pluralPossessivesSix, leftSpeakMap:{} },
         { ...numbers(), leftSpeakMap:{} },
         movingRichChoiceStep("", "My father has got three dogs.\n_______ sê se êt hey.", '<span class="static-blue-word" style="text-decoration:none">My father</span> has got three dogs.<br><span class="prompt-blank">_______</span> sê se êt hey.', ["Bab ê min", "Bab a min"], "Bab ê min"),
