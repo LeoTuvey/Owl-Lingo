@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v22";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v23";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5280,6 +5280,13 @@ function greetingsBall4Steps(){
         { english:"male", kurmanji:"nêr", group:"male" },
         { english:"female", kurmanji:"mê", group:"female" }
     ]);
+    const yellowCatBuild = () => movingSeparatedAnswerBuildStep(
+        "",
+        "🐈This cat is yellow.\n__ kitik_ __ zer e.",
+        '🐈<span class="static-blue-word" style="text-decoration:none">This</span> cat is yellow.<br><span class="prompt-blank">__</span> kitik<span class="prompt-blank">_</span> <span class="prompt-blank">__</span> zer e.',
+        ["Ev", "e", "ya"],
+        ["Ev", "e", "ya"]
+    );
     const blueHeYChoice = (englishAnswer) => movingRichChoiceStep(
         "",
         "Xalet-ek a min kitik-ek ê he y.\nAn-aunt of mine ______ a-cat.",
@@ -5355,7 +5362,9 @@ function greetingsBall4Steps(){
         colouredHasGotMatch(),
         colouredHaveGotMatch(),
         thisTheseVoiceMatch(),
-        ...replacementSteps.slice(1),
+        ...replacementSteps.slice(1, 10),
+        yellowCatBuild(),
+        ...replacementSteps.slice(10),
         thisTheseVoiceMatch(),
         ...continuationSteps,
         thisTheseVoiceMatch()
