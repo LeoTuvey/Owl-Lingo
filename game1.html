@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v24";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v25";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -5370,7 +5370,13 @@ function greetingsBall4Steps(){
         ...continuationSteps,
         thisTheseVoiceMatch(),
         yellowCatBuild()
-    ];
+    ].filter((step) => !(
+        step?.instruction === "Has / have forms" &&
+        Array.isArray(step.pairs) &&
+        step.pairs.length === 1 &&
+        step.pairs[0]?.english === "has got" &&
+        step.pairs[0]?.kurmanji === "he-y"
+    ));
 }
 
 function richChoiceStep(instruction, prompt, promptHtml, options, answer){
