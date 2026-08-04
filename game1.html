@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v19";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v20";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4633,7 +4633,7 @@ function greetingsBall4Steps(){
             movingSeparatedAnswerBuildStep(
                 "",
                 "this cat\n__ kitik_",
-                'this cat<br><span class="prompt-blank">__</span> kitik<span class="prompt-blank">_</span>',
+                '<span class="static-blue-word" style="text-decoration:none">this</span> cat<br><span class="prompt-blank">__</span> kitik<span class="prompt-blank">_</span>',
                 ["v", "e", "e"],
                 ["e", "v", "e"]
             ),
