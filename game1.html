@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v29";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v30";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4962,7 +4962,16 @@ function greetingsBall4Steps(){
         numbers(),
         rawBuildStep("", "Me du kitit êt hey.\nWe have got ___ ____.", ["cats", "two"], ["two", "cats"]),
         rawBuildStep("", "Du kitit ên me hene.\nWe have got ___ ____.", ["cats", "two"], ["two", "cats"]),
-        rawBuildStep("", "We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.", ["got", "have"], ["have", "got"]),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.",
+                'We(Hingo) du kitit <span style="color:#1c80cf;font-weight:1000">êt</span> <span style="color:#ff4b4b;font-weight:1000">he</span><span style="color:#1c80cf;font-weight:1000">y</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.',
+                ["got", "have"],
+                ["have", "got"]
+            ),
+            { buildAnswerColors:["#1c80cf", "#ff4b4b"] }
+        ),
         rawBuildStep("", "Du kitit ên we(Hingo) hene.\nYou ____ ____ two cats.", ["got", "have"], ["have", "got"]),
         pluralPossessivesSix,
         numbers(),
@@ -7708,6 +7717,10 @@ function moveCorrectBuildWordsIntoBlanks(step){
         const token = document.createElement("span");
         token.className = "choice-fly-token";
         token.textContent = value;
+        const answerColor = Array.isArray(step.buildAnswerColors)
+            ? step.buildAnswerColors[index]
+            : "";
+        if(answerColor) token.style.color = answerColor;
         token.style.left = start.left + "px";
         token.style.top = start.top + "px";
         document.body.appendChild(token);
@@ -7726,6 +7739,7 @@ function moveCorrectBuildWordsIntoBlanks(step){
 
         return animation.finished.finally(() => {
             target.textContent = value;
+            if(answerColor) target.style.color = answerColor;
             token.remove();
         });
     });
