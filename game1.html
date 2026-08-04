@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v25";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v26";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -1947,7 +1947,18 @@ const kurmanjiLetterSounds = {
 };
 
 const GREETINGS_BALL3_REPLACEMENT_STEPS = greetingsBall3ReplacementSteps();
-const GREETINGS_BALL4_STEPS = greetingsBall4Steps();
+const GREETINGS_BALL5_PROMPTS = new Set([
+    "Kitik-ek e min heye.\nI have got _____.",
+    "Kitik-ek e min he ye.\nI ____ ___ a-cat.",
+    "I have a cat.\nKitik-ek e min __ __.",
+    "bim ek e te heye.\nYou have got __ ___.",
+    "Kitik-ek e te he ye.\nYou ___ ___ a-cat.",
+    "Bim-ek e wî heye.\nHe has got __ ___.",
+    "Kitik-ek e wî he ye.\nHe ___ ___ a-cat."
+]);
+const GREETINGS_BALL4_AND_5_STEPS = greetingsBall4Steps();
+const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !GREETINGS_BALL5_PROMPTS.has(step.prompt));
+const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => GREETINGS_BALL5_PROMPTS.has(step.prompt));
 
 const gameParts = [
     {
@@ -3127,6 +3138,7 @@ const gameParts = [
             },
             ...GREETINGS_BALL3_REPLACEMENT_STEPS,
             ...GREETINGS_BALL4_STEPS,
+            ...GREETINGS_BALL5_STEPS,
         ]
     },
     {
@@ -3663,7 +3675,7 @@ const coursePartRoutes = {
         slug:"greetings",
         title:"👋 Greet People",
         gamePartIndex:0,
-        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6"],
+        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"],
         enginePartId:"part-3"
     },
     "food-drink":{
@@ -4065,6 +4077,21 @@ const partSections = {
                 detail:`Ball 4 activity ${index + 1}`,
                 start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + index,
                 end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + index
+            }))
+        },
+        {
+            id:"a-part-2-greetings-v7",
+            ballNumber:5,
+            label:"Ball 5",
+            detail:"Have got and has got animal sentences",
+            start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length,
+            end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length,
+            lessons:Array.from({ length:GREETINGS_BALL5_STEPS.length }, (_, index) => ({
+                id:`a-part-2-greetings-v7-activity-${index + 1}`,
+                label:`Activity ${index + 1}`,
+                detail:`Ball 5 activity ${index + 1}`,
+                start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index,
+                end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index
             }))
         }
     ],
@@ -6054,7 +6081,8 @@ function lessonProgressIds(index, sectionIndex){
     const requiresCurrentLessonIds = [
         "a-part-1i-v1",
         "a-part-2-greetings-v5",
-        "a-part-2-greetings-v6"
+        "a-part-2-greetings-v6",
+        "a-part-2-greetings-v7"
     ].includes(section?.id);
     if(!requiresCurrentLessonIds && isLegacySectionComplete(index, sectionIndex)) {
         return lessons.map(lesson => lesson.id);
@@ -6209,7 +6237,7 @@ function markLessonComplete(index, sectionIndex, lessonId){
 function isSectionComplete(index, sectionIndex){
     const section = sectionsForPart(index)[sectionIndex];
     const progress = sectionLessonProgress(index, sectionIndex);
-    if(["a-part-1i-v1", "a-part-2-greetings-v5", "a-part-2-greetings-v6"].includes(section?.id)) {
+    if(["a-part-1i-v1", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"].includes(section?.id)) {
         return progress.total > 0 && progress.completed >= progress.total;
     }
 
@@ -7924,7 +7952,7 @@ function completeStep(){
         }
 
         if(usesDirectBallFlow(partIndex)) {
-            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
+            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
                 const nextLessonIndex = completedLessonIndex + 1;
                 if(nextLessonIndex < lessonsForSection(partIndex, sectionIndex).length) {
                     startLesson(partIndex, sectionIndex, nextLessonIndex);
