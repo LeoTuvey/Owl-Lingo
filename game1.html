@@ -1734,7 +1734,7 @@ const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
-const GREETINGS_BALL4_VERSION = "greetings-ball4-v30";
+const GREETINGS_BALL4_VERSION = "greetings-ball4-v31";
 
 function preserveMovedGreetingProgress(){
     const sourceSectionId = "a-part-2";
@@ -4972,7 +4972,16 @@ function greetingsBall4Steps(){
             ),
             { buildAnswerColors:["#1c80cf", "#ff4b4b"] }
         ),
-        rawBuildStep("", "Du kitit ên we(Hingo) hene.\nYou ____ ____ two cats.", ["got", "have"], ["have", "got"]),
+        Object.assign(
+            movingSeparatedAnswerBuildStep(
+                "",
+                "Du kitit ên we(Hingo) he ne.\nYou ____ ____ two cats.",
+                'Du kitit ên we(Hingo) <span style="color:#ff4b4b;font-weight:1000">he</span> <span style="color:#1c80cf;font-weight:1000">ne</span>.<br>You <span class="prompt-blank">____</span> <span class="prompt-blank">____</span> two cats.',
+                ["got", "have"],
+                ["have", "got"]
+            ),
+            { buildAnswerColors:["#1c80cf", "#ff4b4b"] }
+        ),
         pluralPossessivesSix,
         numbers(),
         movingChoice("My father has got three dogs.\n_______ sê se êt hey.", 'My father has got three dogs.<br><span class="prompt-blank">_______</span> sê se êt hey.', ["Bab ê min", "Bab a min"], "Bab ê min"),
@@ -5030,8 +5039,7 @@ function greetingsBall4Steps(){
         "Du kitit ên me hene.\nWe have got ___ ____."
     ]);
     const blueYouHaveGotPrompts = new Map([
-        ["We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.", "êt hey"],
-        ["Du kitit ên we(Hingo) hene.\nYou ____ ____ two cats.", "ên hene"]
+        ["We(Hingo) du kitit êt hey.\nYou ____ ____ two cats.", "êt hey"]
     ]);
     const blueFamilySubjectPrompts = new Map([
         ["My father has got three dogs.\n_______ sê se êt hey.", "My father"],
