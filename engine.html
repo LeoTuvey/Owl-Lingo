@@ -573,18 +573,47 @@ button{
   align-items:center;
   gap:9px;
   color:#1f2d45;
+  cursor:default;
+}
+
+.part-orb-hit{
+  width:122px;
+  height:122px;
+  flex:0 0 122px;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  box-shadow:none;
+  color:inherit;
   cursor:pointer;
 }
 
-.part-orb-button:hover{
-  transform:translateY(-2px);
-  background:transparent;
-  box-shadow:none;
+.part-orb-hit:disabled{
+  cursor:not-allowed;
 }
 
-.part-orb-button:disabled{
-  cursor:not-allowed;
+.part-orb-button.locked{
   opacity:0.72;
+}
+
+.part-orb-core{
+  transition:transform 0.16s ease;
+}
+
+.part-orb-hit:not(:disabled):hover .part-orb-core,
+.part-orb-hit:not(:disabled):focus-visible .part-orb-core{
+  transform:translateY(-2px) scale(1.04);
+}
+
+.part-orb-hit:not(:disabled):active .part-orb-core{
+  transform:translateY(2px) scale(0.97);
+}
+
+.part-orb-hit:focus-visible{
+  outline:3px solid rgba(49,126,231,0.42);
+  outline-offset:3px;
 }
 
 .part-orb-ring{
@@ -1107,6 +1136,12 @@ button{
     flex:0 0 94px;
   }
 
+  .part-orb-hit{
+    width:94px;
+    height:94px;
+    flex-basis:94px;
+  }
+
   .part-orb-copy{
     align-items:flex-start;
     text-align:left;
@@ -1458,24 +1493,28 @@ function renderMap(){
                         : (ballUnlocked ? (ballProgress.started ? "Continue" : "Start") : "Locked");
 
                       return `
-                        <button
+                        <div
                           class="part-orb-button ${ballCompleted ? "completed" : ""} ${ballUnlocked && !ballCompleted ? "current" : ""} ${ballUnlocked || keepCompletedRingVisible ? "" : "locked"}"
-                          type="button"
-                          style="--part-top:${partColors.top}; --part-bottom:${partColors.bottom}; --part-shadow:${partColors.shadow};"
-                          onclick="openPartBall('${section.id}','${part.id}','${ball.id}')"
-                          ${ballUnlocked ? "" : "disabled"}>
+                          style="--part-top:${partColors.top}; --part-bottom:${partColors.bottom}; --part-shadow:${partColors.shadow};">
+                          <button
+                            class="part-orb-hit"
+                            type="button"
+                            aria-label="${actionLabel}: ${ball.title}. ${ball.summary}"
+                            onclick="openPartBall('${section.id}','${part.id}','${ball.id}')"
+                            ${ballUnlocked ? "" : "disabled"}>
                             <span class="part-orb-ring ${ballProgress.segmented ? "segmented" : ""}" style="--part-progress:${progressDeg}deg">
                               <span class="part-orb-core">
                                 <span class="part-orb-icon">${ball.icon || part.icon}</span>
                                 <span class="part-orb-index">${ball.title}</span>
                               </span>
                             </span>
+                          </button>
                           <span class="part-orb-copy">
                             <span class="part-orb-title">${ball.title}</span>
                             <span class="part-orb-summary">${ball.summary}</span>
                             <span class="part-orb-progress">${ball.comingSoon ? "🛠️" : (ballUnlocked ? "▶" : "🔒")} ${actionLabel}${ball.comingSoon ? "" : ` • ${ballProgress.completed}/${ballProgress.total} ${ballProgress.unitLabel}`}</span>
                           </span>
-                        </button>
+                        </div>
                       `;
                     }).join("")}
                   </div>
@@ -1572,8 +1611,8 @@ function openPartBall(sectionId, partId, ballId){
 function scrollToCurrentPart(){
   const current = Engine.getCurrentPart();
   const nextButton = current
-    ? document.querySelector(".part-orb-button.current:not(.locked)")
-    : document.querySelector(".part-orb-button:not(.completed):not(.locked)");
+    ? document.querySelector(".part-orb-button.current:not(.locked) .part-orb-hit")
+    : document.querySelector(".part-orb-button:not(.completed):not(.locked) .part-orb-hit");
 
   if (!nextButton) {
     showToast("Amazing. The next visible step is already completed.");
