@@ -4513,23 +4513,21 @@ function greetingsBall3ReplacementSteps(){
         {
         type:"choice",
         instruction:"",
-        prompt:"💡 Note:\n\nVerb\tPresent\tPast\tPast Participle\nTo Have\thave / has\thad\thad\nHebûn\t(a__y) / (ê__y)\n(ya / yê / ye)\n(êt__y)\nye / ne\n(hey)\thebû\thebû\n\nhe = got (Eng.)",
+        prompt:"💡 Note:\n\nVerb\tPresent\tpast\tPast Participle\nTo Have\thave / has\thad\thad\nHebûn\t(a__y) / (ê__y)\n(ya / yê / ye)\n(êt__y)\thebû\thebû\n\tye / ne\t(hey)\the = got (Eng.)",
         promptHtml:`
             <div style="font-size:0.56em;font-weight:500;line-height:1.45;text-align:left;width:min(100%,920px);margin:0 auto;color:#18324a">
                 <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin-bottom:14px;border-radius:999px;background:#fff4bd;color:#755400;box-shadow:0 4px 12px rgba(117,84,0,.12)"><strong>💡 Note:</strong></div>
                 <div style="overflow-x:auto;border:1px solid #cfe4f7;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(33,94,145,.13)">
                     <table style="width:100%;min-width:680px;border-collapse:separate;border-spacing:0;text-align:left">
                         <thead style="background:linear-gradient(135deg,#288fd5,#1769aa);color:#fff">
-                            <tr><th style="padding:13px 14px"><strong>Verb</strong></th><th style="padding:13px 14px"><strong>Present</strong></th><th style="padding:13px 14px"><strong>Past</strong></th><th style="padding:13px 14px"><strong>Past Participle</strong></th></tr>
+                            <tr><th style="padding:13px 14px;text-align:center"><strong>Verb</strong></th><th style="padding:13px 14px;text-align:center"><strong>Present</strong></th><th style="padding:13px 14px;text-align:center"><strong>past</strong></th><th style="padding:13px 14px;text-align:center"><strong>Past Participle</strong></th></tr>
                         </thead>
                         <tbody>
-                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;border-bottom:1px solid #e2edf6"><strong>To Have</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">have / has</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">had</td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6">had</td></tr>
-                            <tr style="background:#eaf6ff"><td style="padding:12px 14px;vertical-align:top"><strong>Hebûn</strong></td><td style="padding:12px 14px;line-height:1.7"><strong>(a__y) / (ê__y)</strong><br><strong>(ya / yê / ye)</strong><br><strong>(êt__y)</strong><br><strong>ye / ne</strong><br><strong>(hey)</strong></td><td style="padding:12px 14px;vertical-align:top"><strong>hebû</strong></td><td style="padding:12px 14px;vertical-align:top"><strong>hebû</strong></td></tr>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;border-bottom:1px solid #e2edf6;background:#ff9d00;color:#fff;text-align:center"><strong>To Have</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6;text-align:center"><strong>have / has</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6;text-align:center"><strong>had</strong></td><td style="padding:12px 14px;border-bottom:1px solid #e2edf6;text-align:center"><strong>had</strong></td></tr>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;background:#ff9d00;color:#fff;text-align:center;vertical-align:top"><strong>Hebûn</strong></td><td style="padding:12px 14px;line-height:1.7;text-align:center"><strong>(a__y) / (ê__y)</strong><br><strong>(ya / yê / ye)</strong><br><strong>(êt__y)</strong></td><td style="padding:12px 14px;text-align:center;vertical-align:top"><strong>hebû</strong></td><td style="padding:12px 14px;text-align:center;vertical-align:top"><strong>hebû</strong></td></tr>
+                            <tr style="background:#f8fbfe"><td style="padding:12px 14px;background:#ff9d00;color:#fff"></td><td style="padding:12px 14px;border-top:1px solid #e2edf6;text-align:center"><strong>ye / ne</strong></td><td style="padding:12px 14px;border-top:1px solid #e2edf6;text-align:center"><strong>(hey)</strong></td><td style="padding:12px 14px;border-top:1px solid #e2edf6;text-align:center"><strong>he</strong> <span style="color:#f07a5f;font-size:.72em;font-weight:900">= got (Eng.)</span></td></tr>
                         </tbody>
                     </table>
-                </div>
-                <div style="margin-top:16px;padding:12px 16px;border:1px solid #f1d38a;border-radius:14px;background:#fff8dc;color:#6e5209;text-align:center;font-size:1.08em">
-                    <strong>he</strong> = <strong>got</strong> (Eng.)
                 </div>
             </div>`,
         options:["Continue"],
