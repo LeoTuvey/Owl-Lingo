@@ -4570,7 +4570,16 @@ function greetingsBall3ReplacementSteps(){
         rawBuildStep("", "I have got a-cat.", ["hey", "kitik-ek", "ya", "Min"], ["Min", "kitik-ek", "ya", "hey"]),
         rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
         movingBlankBuildStep("", "I ____ ___ a cat.", ["got", "have"], ["have", "got"]),
-        rawBuildStep("", "You have got a cat.", ["hey", "kitik-ek", "ya", "Te"], ["Te", "kitik-ek", "ya", "hey"]),
+        Object.assign(
+            rawBuildStep("", "You have got a cat.", ["he", "kitik-ek", "a__y", "Te"], ["Te", "kitik-ek", "a__y", "he"]),
+            {
+                buildWordHtml:{
+                    he:'<span style="color:#ef806d;font-weight:1000">he</span>',
+                    "a__y":'<span style="color:#4a86e8;font-weight:1000">a__y</span>'
+                },
+                correctBuildHtml:'✅ Te kitik-ek <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
+            }
+        ),
         hasGotReference(),
         movingBlankBuildStep("", "Wî kitik-ek ya hey.\nHe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
         voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
@@ -7339,7 +7348,7 @@ function renderBuildStep(step){
         <div class="answer-bank" id="answerBank"></div>
         <div class="word-bank" id="wordBank">
             ${options.map((word, index) => `
-                <button class="secondary" id="word-${index}" onclick="selectWord(${index})">${escapeHtml(word)}</button>
+                <button class="secondary" id="word-${index}" onclick="selectWord(${index})">${step.buildWordHtml?.[word] || escapeHtml(word)}</button>
             `).join("")}
         </div>
         <button onclick="checkBuild(this)">Check</button>
@@ -7677,6 +7686,7 @@ function selectWord(index){
 function renderSelectedWords(){
     const bank = document.getElementById("answerBank");
     if(!bank) return;
+    const step = currentStep();
 
     if(selectedWords.length === 0) {
         bank.innerHTML = "";
@@ -7684,7 +7694,7 @@ function renderSelectedWords(){
     }
 
     bank.innerHTML = selectedWords.map((word, index) => `
-        <button data-selected-word-index="${index}" onclick="removeWord(${index})">${escapeHtml(word.text)}</button>
+        <button data-selected-word-index="${index}" onclick="removeWord(${index})">${step.buildWordHtml?.[word.text] || escapeHtml(word.text)}</button>
     `).join("");
 }
 
@@ -7712,6 +7722,17 @@ function checkBuild(button){
 
     if(isCorrect){
         showButtonResult(button, "correct");
+        if(step.correctBuildHtml){
+            document.querySelectorAll("#activity button").forEach((entry) => {
+                entry.disabled = true;
+            });
+            const bank = document.getElementById("answerBank");
+            if(bank){
+                bank.innerHTML = `<div style="font-size:1.08em;font-weight:900;padding:12px 16px">${step.correctBuildHtml}</div>`;
+            }
+            markCorrect();
+            return;
+        }
         if(moveCorrectBuildWordsIntoBlanks(step)) return;
         markCorrect();
         return;
