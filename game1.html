@@ -4488,13 +4488,28 @@ function greetingsBall3ReplacementSteps(){
     const hasGotReference = () => referenceMatch(
         "Has got",
         [
-            { english:"has", kurmanji:"ya", group:"has" },
-            { english:"got", kurmanji:"hey", group:"got" },
-            { english:"has got", kurmanji:"ya hey", group:"has-got" },
+            {
+                english:"has",
+                kurmanji:"a__y",
+                kurmanjiHtml:'<span style="color:#4a86e8;font-weight:1000">a__y</span>',
+                group:"has"
+            },
+            {
+                english:"got",
+                kurmanji:"he",
+                kurmanjiHtml:'<span style="color:#ef806d;font-weight:1000">he</span>',
+                group:"got"
+            },
+            {
+                english:"has got",
+                kurmanji:"ahey",
+                kurmanjiHtml:'<span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>',
+                group:"has-got"
+            },
             { english:"I - me", kurmanji:"Ez - min", group:"i-me" },
             { english:"You - you", kurmanji:"Tu - te", group:"you-you" },
             { english:"He - him", kurmanji:"Ew - wî", group:"he-him" },
-            { english:"She - her", kurmanji:"Ew - wê", group:"she-her" }
+            { english:"a - an", kurmanji:"ek - yek", group:"article" }
         ]
     );
 
