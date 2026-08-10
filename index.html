@@ -1107,15 +1107,19 @@ body.account-gate-open{
   width:230px;
   height:230px;
   margin:0 auto 18px;
-  border:1px solid rgba(255,255,255,0.58);
+  border:3px solid rgba(255,255,255,0.78);
   border-radius:50%;
   background:
-    radial-gradient(circle at 50% 54%, rgba(255,255,255,0.72), transparent 48%),
-    linear-gradient(145deg, rgba(229,250,255,0.88) 0%, rgba(174,224,255,0.72) 52%, rgba(211,196,255,0.68) 100%);
+    radial-gradient(ellipse at 18% 34%, rgba(255,255,255,0.78) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 78% 42%, rgba(255,255,255,0.62) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 48% 86%, rgba(255,239,190,0.72) 0 22%, transparent 54%),
+    linear-gradient(180deg, #72c9f2 0%, #a9e4f6 54%, #d8e9d7 76%, #f5dfae 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    inset 0 -18px 40px rgba(65,104,196,0.12),
-    0 16px 30px rgba(38,92,11,0.18);
+    inset 0 0 0 7px rgba(220,248,255,0.32),
+    inset 0 3px 8px rgba(255,255,255,0.72),
+    inset 0 -24px 46px rgba(41,79,142,0.18),
+    0 0 0 1px rgba(69,136,184,0.28),
+    0 18px 34px rgba(28,78,39,0.24);
   display:grid;
   place-items:center;
   position:relative;
@@ -1127,9 +1131,9 @@ body.account-gate-open{
   position:absolute;
   inset:10px;
   height:auto;
-  border:1px solid rgba(255,255,255,0.32);
+  border:1px solid rgba(255,255,255,0.5);
   border-radius:50%;
-  background:transparent;
+  background:radial-gradient(circle at 50% 48%, transparent 54%, rgba(38,83,139,0.12) 100%);
   z-index:5;
 }
 
@@ -1138,10 +1142,10 @@ body.account-gate-open{
   position:absolute;
   top:24px;
   left:42px;
-  width:58px;
-  height:18px;
+  width:64px;
+  height:20px;
   border-radius:50%;
-  background:rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.38);
   transform:rotate(-24deg);
   filter:blur(1px);
   z-index:6;
