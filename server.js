@@ -33,6 +33,7 @@ const OWNER_EMAILS = parseOwnerEmails(process.env.OWNER_EMAILS || EMAIL_TO);
 const OWNER_PANEL_TOKEN = process.env.OWNER_PANEL_TOKEN || `owner-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 const PUSH_REMINDER_INTERVAL_MS = 5 * 60 * 1000;
+const VISITOR_IP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -852,7 +853,20 @@ function getUnreadMessageCount(email) {
 function readVisits() {
   try {
     const visits = JSON.parse(fs.readFileSync(VISITS_FILE, "utf8"));
-    return Array.isArray(visits) ? visits : [];
+    if (!Array.isArray(visits)) return [];
+    const now = Date.now();
+    let removedExpiredIp = false;
+    const normalizedVisits = visits.map((visit) => {
+      const createdAt = new Date(visit?.createdAt || 0).getTime();
+      if (!createdAt || now - createdAt <= VISITOR_IP_RETENTION_MS) return visit;
+      const { ipAddress, ...expiredVisit } = visit || {};
+      if (ipAddress) removedExpiredIp = true;
+      return expiredVisit;
+    });
+    if (removedExpiredIp) {
+      fs.writeFileSync(VISITS_FILE, JSON.stringify(normalizedVisits.slice(-20000), null, 2), "utf8");
+    }
+    return normalizedVisits;
   } catch (error) {
     return [];
   }
@@ -961,10 +975,12 @@ async function recordVisit(req, payload) {
   const existing = visits.find((item) => item.sessionId === sessionId);
   if (existing) return existing;
 
-  const location = await lookupCoarseLocation(getClientIp(req));
+  const ipAddress = getClientIp(req);
+  const location = await lookupCoarseLocation(ipAddress);
   const visit = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     sessionId,
+    ipAddress,
     city: location.city,
     region: location.region,
     country: location.country,
@@ -1037,6 +1053,7 @@ function getVisitSummary() {
     countries: countBy("country"),
     cities: countBy("city"),
     continents: countBy("continent"),
+    ipRetentionDays: Math.round(VISITOR_IP_RETENTION_MS / (24 * 60 * 60 * 1000)),
     recentVisits: visits.slice(-100).reverse().map(({ sessionId, ...visit }) => visit)
   };
 }

@@ -263,6 +263,20 @@ const PilingoNotify = {
     const countries = Array.isArray(summary?.countries)
       ? summary.countries.filter((item) => item?.name && item.name !== "Local")
       : [];
+    const recentVisits = Array.isArray(summary?.recentVisits) ? summary.recentVisits : [];
+    const recentIps = recentVisits
+      .filter((visit) => visit?.ipAddress)
+      .slice(0, 10);
+    const ipCards = recentIps.length ? `
+      <div class="notify-section-label">Recent visitor IPs</div>
+      ${recentIps.map((visit) => `
+        <div class="notify-item">
+          <strong>${escapeHtml(visit.ipAddress)}</strong>
+          <span>${escapeHtml([visit.city, visit.region, visit.country].filter(Boolean).join(", ") || "Location unavailable")}</span>
+          <span>${escapeHtml(visit.entryPage || "/")} • ${formatWhen(visit.createdAt)}</span>
+        </div>
+      `).join("")}
+    ` : "";
 
     if(!countries.length){
       target.innerHTML = `
@@ -270,7 +284,9 @@ const PilingoNotify = {
         <div class="notify-item">
           <strong>No country data yet</strong>
           <span>New live visits will appear here after deployment.</span>
+          <span>Full IP addresses are kept for ${Number(summary?.ipRetentionDays || 30)} days.</span>
         </div>
+        ${ipCards}
       `;
       return;
     }
@@ -280,7 +296,9 @@ const PilingoNotify = {
       <div class="notify-item">
         <strong>${Number(summary?.totalVisits || 0)} tracked visits</strong>
         <span>${countries.map((item) => `${escapeHtml(item.name)}: ${Number(item.visits || 0)}`).join(" • ")}</span>
+        <span>Full IP addresses are kept for ${Number(summary?.ipRetentionDays || 30)} days.</span>
       </div>
+      ${ipCards}
     `;
   },
 
