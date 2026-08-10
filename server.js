@@ -863,33 +863,91 @@ function writeVisits(visits) {
 }
 
 function getClientIp(req) {
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-  const raw = forwarded || String(req.socket?.remoteAddress || "").trim();
-  return raw.replace(/^::ffff:/, "");
+  const candidates = [
+    req.headers["cf-connecting-ip"],
+    String(req.headers["x-forwarded-for"] || "").split(",")[0],
+    req.headers["x-real-ip"],
+    req.socket?.remoteAddress
+  ];
+  const raw = candidates.map((value) => String(value || "").trim()).find(Boolean) || "";
+  return raw.replace(/^::ffff:/, "").replace(/^\[|\]$/g, "");
 }
 
 async function lookupCoarseLocation(ip) {
-  if (!ip || ip === "::1" || ip === "127.0.0.1" || !/^[0-9a-f:.]+$/i.test(ip)) {
+  if (!ip || isPrivateIp(ip) || !/^[0-9a-f:.]+$/i.test(ip)) {
     return { city: "Local", region: "", country: "Local", countryCode: "", continent: "" };
   }
 
+  const lookups = [
+    async () => {
+      const data = await fetchLocationJson(
+        `https://ipwho.is/${encodeURIComponent(ip)}?fields=success,city,region,country,country_code,continent`
+      );
+      if (data?.success === false) throw new Error("Location unavailable");
+      return {
+        city: data?.city,
+        region: data?.region,
+        country: data?.country,
+        countryCode: data?.country_code,
+        continent: data?.continent
+      };
+    },
+    async () => {
+      const data = await fetchLocationJson(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+      if (data?.error) throw new Error("Location unavailable");
+      return {
+        city: data?.city,
+        region: data?.region,
+        country: data?.country_name,
+        countryCode: data?.country_code,
+        continent: data?.continent_code
+      };
+    }
+  ];
+
+  for (const lookup of lookups) {
+    try {
+      const location = await lookup();
+      if (!location?.country) continue;
+      return {
+        city: String(location.city || "Unknown"),
+        region: String(location.region || ""),
+        country: String(location.country || "Unknown"),
+        countryCode: String(location.countryCode || "").toUpperCase(),
+        continent: String(location.continent || "Unknown")
+      };
+    } catch (error) {
+      // Try the next provider when one is unavailable or rate-limited.
+    }
+  }
+
+  return { city: "Unknown", region: "", country: "Unknown", countryCode: "", continent: "Unknown" };
+}
+
+function isPrivateIp(ip) {
+  const value = String(ip || "").toLowerCase();
+  return value === "::1" ||
+    value === "127.0.0.1" ||
+    value.startsWith("10.") ||
+    value.startsWith("192.168.") ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(value) ||
+    value.startsWith("fc") ||
+    value.startsWith("fd") ||
+    value.startsWith("fe80:");
+}
+
+async function fetchLocationJson(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
   try {
-    const response = await fetch(
-      `https://ipwho.is/${encodeURIComponent(ip)}?fields=success,city,region,country,country_code,continent`,
-      { headers: { "User-Agent": "Pilingo coarse visit analytics" } }
-    );
+    const response = await fetch(url, {
+      headers: { "User-Agent": "Pilingo coarse visit analytics" },
+      signal: controller.signal
+    });
     if (!response.ok) throw new Error("Location lookup failed");
-    const data = await response.json();
-    if (data?.success === false) throw new Error("Location unavailable");
-    return {
-      city: String(data?.city || "Unknown"),
-      region: String(data?.region || ""),
-      country: String(data?.country || "Unknown"),
-      countryCode: String(data?.country_code || "").toUpperCase(),
-      continent: String(data?.continent || "Unknown")
-    };
-  } catch (error) {
-    return { city: "Unknown", region: "", country: "Unknown", countryCode: "", continent: "Unknown" };
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

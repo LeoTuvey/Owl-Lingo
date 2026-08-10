@@ -3,6 +3,7 @@ const PilingoNotify = {
   listEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/notifications" : "/api/notifications",
   leaderboardEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/leaderboard" : "/api/leaderboard",
   ownerStudentsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/owner/students" : "/api/owner/students",
+  ownerVisitsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/owner/visits" : "/api/owner/visits",
   presenceEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/presence" : "/api/presence",
   statsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/student-stats" : "/api/student-stats",
   settingsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/app-settings" : "/api/app-settings",
@@ -242,6 +243,47 @@ const PilingoNotify = {
     }
   },
 
+  async fetchOwnerVisits(){
+    if(!this.canUseServer() || !this.canViewOwnerNotifications()) return null;
+
+    try {
+      const response = await fetch(this.ownerVisitsEndpoint, {
+        cache:"no-store",
+        headers: this.ownerHeaders()
+      });
+      if(!response.ok) return null;
+      return await response.json();
+    } catch(error) {
+      return null;
+    }
+  },
+
+  renderVisitCountries(summary, target){
+    if(!target) return;
+    const countries = Array.isArray(summary?.countries)
+      ? summary.countries.filter((item) => item?.name && item.name !== "Local")
+      : [];
+
+    if(!countries.length){
+      target.innerHTML = `
+        <div class="notify-section-label">Visitor countries</div>
+        <div class="notify-item">
+          <strong>No country data yet</strong>
+          <span>New live visits will appear here after deployment.</span>
+        </div>
+      `;
+      return;
+    }
+
+    target.innerHTML = `
+      <div class="notify-section-label">Visitor countries</div>
+      <div class="notify-item">
+        <strong>${Number(summary?.totalVisits || 0)} tracked visits</strong>
+        <span>${countries.map((item) => `${escapeHtml(item.name)}: ${Number(item.visits || 0)}`).join(" • ")}</span>
+      </div>
+    `;
+  },
+
   async renderInto(listId, statusId){
     const list = document.getElementById(listId);
     const status = document.getElementById(statusId);
@@ -270,7 +312,11 @@ const PilingoNotify = {
       return;
     }
 
-    const events = await this.fetchNotifications();
+    const [events, visitSummary] = await Promise.all([
+      this.fetchNotifications(),
+      this.fetchOwnerVisits()
+    ]);
+    this.renderVisitCountries(visitSummary, document.getElementById("notifyCountries"));
 
     if(status) {
       if(!("Notification" in window)) {
