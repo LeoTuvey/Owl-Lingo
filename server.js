@@ -1253,7 +1253,7 @@ function upsertStudentStats(payload) {
     const studentName = String(student.name || "").trim().toLowerCase();
 
     if (email && studentEmail === email) return true;
-    if (phone && studentPhone === phone) return true;
+    if (phone && studentPhone === phone && (!email || !studentEmail)) return true;
     if (email && !studentEmail && normalizedName && normalizedName !== "unknown student" && studentName === normalizedName) {
       return true;
     }
@@ -1339,7 +1339,9 @@ function ensureAccountStats(account) {
     const studentEmail = normalizeEmail(student?.email);
     const studentPhone = String(student?.phone || "").trim();
     const studentName = String(student?.name || "").trim().toLowerCase();
-    return studentEmail === email || (!!phone && studentPhone === phone) || (!studentEmail && studentName === name);
+    return studentEmail === email ||
+      (!!phone && studentPhone === phone && (!email || !studentEmail)) ||
+      (!studentEmail && studentName === name);
   });
   const needsSync = !existing ||
     normalizeEmail(existing.email) !== email ||
@@ -2307,7 +2309,7 @@ function getLeaderboard() {
 
     for (const [key, value] of merged.entries()) {
       const sameEmail = !!(email && value.email === email);
-      const samePhone = !!(phone && value.phone === phone);
+      const samePhone = !!(phone && value.phone === phone && (!email || !value.email));
       const sameName = !!(
         !email &&
         !phone &&
