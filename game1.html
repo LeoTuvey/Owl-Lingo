@@ -4585,13 +4585,14 @@ function greetingsBall3ReplacementSteps(){
         Object.assign(
             rawBuildStep("", "I have got a-cat.\nMin kitik-ek ___.", ["he", "a", "y"], ["a", "he", "y"]),
             {
-                promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong><br><br>Min kitik-ek <span style="color:#4a86e8;font-weight:1000">_</span><span style="color:#ef806d;font-weight:1000">_</span><span style="color:#4a86e8;font-weight:1000">_</span>.',
+                promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong><br><br>Min kitik-ek <span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span><span class="prompt-blank" data-build-answer-target style="color:#ef806d">_</span><span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span>.',
                 buildWordHtml:{
                     he:'<span style="color:#ef806d;font-weight:1000">he</span>',
                     a:'<span style="color:#4a86e8;font-weight:1000">a</span>',
                     y:'<span style="color:#4a86e8;font-weight:1000">y</span>'
                 },
-                correctBuildHtml:'✅ <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
+                moveCorrectWordsToBlanks:true,
+                buildAnswerColors:["#4a86e8", "#ef806d", "#4a86e8"]
             }
         ),
         rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
