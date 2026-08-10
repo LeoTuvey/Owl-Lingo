@@ -4583,12 +4583,13 @@ function greetingsBall3ReplacementSteps(){
         haveGotReference(false),
         movingBlankBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
         Object.assign(
-            rawBuildStep("", "I have got a-cat.", ["he", "kitik-ek", "a__y", "Min"], ["Min", "kitik-ek", "a__y", "he"]),
+            rawBuildStep("", "I have got a-cat.", ["he", "kitik-ek", "a", "y", "Min"], ["Min", "kitik-ek", "a", "he", "y"]),
             {
                 promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong>',
                 buildWordHtml:{
                     he:'<span style="color:#ef806d;font-weight:1000">he</span>',
-                    a__y:'<span style="color:#4a86e8;font-weight:1000">a__y</span>'
+                    a:'<span style="color:#4a86e8;font-weight:1000">a</span>',
+                    y:'<span style="color:#4a86e8;font-weight:1000">y</span>'
                 },
                 correctBuildHtml:'✅Min kitik-ek <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
             }
