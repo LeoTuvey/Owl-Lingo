@@ -533,12 +533,18 @@
     }
   };
 
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", () => {
+      recordCoarseVisit();
+    }, { once:true });
+  } else {
+    recordCoarseVisit();
+  }
+
   window.addEventListener("load", async () => {
     setInstallButtonVisible(false);
     bindSettingsInputs();
     updateSettingsInputs();
-    recordCoarseVisit();
-
     if(supportsPush()){
       try {
         await registerServiceWorker();
