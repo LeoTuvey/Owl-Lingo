@@ -1,12 +1,15 @@
+const pilingoUsesRemoteApi = location.hostname.endsWith("github.io") || location.hostname === "pilingoacademy.com" || location.hostname === "www.pilingoacademy.com";
+const pilingoApiOrigin = pilingoUsesRemoteApi ? "https://pilingo.onrender.com" : "";
+
 const PilingoNotify = {
-  endpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/track" : "/api/track",
-  listEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/notifications" : "/api/notifications",
-  leaderboardEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/leaderboard" : "/api/leaderboard",
-  ownerStudentsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/owner/students" : "/api/owner/students",
-  ownerVisitsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/owner/visits" : "/api/owner/visits",
-  presenceEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/presence" : "/api/presence",
-  statsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/student-stats" : "/api/student-stats",
-  settingsEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/app-settings" : "/api/app-settings",
+  endpoint: `${pilingoApiOrigin}/api/track`,
+  listEndpoint: `${pilingoApiOrigin}/api/notifications`,
+  leaderboardEndpoint: `${pilingoApiOrigin}/api/leaderboard`,
+  ownerStudentsEndpoint: `${pilingoApiOrigin}/api/owner/students`,
+  ownerVisitsEndpoint: `${pilingoApiOrigin}/api/owner/visits`,
+  presenceEndpoint: `${pilingoApiOrigin}/api/presence`,
+  statsEndpoint: `${pilingoApiOrigin}/api/student-stats`,
+  settingsEndpoint: `${pilingoApiOrigin}/api/app-settings`,
   pollTimer: null,
   lastSeenEventId: null,
   lastCompetitionMessage: "",

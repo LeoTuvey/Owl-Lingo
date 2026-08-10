@@ -4,7 +4,8 @@
   const promptedKey = "pilingo_push_prompted_v1";
   const pushStateKey = "pilingo_push_state_v1";
   const swUrl = "sw.js?v=11";
-  const apiOrigin = location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com" : "";
+  const usesRemoteApi = location.hostname.endsWith("github.io") || location.hostname === "pilingoacademy.com" || location.hostname === "www.pilingoacademy.com";
+  const apiOrigin = usesRemoteApi ? "https://pilingo.onrender.com" : "";
   const endpoints = {
     publicKey: `${apiOrigin}/api/push/public-key`,
     subscribe: `${apiOrigin}/api/push/subscribe`,
