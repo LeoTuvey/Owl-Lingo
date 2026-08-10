@@ -4539,6 +4539,20 @@ function greetingsBall3ReplacementSteps(){
         '<span class="prompt-subnote"><strong>Note:</strong> When a noun ends with a vowel<br>(a, e, ê, i, Î, o, u, û) + yek.</span>'
     );
 
+    const aheyCompletionBuild = () => Object.assign(
+        rawBuildStep("", "I have got a-cat.\nMin kitik-ek ___.", ["he", "a", "y"], ["a", "he", "y"]),
+        {
+            promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong><br><br>Min kitik-ek <span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span><span class="prompt-blank" data-build-answer-target style="color:#ef806d">_</span><span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span>.',
+            buildWordHtml:{
+                he:'<span style="color:#ef806d;font-weight:1000">he</span>',
+                a:'<span style="color:#4a86e8;font-weight:1000">a</span>',
+                y:'<span style="color:#4a86e8;font-weight:1000">y</span>'
+            },
+            moveCorrectWordsToBlanks:true,
+            buildAnswerColors:["#4a86e8", "#ef806d", "#4a86e8"]
+        }
+    );
+
     return [
         {
         type:"choice",
@@ -4582,19 +4596,7 @@ function greetingsBall3ReplacementSteps(){
 
         haveGotReference(false),
         movingBlankBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
-        Object.assign(
-            rawBuildStep("", "I have got a-cat.\nMin kitik-ek ___.", ["he", "a", "y"], ["a", "he", "y"]),
-            {
-                promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong><br><br>Min kitik-ek <span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span><span class="prompt-blank" data-build-answer-target style="color:#ef806d">_</span><span class="prompt-blank" data-build-answer-target style="color:#4a86e8">_</span>.',
-                buildWordHtml:{
-                    he:'<span style="color:#ef806d;font-weight:1000">he</span>',
-                    a:'<span style="color:#4a86e8;font-weight:1000">a</span>',
-                    y:'<span style="color:#4a86e8;font-weight:1000">y</span>'
-                },
-                moveCorrectWordsToBlanks:true,
-                buildAnswerColors:["#4a86e8", "#ef806d", "#4a86e8"]
-            }
-        ),
+        aheyCompletionBuild(),
         rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
         movingBlankBuildStep("", "I ____ ___ a cat.", ["got", "have"], ["have", "got"]),
         Object.assign(
@@ -4607,6 +4609,7 @@ function greetingsBall3ReplacementSteps(){
                 correctBuildHtml:'✅ Te kitik ek <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
             }
         ),
+        aheyCompletionBuild(),
         hasGotReference(),
         movingBlankBuildStep("", "Wî kitik-ek ya hey.\nHe ___ ___ a cat.", ["got", "has"], ["has", "got"]),
         voiceChoice("of mine", ["____a te", "____a wî", "____a min"], "____a min"),
@@ -4622,6 +4625,7 @@ function greetingsBall3ReplacementSteps(){
         movingRichChoiceStep("", "a cat of mine\nkitik ek __ ____", 'a cat <span class="static-blue-word">of mine</span><br>kitik ek <span class="prompt-blank">__ ____</span>', ["a te", "a wî", "a min"], "a min"),
         voiceChoice("have got", ["hebûn", "hebû", "ya hey"], "ya hey"),
         movingRichChoiceStep("", "I have got a cat.\nMin ______ ya hey.", 'I have got <span class="static-blue-word">a cat</span>.<br>Min <span class="prompt-blank">______</span> ya hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
+        aheyCompletionBuild(),
         voiceChoice("of mine", ["____e te", "____e wî", "____a min"], "____a min"),
         movingRichChoiceStep("", "I have got a cat.\nmin ______ yê hey.", 'I have got <span class="static-blue-word">a cat</span>.<br>min <span class="prompt-blank">______</span> yê hey.', ["kitik", "kitik ek", "pișîk"], "kitik ek"),
         voiceChoice("of mine", ["____a/e te", "____a/e wî", "____a/ê min"], "____a/ê min"),
