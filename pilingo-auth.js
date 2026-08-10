@@ -44,9 +44,10 @@ const PilingoAuth = {
   },
 
   restoreLearningProgress(progress){
-    if(!progress || typeof progress !== "object") return;
     this.progressSyncSuppressed = true;
     try {
+      this.progressKeys.forEach((key) => localStorage.removeItem(key));
+      if(!progress || typeof progress !== "object") return;
       this.progressKeys.forEach((key) => {
         if(typeof progress[key] === "string"){
           localStorage.setItem(key, progress[key]);
@@ -515,6 +516,7 @@ const PilingoAuth = {
       location: String(data?.location || "").trim()
     };
     const dataOut = await this.postJson(this.registerEndpoint, payload);
+    this.clearLearningProgress();
     return this.saveAccount(dataOut.account);
   },
 
@@ -526,18 +528,13 @@ const PilingoAuth = {
       email: String(data?.email || "").trim().toLowerCase(),
       password: String(data?.password || "").trim()
     };
-    const browserProgress = this.captureLearningProgress();
     const dataOut = await this.postJson(this.loginEndpoint, payload);
     const serverProgress = dataOut.account?.learningProgress || {};
-    const progress = this.hasLearningProgress(serverProgress) ? serverProgress : browserProgress;
-    this.restoreLearningProgress(progress);
+    this.restoreLearningProgress(serverProgress);
     const account = this.saveAccount({
       ...dataOut.account,
-      learningProgress: progress
+      learningProgress: serverProgress
     });
-    if(!this.hasLearningProgress(serverProgress) && this.hasLearningProgress(browserProgress)){
-      this.syncLearningProgress().catch(() => {});
-    }
     return account;
   },
 

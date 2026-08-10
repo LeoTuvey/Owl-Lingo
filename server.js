@@ -1254,6 +1254,9 @@ function upsertStudentStats(payload) {
 
     if (email && studentEmail === email) return true;
     if (phone && studentPhone === phone) return true;
+    if (email && !studentEmail && normalizedName && normalizedName !== "unknown student" && studentName === normalizedName) {
+      return true;
+    }
 
     if (!email && !phone && normalizedName && normalizedName !== "unknown student" && studentName === normalizedName) {
       return true;
@@ -1269,13 +1272,13 @@ function upsertStudentStats(payload) {
     email,
     phone,
     location,
-    xp: safeNumber(payload.xp, existing?.xp || 0),
-    level: safeNumber(payload.level, existing?.level || 0),
+    xp: Math.max(safeNumber(payload.xp, 0), safeNumber(existing?.xp, 0)),
+    level: Math.max(safeNumber(payload.level, 0), safeNumber(existing?.level, 0)),
     streak: safeNumber(payload.streak, existing?.streak || 0),
-    completedSections: safeNumber(payload.completedSections, existing?.completedSections || 0),
+    completedSections: Math.max(safeNumber(payload.completedSections, 0), safeNumber(existing?.completedSections, 0)),
     averageGrade: safeNumber(payload.averageGrade, existing?.averageGrade || 0),
-    bestGrade: safeNumber(payload.bestGrade, existing?.bestGrade || 0),
-    lessonsFinished: safeNumber(payload.lessonsFinished, existing?.lessonsFinished || 0),
+    bestGrade: Math.max(safeNumber(payload.bestGrade, 0), safeNumber(existing?.bestGrade, 0)),
+    lessonsFinished: Math.max(safeNumber(payload.lessonsFinished, 0), safeNumber(existing?.lessonsFinished, 0)),
     updatedAt: new Date().toISOString()
   };
 
@@ -1287,6 +1290,64 @@ function upsertStudentStats(payload) {
 
   writeStudentStats(students);
   return merged;
+}
+
+function statsFromLearningProgress(account) {
+  const progress = account?.learningProgress && typeof account.learningProgress === "object"
+    ? account.learningProgress
+    : {};
+  const parseJson = (key, fallback) => {
+    try {
+      return JSON.parse(progress[key] || JSON.stringify(fallback));
+    } catch (error) {
+      return fallback;
+    }
+  };
+  const grades = Object.values(parseJson("pilingo_game1_grades", {}));
+  const completedSections = parseJson("pilingo_game1_completed_sections", {});
+  const completedParts = parseJson("pilingo_game1_completed_parts", []);
+  const gradeValues = grades.map((record) => safeNumber(record?.bestPercent, 0));
+  const xp = safeNumber(progress["en-ku_xp"], 0);
+
+  return {
+    studentName: account?.name,
+    studentEmail: account?.email,
+    studentPhone: account?.phone,
+    studentLocation: account?.location,
+    xp,
+    level: xp < 50 ? 0 : xp < 120 ? 1 : xp < 220 ? 2 : xp < 350 ? 3 : xp < 500 ? 4 : 5,
+    streak: safeNumber(progress.streak, 0),
+    completedSections: Math.max(
+      grades.length,
+      Object.values(completedSections).reduce((total, list) => total + (Array.isArray(list) ? list.length : 0), 0)
+    ),
+    averageGrade: gradeValues.length
+      ? Math.round(gradeValues.reduce((sum, value) => sum + value, 0) / gradeValues.length)
+      : 0,
+    bestGrade: gradeValues.length ? Math.max(...gradeValues) : 0,
+    lessonsFinished: Array.isArray(completedParts) ? completedParts.length : 0
+  };
+}
+
+function ensureAccountStats(account) {
+  if (!account?.email) return null;
+  const derived = statsFromLearningProgress(account);
+  const email = normalizeEmail(account.email);
+  const phone = String(account.phone || "").trim();
+  const name = String(account.name || "").trim().toLowerCase();
+  const existing = readStudentStats().find((student) => {
+    const studentEmail = normalizeEmail(student?.email);
+    const studentPhone = String(student?.phone || "").trim();
+    const studentName = String(student?.name || "").trim().toLowerCase();
+    return studentEmail === email || (!!phone && studentPhone === phone) || (!studentEmail && studentName === name);
+  });
+  const needsSync = !existing ||
+    normalizeEmail(existing.email) !== email ||
+    safeNumber(derived.xp, 0) > safeNumber(existing.xp, 0) ||
+    safeNumber(derived.completedSections, 0) > safeNumber(existing.completedSections, 0) ||
+    safeNumber(derived.bestGrade, 0) > safeNumber(existing.bestGrade, 0) ||
+    safeNumber(derived.lessonsFinished, 0) > safeNumber(existing.lessonsFinished, 0);
+  return needsSync ? upsertStudentStats(derived) : existing;
 }
 
 function defaultAppSettings() {
@@ -1614,6 +1675,7 @@ function loginAccount(payload) {
     return { ok: false, reason: "wrong_password" };
   }
 
+  ensureAccountStats(account);
   return { ok: true, account };
 }
 
@@ -2299,6 +2361,7 @@ function getLeaderboard() {
   };
 
   readAccounts().forEach((account) => {
+    ensureAccountStats(account);
     rememberStudent(account);
   });
 
@@ -2399,7 +2462,7 @@ function getSocialSnapshot(viewerEmail) {
   });
 
   leaderboard.forEach((student, index) => {
-    const key = normalizeEmail(student?.email);
+    const key = normalizeEmail(student?.email) || String(student?.phone || "").trim() || String(student?.name || "").trim().toLowerCase();
     rememberKnownStudent(student);
     if (!key) return;
     statsByEmail.set(key, {
@@ -2443,7 +2506,8 @@ function getSocialSnapshot(viewerEmail) {
     const blockedByStudent = Array.from(new Set(blockedByEmail.get(email) || []));
     const viewerPending = Array.from(new Set(pendingByEmail.get(viewerEmail) || []));
     const viewerSent = Array.from(new Set(sentByEmail.get(viewerEmail) || []));
-    const stats = statsByEmail.get(email) || {};
+    const statsKey = email || String(student?.phone || "").trim() || String(student?.name || "").trim().toLowerCase();
+    const stats = statsByEmail.get(statsKey) || {};
     const account = accountByEmail.get(email) || null;
     return {
       id: student.id || account?.id || "",
