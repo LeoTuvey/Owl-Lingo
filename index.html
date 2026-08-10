@@ -1104,11 +1104,11 @@ body.account-gate-open{
 }
 
 .hero-mascot-window{
-  width:min(100%, 330px);
+  width:230px;
   height:230px;
   margin:0 auto 18px;
   border:1px solid rgba(255,255,255,0.58);
-  border-radius:24px;
+  border-radius:50%;
   background:
     radial-gradient(circle at 50% 54%, rgba(255,255,255,0.28), transparent 48%),
     linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
@@ -1125,21 +1125,25 @@ body.account-gate-open{
 .hero-mascot-window::before{
   content:"";
   position:absolute;
-  inset:0 0 auto;
-  height:28px;
-  border-bottom:1px solid rgba(255,255,255,0.34);
-  background:rgba(255,255,255,0.12);
+  inset:10px;
+  height:auto;
+  border:1px solid rgba(255,255,255,0.32);
+  border-radius:50%;
+  background:transparent;
   z-index:5;
 }
 
 .hero-mascot-window::after{
-  content:"●  ●  ●";
+  content:"";
   position:absolute;
-  top:7px;
-  left:14px;
-  color:rgba(255,255,255,0.76);
-  font-size:9px;
-  letter-spacing:4px;
+  top:24px;
+  left:42px;
+  width:58px;
+  height:18px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.22);
+  transform:rotate(-24deg);
+  filter:blur(1px);
   z-index:6;
 }
 
@@ -2925,8 +2929,8 @@ button.call-end-button.is-pressed{
     font-size:70px;
   }
   .hero-mascot-window{
+    width:196px;
     height:196px;
-    border-radius:20px;
   }
   .hero-mascot-spark{
     width:34px;
