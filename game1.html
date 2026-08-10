@@ -4583,15 +4583,15 @@ function greetingsBall3ReplacementSteps(){
         haveGotReference(false),
         movingBlankBuildStep("", "I ____ ___ a-cat.", ["got", "have"], ["have", "got"]),
         Object.assign(
-            rawBuildStep("", "I have got a-cat.", ["he", "kitik-ek", "a", "y", "Min"], ["Min", "kitik-ek", "a", "he", "y"]),
+            rawBuildStep("", "I have got a-cat.\nMin kitik-ek ___.", ["he", "a", "y"], ["a", "he", "y"]),
             {
-                promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong>',
+                promptHtml:'I <span style="color:#4a86e8;font-weight:1000">have</span> <span style="color:#ef806d;font-weight:1000">got</span> <strong>a-cat.</strong><br><br>Min kitik-ek <span style="color:#4a86e8;font-weight:1000">_</span><span style="color:#ef806d;font-weight:1000">_</span><span style="color:#4a86e8;font-weight:1000">_</span>.',
                 buildWordHtml:{
                     he:'<span style="color:#ef806d;font-weight:1000">he</span>',
                     a:'<span style="color:#4a86e8;font-weight:1000">a</span>',
                     y:'<span style="color:#4a86e8;font-weight:1000">y</span>'
                 },
-                correctBuildHtml:'✅Min kitik-ek <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
+                correctBuildHtml:'✅ <span style="color:#4a86e8;font-weight:1000">a</span><span style="color:#ef806d;font-weight:1000">he</span><span style="color:#4a86e8;font-weight:1000">y</span>'
             }
         ),
         rawBuildStep("", "Min kitik-ek ya hey.", ["a cat", "have", "I"], ["I", "have", "a cat."]),
