@@ -560,12 +560,12 @@ const PilingoSocial = {
     const preview = document.getElementById("voiceMessagePreview");
     const status = document.getElementById("voiceRecordStatus");
     const recording = this.voiceRecorder?.state === "recording";
-    if(button) button.innerHTML = recording ? messageIconMarkup("stop") : messageIconMarkup("microphone");
+    if(button) button.textContent = recording ? "⏹️" : "🎤";
     if(button) button.setAttribute("aria-label", recording ? "Stop recording" : "Record voice message");
     if(button) button.title = recording ? "Stop recording" : "Record voice message";
     if(button) button.classList.toggle("recording", !!recording);
     if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
-    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">${messageIconMarkup("microphone")}</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">${messageIconMarkup("trash")}</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice ${messageIconMarkup("send")}</button></div>` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
     if(recording) this.detectVoiceSignal();
   },
 
@@ -573,14 +573,14 @@ const PilingoSocial = {
     if(!this.pendingVoice || !this.activeConversationEmail) return;
     const sendButton = document.getElementById("voiceSendButton");
     try {
-      if(sendButton){ sendButton.disabled = true; sendButton.textContent = "Sending…"; }
+      if(sendButton){ sendButton.disabled = true; sendButton.textContent = "⏳"; }
       const result = await this.sendVoiceMessage(this.activeConversationEmail, this.pendingVoice);
       this.cancelVoiceRecording();
       this.appendConversationMessage(result.message);
       this.refreshMessagesInBackground();
     } catch(error) {
       alert(error?.message || "Could not send this voice message.");
-      if(sendButton){ sendButton.disabled = false; sendButton.textContent = "Send voice"; }
+      if(sendButton){ sendButton.disabled = false; sendButton.textContent = "➤"; }
     }
   },
 
@@ -862,7 +862,7 @@ async function sendConversationMessage(event){
   } catch(error) {
     alert(error?.message || "Could not send this message.");
   } finally {
-    if(sendButton){ sendButton.disabled = false; sendButton.innerHTML = messageIconMarkup("send"); }
+    if(sendButton){ sendButton.disabled = false; sendButton.textContent = "➤"; }
   }
 }
 

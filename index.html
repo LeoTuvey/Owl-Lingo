@@ -2387,6 +2387,12 @@ button.is-pressed{
 .voice-message-preview{border:0!important;border-radius:18px!important;background:#f0f2f5!important;margin:7px 0 0 47px!important}.voice-preview-icon{background:#dbeafe!important;color:#0084ff}.voice-send-button{background:#0084ff!important}.voice-delete-button{border:0!important;border-radius:50%!important;color:#65676b!important}
 .message-bubble.mine .voice-message-label{color:#fff}.message-bubble.mine .voice-message-player{filter:saturate(.8)}
 
+/* Minimal emoji-only message controls. */
+.message-header-actions button,.voice-record-button,.message-send-button,.voice-delete-button,.voice-send-button{background:transparent!important;color:inherit!important;border:0!important;box-shadow:none!important;font-size:20px!important}
+.message-header-actions button:hover,.voice-record-button:hover,.message-send-button:hover,.voice-delete-button:hover,.voice-send-button:hover{background:#f0f2f5!important;transform:none!important}
+.voice-send-button,.voice-delete-button{display:grid!important;place-items:center;width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;font-weight:400!important}
+.voice-record-button.recording{background:#ffe4e2!important;color:#e23b33!important}
+
 .message-call-actions,
 .call-actions{
   display:flex;
@@ -3312,17 +3318,17 @@ button.call-end-button.is-pressed{
               <div class="message-contact-title"><strong id="messageModalTitle">Messages</strong><small>Active now</small></div>
             </div>
             <div class="message-call-actions message-header-actions">
-              <button class="secondary-button" type="button" onclick="startLearnerCall('audio')" aria-label="Start voice call" title="Voice call"><svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.7 3.4 3.2 4.9 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.7 3.8.7.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.7 21 3 13.3 3 3.7c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.6.7 3.8.1.4 0 .8-.3 1.1l-2.2 2.2Z"/></svg></button>
-              <button class="secondary-button" type="button" onclick="startLearnerCall('video')" aria-label="Start video call" title="Video call"><svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h10a2 2 0 0 1 2 2v2.2l4-2.3c.7-.4 1.5.1 1.5.9v8.4c0 .8-.8 1.3-1.5.9l-4-2.3V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/></svg></button>
+              <button class="secondary-button" type="button" onclick="startLearnerCall('audio')" aria-label="Start voice call" title="Voice call">📞</button>
+              <button class="secondary-button" type="button" onclick="startLearnerCall('video')" aria-label="Start video call" title="Video call">🎥</button>
               <button class="secondary-button student-profile-close message-close-button" type="button" onclick="closeConversation()" aria-label="Close messages" title="Close">×</button>
             </div>
           </div>
           <div id="messageThread" class="message-thread"></div>
           <div class="message-composer">
             <form class="message-compose" onsubmit="sendConversationMessage(event)">
-              <button id="voiceRecordButton" class="voice-record-button" type="button" onclick="PilingoSocial.toggleVoiceRecording()" aria-label="Record voice message" title="Record voice message"><svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Zm7-4a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.9V20H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.1A7 7 0 0 0 19 11Z"/></svg></button>
+              <button id="voiceRecordButton" class="voice-record-button" type="button" onclick="PilingoSocial.toggleVoiceRecording()" aria-label="Record voice message" title="Record voice message">🎤</button>
               <div class="message-input-pill"><textarea id="messageInput" maxlength="1000" rows="1" placeholder="Aa" aria-label="Message" required></textarea></div>
-              <button class="message-send-button" type="submit" aria-label="Send message"><svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 3.2a1 1 0 0 0-1.1-.2L3 10.4a1 1 0 0 0 .1 1.9l7 2.3 2.3 7a1 1 0 0 0 .9.7h.1a1 1 0 0 0 .9-.6l7.4-17.5a1 1 0 0 0-.1-1ZM12 13.1 6.2 11.2l11.2-4.7L12 13.1Zm1 4.8-1.3-4 5.8-7-4.5 11Z"/></svg></button>
+              <button class="message-send-button" type="submit" aria-label="Send message">➤</button>
             </form>
             <div class="message-recorder-options">
               <select id="voiceInputSelect" class="voice-input-select" aria-label="Voice-message microphone" onchange="PilingoSocial.changeVoiceInput()" hidden></select>
