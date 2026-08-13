@@ -17,6 +17,10 @@ const PilingoSocial = {
   voiceStartedAt: 0,
   voiceTimer: null,
   pendingVoice: null,
+  voiceAudioContext: null,
+  voiceAnalyser: null,
+  voiceHasSignal: false,
+  voiceWarning: "",
 
   canUseServer(){
     return location.protocol.startsWith("http");
@@ -400,7 +404,27 @@ const PilingoSocial = {
     }
     try {
       this.cancelVoiceRecording();
-      this.voiceStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+      this.voiceWarning = "";
+      const input = document.getElementById("voiceInputSelect");
+      const deviceId = String(input?.value || "");
+      this.voiceStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          ...(deviceId ? { deviceId:{ exact:deviceId } } : {}),
+          echoCancellation:true,
+          noiseSuppression:true,
+          autoGainControl:true
+        }
+      });
+      await this.refreshVoiceInputs(this.voiceStream.getAudioTracks()[0]?.getSettings?.().deviceId || deviceId);
+      this.monitorVoiceInput();
+      const audioTrack = this.voiceStream.getAudioTracks()[0];
+      if(!audioTrack) throw new Error("No microphone was found.");
+      audioTrack.onmute = () => this.setVoiceStatus("Microphone paused — check your AirPods connection.");
+      audioTrack.onunmute = () => { this.voiceWarning = ""; this.updateVoiceControls(); };
+      audioTrack.onended = () => {
+        if(this.voiceRecorder?.state === "recording") this.voiceRecorder.stop();
+        this.setVoiceStatus("Microphone disconnected. Reconnect your AirPods and try again.");
+      };
       const preferred = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
       this.voiceChunks = [];
       this.voiceRecorder = new MediaRecorder(this.voiceStream, preferred ? { mimeType:preferred, audioBitsPerSecond:24000 } : { audioBitsPerSecond:24000 });
@@ -423,7 +447,12 @@ const PilingoSocial = {
     const duration = Math.max(1, Math.min(60, Math.round((Date.now() - this.voiceStartedAt) / 1000)));
     const type = this.voiceRecorder?.mimeType || this.voiceChunks[0]?.type || "audio/webm";
     const blob = new Blob(this.voiceChunks, { type });
+    const heardAudio = this.voiceHasSignal;
     this.releaseVoiceRecorder();
+    if(!heardAudio){
+      alert("Pilingo did not hear any sound. Choose your AirPods microphone, check that it is connected, and try again.");
+      return this.updateVoiceControls();
+    }
     if(blob.size > 700000){
       alert("That recording is too large. Please record a shorter voice message.");
       return this.updateVoiceControls();
@@ -437,8 +466,64 @@ const PilingoSocial = {
     this.voiceTimer = null;
     this.voiceStream?.getTracks?.().forEach((track) => track.stop());
     this.voiceStream = null;
+    this.voiceAudioContext?.close?.().catch?.(() => {});
+    this.voiceAudioContext = null;
+    this.voiceAnalyser = null;
     this.voiceRecorder = null;
     this.voiceChunks = [];
+  },
+
+  monitorVoiceInput(){
+    this.voiceHasSignal = false;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if(!AudioContextClass) {
+      this.voiceHasSignal = true;
+      return;
+    }
+    try {
+      this.voiceAudioContext = new AudioContextClass();
+      const source = this.voiceAudioContext.createMediaStreamSource(this.voiceStream);
+      this.voiceAnalyser = this.voiceAudioContext.createAnalyser();
+      this.voiceAnalyser.fftSize = 256;
+      source.connect(this.voiceAnalyser);
+    } catch(error) {
+      this.voiceAudioContext = null;
+      this.voiceAnalyser = null;
+      this.voiceHasSignal = true;
+    }
+  },
+
+  detectVoiceSignal(){
+    if(!this.voiceAnalyser || this.voiceHasSignal) return;
+    if(this.voiceAudioContext?.state !== "running") {
+      this.voiceHasSignal = true;
+      return;
+    }
+    const samples = new Uint8Array(this.voiceAnalyser.fftSize);
+    this.voiceAnalyser.getByteTimeDomainData(samples);
+    this.voiceHasSignal = samples.some((sample) => Math.abs(sample - 128) > 2);
+  },
+
+  async refreshVoiceInputs(selectedDeviceId){
+    const select = document.getElementById("voiceInputSelect");
+    if(!select || !navigator.mediaDevices?.enumerateDevices) return;
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audioinput");
+    if(!devices.length) return;
+    select.innerHTML = devices.map((device, index) => `<option value="${escapeAttr(device.deviceId)}">${escapeHtml(device.label || `Microphone ${index + 1}`)}</option>`).join("");
+    if(selectedDeviceId && devices.some((device) => device.deviceId === selectedDeviceId)) select.value = selectedDeviceId;
+    select.hidden = false;
+  },
+
+  async changeVoiceInput(){
+    if(this.voiceRecorder?.state !== "recording") return;
+    this.cancelVoiceRecording();
+    await this.toggleVoiceRecording();
+  },
+
+  setVoiceStatus(message){
+    this.voiceWarning = String(message || "");
+    const status = document.getElementById("voiceRecordStatus");
+    if(status) status.textContent = this.voiceWarning;
   },
 
   cancelVoiceRecording(){
@@ -457,8 +542,9 @@ const PilingoSocial = {
     const recording = this.voiceRecorder?.state === "recording";
     if(button) button.textContent = recording ? "⏹ Stop" : "🎤 Record";
     if(button) button.classList.toggle("recording", !!recording);
-    if(status) status.textContent = recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "";
+    if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
     if(preview) preview.innerHTML = this.pendingVoice ? `<audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio><button class="secondary-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()">Delete</button><button class="social-follow-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice</button>` : "";
+    if(recording) this.detectVoiceSignal();
   },
 
   async submitVoiceMessage(){
