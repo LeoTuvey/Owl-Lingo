@@ -2565,6 +2565,35 @@ button.call-end-button.is-pressed{
   box-shadow:0 2px 0 #ae2637 !important;
 }
 
+/* Clean blue call surface matching the Pilingo message design. */
+#callModal{padding:14px;background:rgba(23,35,54,.78);backdrop-filter:blur(9px)}
+#callModal .call-card{width:min(860px,calc(100vw - 28px));height:min(780px,calc(100vh - 28px));min-height:0;max-width:none;padding:0 34px 30px;border:0;border-radius:28px;background:linear-gradient(180deg,#fff 0%,#f8faff 100%);box-shadow:0 28px 90px rgba(5,15,34,.4)}
+#callModal .student-profile-top{min-height:82px;margin:0 -34px;padding:0 28px;display:flex;align-items:center;border-bottom:1px solid #e4e7eb;background:#fff}
+#callModal .student-profile-top strong{display:flex;align-items:center;gap:11px;color:#111827;font-size:21px;font-weight:800}
+#callModal .student-profile-top svg{width:28px;height:28px;fill:#0866ff}
+#callModal .call-status{padding:30px 10px 6px;color:#111827;font-size:23px;font-weight:800}
+#callModal .call-note{max-width:580px;margin:0 auto;padding:0;text-align:center;color:#7a8089;font-size:13px;font-weight:500;line-height:1.5;background:transparent;border:0}
+#callModal .call-audio-stage{position:relative;min-height:0;justify-content:center;gap:19px}
+#callModal .call-audio-avatar{position:relative;z-index:1;width:164px;height:164px;border:6px solid #fff;background:linear-gradient(145deg,#dbeafe,#bfdbfe);color:#0866ff;font-size:70px;box-shadow:0 0 0 3px #0866ff,0 18px 48px rgba(8,102,255,.22)}
+#callModal .call-audio-stage:before,#callModal .call-audio-stage:after{content:"";position:absolute;left:50%;top:50%;width:190px;height:190px;border:2px solid rgba(8,102,255,.2);border-radius:50%;transform:translate(-50%,-62%);animation:callBluePulse 2.4s ease-out infinite}
+#callModal .call-audio-stage:after{animation-delay:1.2s}
+@keyframes callBluePulse{0%{opacity:.7;transform:translate(-50%,-62%) scale(.82)}100%{opacity:0;transform:translate(-50%,-62%) scale(1.42)}}
+#callModal .call-audio-name{position:relative;z-index:1;color:#111827;font-size:30px;font-weight:800}
+#callModal .call-video-grid{gap:12px;margin:20px 0 0}
+#callModal .call-video-grid video{min-height:260px;border-radius:22px;background:#101827;box-shadow:0 10px 30px rgba(15,23,42,.18)}
+#callModal .call-actions{position:relative;z-index:2;flex:none;width:auto;margin:12px auto 0;padding:12px 18px;gap:16px;border:1px solid #e0e5ec;border-radius:30px;background:rgba(255,255,255,.94);box-shadow:0 14px 38px rgba(24,39,75,.14);backdrop-filter:blur(15px)}
+#callModal .call-actions button,#callModal .call-actions button:hover,#callModal .call-actions button:focus{width:68px;min-width:68px;height:68px;min-height:68px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:50%;background:#eaf2ff;color:#0866ff;box-shadow:none;transform:none}
+#callModal .call-actions button:hover{background:#dceaff}
+#callModal .call-actions .call-control-icon{height:27px;display:grid;place-items:center}
+#callModal .call-actions svg{width:27px;height:27px;fill:currentColor}
+#callModal .call-actions .call-control-label{font-size:10px;font-weight:750}
+#callModal #callIncomingActions button{width:82px;min-width:82px;height:82px;min-height:82px;color:#fff}
+#callModal #callIncomingActions button:first-child{background:#31a24c}
+#callModal #callIncomingActions .call-end-button,#callModal #callIncomingActions .call-end-button:hover,#callModal .call-actions .call-end-button,#callModal .call-actions .call-end-button:hover{background:#f0444f!important;color:#fff!important;border:0!important;box-shadow:none!important}
+#callModal .call-actions button.is-pressed{background:#0866ff!important;color:#fff!important;box-shadow:none!important}
+#callModal #callActiveActions.video-call{width:auto}
+@media(max-width:600px){#callModal{padding:6px}#callModal .call-card{width:100%;height:calc(100svh - 12px);min-height:0;max-height:none;padding:0 14px calc(16px + env(safe-area-inset-bottom));border-radius:18px}#callModal .student-profile-top{min-height:66px;margin:0 -14px;padding:0 17px;flex-direction:row;align-items:center}#callModal .student-profile-top strong{width:auto;font-size:18px}#callModal .call-status{padding-top:20px;font-size:20px}#callModal .call-note{font-size:11px}#callModal .call-audio-avatar{width:132px;height:132px;font-size:58px}#callModal .call-audio-name{font-size:26px}#callModal .call-actions{width:auto;padding:10px;gap:9px;border-radius:25px}#callModal .call-actions button,#callModal .call-actions button:hover,#callModal .call-actions button:focus{width:58px;min-width:58px;height:58px;min-height:58px}#callModal #callIncomingActions button{width:74px;min-width:74px;height:74px;min-height:74px}#callModal .call-video-grid video{min-height:180px}}
+
 @media (max-width:600px){
   body .student-profile-modal{
     align-items:flex-end;
@@ -2789,6 +2818,29 @@ button.call-end-button.is-pressed{
     width:100%;
     min-width:0;
     min-height:62px;
+  }
+
+  #callModal .call-actions{
+    width:auto;
+    display:flex;
+    flex-wrap:nowrap;
+    gap:9px;
+    margin-top:12px;
+    padding:10px;
+  }
+
+  #callModal .call-actions button,
+  #callModal #callActiveActions .call-end-button{
+    width:58px;
+    min-width:58px;
+    min-height:58px;
+    height:58px;
+  }
+
+  #callModal #callIncomingActions button{
+    width:74px;
+    min-width:74px;
+    height:74px;
   }
 
   .social-top{
@@ -3366,10 +3418,10 @@ button.call-end-button.is-pressed{
       <div id="callModal" class="student-profile-modal" hidden>
         <div class="student-profile-card call-card">
           <div class="student-profile-top">
-            <strong>📞 Pilingo Call</strong>
+            <strong><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.7 3.4 3.2 4.9 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1v3.8c0 .6-.4 1-1 1C10.6 21.3 2.7 13.4 2.7 3.7c0-.6.4-1 1-1h3.8c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2Z"/></svg>Pilingo Call</strong>
           </div>
           <div id="callStatus" class="call-status">Connecting…</div>
-          <div class="social-note" style="text-align:center">Keep Pilingo open during the call. Phone browsers may pause the microphone if you lock the screen or switch apps.</div>
+          <div class="social-note call-note">Keep Pilingo open during the call. Phone browsers may pause the microphone if you lock the screen or switch apps.</div>
           <div id="callAudioStage" class="call-audio-stage">
             <div id="callAudioAvatar" class="call-audio-avatar">P</div>
             <div id="callAudioName" class="call-audio-name">Learner</div>
@@ -3380,14 +3432,14 @@ button.call-end-button.is-pressed{
           </div>
           <audio id="callRemoteAudio" autoplay playsinline></audio>
           <div id="callIncomingActions" class="call-actions" hidden>
-            <button class="social-follow-button" type="button" onclick="PilingoCalls.accept()"><span class="call-control-icon">📞</span><span class="call-control-label">Accept</span></button>
-            <button class="call-end-button" type="button" onclick="PilingoCalls.decline()"><span class="call-control-label">Decline</span></button>
+            <button class="social-follow-button" type="button" onclick="PilingoCalls.accept()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.7 3.4 3.2 4.9 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1v3.8c0 .6-.4 1-1 1C10.6 21.3 2.7 13.4 2.7 3.7c0-.6.4-1 1-1h3.8c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2Z"/></svg></span><span class="call-control-label">Accept</span></button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.decline()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 15.8c4.4-3.8 9.2-3.8 13.6 0l2-2c.4-.4.4-1 0-1.4-5-4.9-12.6-4.9-17.6 0-.4.4-.4 1 0 1.4Z"/></svg></span><span class="call-control-label">Decline</span></button>
           </div>
           <div id="callActiveActions" class="call-actions" hidden>
-            <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()"><span class="call-control-icon">🎙️</span><span class="call-control-label">Mute</span></button>
-            <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()"><span class="call-control-icon">📷</span><span class="call-control-label">Camera</span></button>
-            <button class="secondary-button" id="callSwitchCameraButton" type="button" onclick="PilingoCalls.switchCamera()"><span class="call-control-icon">🔄</span><span class="call-control-label">Back</span></button>
-            <button class="call-end-button" type="button" onclick="PilingoCalls.end()"><span class="call-control-label">End call</span></button>
+            <button class="secondary-button" id="callMuteButton" type="button" onclick="PilingoCalls.toggleMute()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="call-control-label">Mute</span></button>
+            <button class="secondary-button" id="callCameraButton" type="button" onclick="PilingoCalls.toggleCamera()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3Z"/></svg></span><span class="call-control-label">Camera</span></button>
+            <button class="secondary-button" id="callSwitchCameraButton" type="button" onclick="PilingoCalls.switchCamera()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10l-2.5-2.5M17 17H7l2.5 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 8.5A7.5 7.5 0 0 1 5.5 17M5 15.5A7.5 7.5 0 0 1 18.5 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span class="call-control-label">Back</span></button>
+            <button class="call-end-button" type="button" onclick="PilingoCalls.end()"><span class="call-control-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 15.8c4.4-3.8 9.2-3.8 13.6 0l2-2c.4-.4.4-1 0-1.4-5-4.9-12.6-4.9-17.6 0-.4.4-.4 1 0 1.4Z"/></svg></span><span class="call-control-label">End</span></button>
           </div>
         </div>
       </div>
