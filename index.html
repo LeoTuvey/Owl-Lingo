@@ -2290,51 +2290,84 @@ button.is-pressed{
 }
 
 .message-thread{
-  max-height:360px;
+  min-height:260px;
+  max-height:min(52vh,480px);
   overflow:auto;
   display:flex;
   flex-direction:column;
-  gap:9px;
-  padding:10px 0;
+  gap:10px;
+  padding:18px;
+  background:linear-gradient(180deg,#faf7f0 0%,#fffdf8 100%);
+  border-block:1px solid #eadfca;
+  overscroll-behavior:contain;
 }
 
 .message-bubble{
   max-width:82%;
-  padding:10px 13px;
-  border-radius:16px;
-  background:#f2ead4;
+  padding:11px 14px;
+  border-radius:18px 18px 18px 5px;
+  background:#fff;
   color:#55410d;
   line-height:1.45;
   white-space:pre-wrap;
+  box-shadow:0 2px 10px rgba(83,60,16,.08);
 }
 
 .message-bubble.mine{
   align-self:flex-end;
-  background:#dff7c9;
+  background:linear-gradient(135deg,#dff7c9,#c9f0aa);
+  border-radius:18px 18px 5px 18px;
 }
 
 .voice-message-label{display:block;font-size:12px;font-weight:900;margin-bottom:7px}
 .voice-message-player{display:block;width:min(260px,100%);height:36px}
-.voice-message-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
-.voice-message-tools button{width:auto;margin:0;padding:9px 12px;border-radius:999px}
-.voice-input-select{width:auto;max-width:210px;margin:0;padding:9px 30px 9px 10px;border-radius:999px;font-size:13px}
-.voice-message-tools button.recording{background:#c9342f;color:#fff;animation:messageLauncherPulse 1.2s infinite}
+.voice-message-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.voice-message-tools button{width:auto;margin:0}
+.voice-input-select{flex:1;min-width:150px;width:auto;max-width:250px;margin:0;padding:10px 32px 10px 12px;border:1px solid #dfd4bd;border-radius:12px;background:#fff;font-size:13px}
+.voice-record-button{display:inline-flex;align-items:center;gap:7px;padding:10px 14px!important;border:1px solid #dfd4bd!important;border-radius:12px!important;background:#fff!important;color:#5a4315!important;box-shadow:none!important;font-weight:900}
+.voice-record-button.recording{background:#fff0ee!important;border-color:#e28b84!important;color:#b72d27!important;animation:messageLauncherPulse 1.2s infinite}
 .voice-record-status{font-size:12px;font-weight:900;color:#a12d28}
-.voice-message-preview{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
-.voice-message-preview audio{height:36px;max-width:240px}
+.voice-message-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;width:100%;padding:12px;border:1px solid #d9e9c9;border-radius:14px;background:#f7fff1;margin-top:10px}
+.voice-preview-main,.voice-preview-actions{display:flex;align-items:center;gap:10px}
+.voice-preview-main>div{display:flex;flex-direction:column}.voice-preview-main small{color:#7c704f}
+.voice-preview-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#dff7c9}
+.voice-message-preview audio{height:34px;max-width:190px}.voice-preview-actions button{margin:0}
+.voice-delete-button{display:grid;place-items:center;width:38px!important;height:38px;padding:0!important;border:1px solid #ead8d4!important;border-radius:11px!important;background:#fff!important;box-shadow:none!important}
+.voice-send-button{display:flex;align-items:center;gap:8px;padding:10px 14px!important;border:0!important;border-radius:11px!important;background:#3f7f20!important;color:#fff!important;box-shadow:0 3px 0 #285913!important;font-weight:900}
 .voice-message-preview:empty{display:none}
 
+.message-composer{padding:14px;background:#fff;border-radius:0 0 20px 20px}
 .message-compose{
   display:flex;
-  gap:10px;
-  align-items:flex-end;
+  gap:8px;
+  align-items:center;
+  padding:6px;
+  border:1px solid #ded3bc;
+  border-radius:16px;
+  background:#faf8f3;
+  transition:border-color .2s,box-shadow .2s;
 }
+.message-compose:focus-within{border-color:#73a84e;box-shadow:0 0 0 3px rgba(115,168,78,.14)}
 
 .message-compose textarea{
   flex:1;
-  min-height:74px;
-  resize:vertical;
+  min-height:42px;
+  max-height:120px;
+  padding:10px 11px;
+  resize:none;
+  border:0;
+  background:transparent;
+  box-shadow:none;
 }
+.message-compose textarea:focus{outline:0;box-shadow:none}
+.message-send-button{display:grid!important;place-items:center;width:42px!important;min-width:42px!important;height:42px;padding:0!important;margin:0!important;border:0!important;border-radius:13px!important;background:linear-gradient(135deg,#5d9b37,#3f7f20)!important;color:#fff!important;box-shadow:0 3px 0 #285913!important;font-size:18px!important}
+.message-send-button:disabled,.voice-send-button:disabled{opacity:.6;cursor:wait}
+.send-button-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.message-tool-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}
+.message-modal-card{padding:0!important;overflow:hidden;max-width:680px!important}
+.message-modal-header{padding:14px 16px}.message-contact-title{display:flex;flex-direction:column;gap:2px}.message-contact-title small{font-size:11px;color:#897852;font-weight:700}
+.message-header-actions button{display:grid!important;place-items:center;width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;border-radius:11px!important;font-size:16px!important}.message-close-button{font-size:18px!important}
 
 .message-call-actions,
 .call-actions{
@@ -2574,6 +2607,58 @@ button.call-end-button.is-pressed{
     min-height:52px;
     margin:0;
   }
+
+  body .message-modal-card{
+    min-height:calc(100svh - 12px);
+    padding:0;
+    display:flex;
+    flex-direction:column;
+  }
+
+  body .message-modal-header{
+    flex-direction:row;
+    align-items:center;
+    gap:10px;
+    margin:0;
+    padding:12px 14px;
+  }
+
+  .message-modal-header .message-call-actions{
+    width:auto;
+    display:flex;
+    flex-wrap:nowrap;
+    gap:6px;
+  }
+
+  .message-modal-header .message-call-actions button{
+    width:36px!important;
+    min-height:36px;
+    height:36px!important;
+    padding:0!important;
+  }
+
+  .message-modal-card .message-thread{
+    flex:1;
+    min-height:0;
+    max-height:none;
+    padding:14px;
+  }
+
+  .message-modal-card .message-compose{
+    display:flex;
+    grid-template-columns:none;
+    gap:6px;
+  }
+
+  .message-modal-card .message-compose textarea{
+    width:auto;
+    min-height:42px;
+    max-height:100px;
+  }
+
+  .message-tool-row,.voice-message-tools{width:100%}
+  .voice-input-select{max-width:none}
+  .voice-message-preview audio{max-width:150px}
 
   .call-card .student-profile-top{
     align-items:center;
@@ -3198,24 +3283,28 @@ button.call-end-button.is-pressed{
       </div>
 
       <div id="messageModal" class="student-profile-modal" hidden>
-        <div class="student-profile-card">
-          <div class="student-profile-top">
-            <strong id="messageModalTitle">💬 Messages</strong>
-            <div class="message-call-actions">
-              <button class="secondary-button" type="button" onclick="startLearnerCall('audio')">📞 Voice</button>
-              <button class="secondary-button" type="button" onclick="startLearnerCall('video')">🎥 Video</button>
-              <button class="secondary-button student-profile-close" type="button" onclick="closeConversation()">Close</button>
+        <div class="student-profile-card message-modal-card">
+          <div class="student-profile-top message-modal-header">
+            <div class="message-contact-title"><strong id="messageModalTitle">Messages</strong><small>Private conversation</small></div>
+            <div class="message-call-actions message-header-actions">
+              <button class="secondary-button" type="button" onclick="startLearnerCall('audio')" aria-label="Start voice call" title="Voice call">📞</button>
+              <button class="secondary-button" type="button" onclick="startLearnerCall('video')" aria-label="Start video call" title="Video call">🎥</button>
+              <button class="secondary-button student-profile-close message-close-button" type="button" onclick="closeConversation()" aria-label="Close messages" title="Close">×</button>
             </div>
           </div>
           <div id="messageThread" class="message-thread"></div>
-          <form class="message-compose" onsubmit="sendConversationMessage(event)">
-            <textarea id="messageInput" maxlength="1000" placeholder="Write a respectful message..." required></textarea>
-            <button class="social-follow-button" type="submit">Send</button>
-          </form>
-          <div class="voice-message-tools">
-            <select id="voiceInputSelect" class="voice-input-select" aria-label="Voice-message microphone" onchange="PilingoSocial.changeVoiceInput()" hidden></select>
-            <button id="voiceRecordButton" class="secondary-button" type="button" onclick="PilingoSocial.toggleVoiceRecording()">🎤 Record</button>
-            <span id="voiceRecordStatus" class="voice-record-status"></span>
+          <div class="message-composer">
+            <form class="message-compose" onsubmit="sendConversationMessage(event)">
+              <textarea id="messageInput" maxlength="1000" rows="1" placeholder="Type a message…" required></textarea>
+              <button class="message-send-button" type="submit" aria-label="Send message">➤</button>
+            </form>
+            <div class="message-tool-row">
+              <div class="voice-message-tools">
+                <button id="voiceRecordButton" class="voice-record-button" type="button" onclick="PilingoSocial.toggleVoiceRecording()"><span>🎤</span> Record voice</button>
+                <select id="voiceInputSelect" class="voice-input-select" aria-label="Voice-message microphone" onchange="PilingoSocial.changeVoiceInput()" hidden></select>
+              </div>
+              <span id="voiceRecordStatus" class="voice-record-status"></span>
+            </div>
             <div id="voiceMessagePreview" class="voice-message-preview"></div>
           </div>
         </div>

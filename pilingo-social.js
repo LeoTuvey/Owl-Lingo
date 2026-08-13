@@ -377,7 +377,6 @@ const PilingoSocial = {
           `).join("")
         : `<div class="social-empty">Start the conversation with a friendly message.</div>`;
       threadElement.scrollTop = threadElement.scrollHeight;
-      await this.render();
     } catch(error) {
       threadElement.innerHTML = `<div class="social-empty">${escapeHtml(error?.message || "Could not load messages.")}</div>`;
     }
@@ -392,8 +391,27 @@ const PilingoSocial = {
 
   async submitConversationMessage(text){
     if(!this.activeConversationEmail) return;
-    await this.sendMessage(this.activeConversationEmail, text);
-    await this.openConversation(this.activeConversationEmail);
+    const result = await this.sendMessage(this.activeConversationEmail, text);
+    this.appendConversationMessage(result.message);
+    this.refreshMessagesInBackground();
+  },
+
+  appendConversationMessage(message){
+    const thread = document.getElementById("messageThread");
+    if(!thread || !message) return;
+    thread.querySelector(".social-empty")?.remove();
+    const bubble = document.createElement("div");
+    bubble.className = `message-bubble ${message.senderEmail === this.currentEmail() ? "mine" : ""}`;
+    bubble.innerHTML = message.type === "voice" && message.audioUrl
+      ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls preload="metadata" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
+      : escapeHtml(message.text);
+    thread.appendChild(bubble);
+    thread.scrollTo({ top:thread.scrollHeight, behavior:"smooth" });
+  },
+
+  refreshMessagesInBackground(){
+    window.clearTimeout(this.messageRefreshTimer);
+    this.messageRefreshTimer = window.setTimeout(() => this.render(), 500);
   },
 
   async toggleVoiceRecording(){
@@ -540,21 +558,25 @@ const PilingoSocial = {
     const preview = document.getElementById("voiceMessagePreview");
     const status = document.getElementById("voiceRecordStatus");
     const recording = this.voiceRecorder?.state === "recording";
-    if(button) button.textContent = recording ? "⏹ Stop" : "🎤 Record";
+    if(button) button.innerHTML = recording ? "<span>⏹</span> Stop recording" : "<span>🎤</span> Record voice";
     if(button) button.classList.toggle("recording", !!recording);
     if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
-    if(preview) preview.innerHTML = this.pendingVoice ? `<audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio><button class="secondary-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()">Delete</button><button class="social-follow-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice</button>` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice <span>➤</span></button></div>` : "";
     if(recording) this.detectVoiceSignal();
   },
 
   async submitVoiceMessage(){
     if(!this.pendingVoice || !this.activeConversationEmail) return;
+    const sendButton = document.getElementById("voiceSendButton");
     try {
-      await this.sendVoiceMessage(this.activeConversationEmail, this.pendingVoice);
+      if(sendButton){ sendButton.disabled = true; sendButton.textContent = "Sending…"; }
+      const result = await this.sendVoiceMessage(this.activeConversationEmail, this.pendingVoice);
       this.cancelVoiceRecording();
-      await this.openConversation(this.activeConversationEmail);
+      this.appendConversationMessage(result.message);
+      this.refreshMessagesInBackground();
     } catch(error) {
       alert(error?.message || "Could not send this voice message.");
+      if(sendButton){ sendButton.disabled = false; sendButton.textContent = "Send voice"; }
     }
   },
 
@@ -821,11 +843,15 @@ async function sendConversationMessage(event){
   const input = document.getElementById("messageInput");
   const text = String(input?.value || "").trim();
   if(!text) return;
+  const sendButton = event.submitter || event.currentTarget?.querySelector('button[type="submit"]');
   try {
+    if(sendButton){ sendButton.disabled = true; sendButton.innerHTML = `<span class="send-button-spinner"></span>`; }
     await PilingoSocial.submitConversationMessage(text);
     if(input) input.value = "";
   } catch(error) {
     alert(error?.message || "Could not send this message.");
+  } finally {
+    if(sendButton){ sendButton.disabled = false; sendButton.innerHTML = `➤`; }
   }
 }
 
