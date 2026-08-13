@@ -371,10 +371,8 @@ const PilingoSocial = {
       const viewerEmail = this.currentEmail();
       threadElement.innerHTML = (thread.messages || []).length
         ? thread.messages.map((message) => `
-            <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""}">
-              ${message.type === "voice" && message.audioUrl
-                ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls playsinline preload="metadata" onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
-                : escapeHtml(message.text)}
+            <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""} ${message.type === "voice" ? "voice-bubble" : ""}">
+              ${this.renderMessageBody(message)}
             </div>
           `).join("")
         : `<div class="social-empty">Start the conversation with a friendly message.</div>`;
@@ -382,6 +380,53 @@ const PilingoSocial = {
     } catch(error) {
       threadElement.innerHTML = `<div class="social-empty">${escapeHtml(error?.message || "Could not load messages.")}</div>`;
     }
+    this.updateComposerState();
+  },
+
+  renderMessageBody(message){
+    if(message.type !== "voice" || !message.audioUrl) return escapeHtml(message.text);
+    const source = escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString());
+    const bars = Array.from({ length:24 }, () => "<i></i>").join("");
+    return `<div class="messenger-voice-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play voice message"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${bars}</span><span class="messenger-voice-duration">${formatVoiceDuration(message.duration)}</span><audio playsinline preload="metadata" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onended="PilingoSocial.syncVoicePlayback(this)" src="${source}"></audio></div><span class="message-delivery-check" aria-label="Delivered">✓</span>`;
+  },
+
+  toggleVoicePlayback(button){
+    const audio = button?.parentElement?.querySelector("audio");
+    if(!audio) return;
+    if(audio.paused){
+      this.prepareVoicePlayback(audio);
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  },
+
+  syncVoicePlayback(audio){
+    const button = audio?.parentElement?.querySelector(".messenger-voice-play");
+    const playing = !!audio && !audio.paused && !audio.ended;
+    button?.classList.toggle("playing", playing);
+    button?.setAttribute("aria-label", playing ? "Pause voice message" : "Play voice message");
+  },
+
+  updateComposerState(){
+    const input = document.getElementById("messageInput");
+    const button = document.getElementById("messageSendButton");
+    const hasText = !!String(input?.value || "").trim();
+    button?.classList.toggle("has-text", hasText);
+    button?.setAttribute("aria-label", hasText ? "Send message" : "Send a like");
+    if(button) button.title = hasText ? "Send message" : "Send a like";
+  },
+
+  addMessageEmoji(){
+    const input = document.getElementById("messageInput");
+    if(!input) return;
+    input.value += "😊";
+    input.focus();
+    this.updateComposerState();
+  },
+
+  showMessageToolNotice(feature){
+    alert(`${feature} are coming soon.`);
   },
 
   closeConversation(){
@@ -403,10 +448,8 @@ const PilingoSocial = {
     if(!thread || !message) return;
     thread.querySelector(".social-empty")?.remove();
     const bubble = document.createElement("div");
-    bubble.className = `message-bubble ${message.senderEmail === this.currentEmail() ? "mine" : ""}`;
-    bubble.innerHTML = message.type === "voice" && message.audioUrl
-      ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls playsinline preload="metadata" onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
-      : escapeHtml(message.text);
+    bubble.className = `message-bubble ${message.senderEmail === this.currentEmail() ? "mine" : ""} ${message.type === "voice" ? "voice-bubble" : ""}`;
+    bubble.innerHTML = this.renderMessageBody(message);
     thread.appendChild(bubble);
     thread.scrollTo({ top:thread.scrollHeight, behavior:"smooth" });
   },
@@ -586,10 +629,9 @@ const PilingoSocial = {
     const preview = document.getElementById("voiceMessagePreview");
     const status = document.getElementById("voiceRecordStatus");
     const recording = this.voiceRecorder?.state === "recording";
-    if(button) button.textContent = recording ? "⏹️" : "🎤";
+    if(button) button.classList.toggle("recording", !!recording);
     if(button) button.setAttribute("aria-label", recording ? "Stop recording" : "Record voice message");
     if(button) button.title = recording ? "Stop recording" : "Record voice message";
-    if(button) button.classList.toggle("recording", !!recording);
     if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
     if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls playsinline onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
     if(recording) this.detectVoiceSignal();
@@ -878,17 +920,17 @@ function closeConversation(){
 async function sendConversationMessage(event){
   event.preventDefault();
   const input = document.getElementById("messageInput");
-  const text = String(input?.value || "").trim();
-  if(!text) return;
+  const text = String(input?.value || "").trim() || "👍";
   const sendButton = event.submitter || event.currentTarget?.querySelector('button[type="submit"]');
   try {
     if(sendButton){ sendButton.disabled = true; sendButton.innerHTML = `<span class="send-button-spinner"></span>`; }
     await PilingoSocial.submitConversationMessage(text);
     if(input) input.value = "";
+    PilingoSocial.updateComposerState();
   } catch(error) {
     alert(error?.message || "Could not send this message.");
   } finally {
-    if(sendButton){ sendButton.disabled = false; sendButton.textContent = "➤"; }
+    if(sendButton){ sendButton.disabled = false; sendButton.innerHTML = `<svg class="message-like-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 21H5.2C4.5 21 4 20.5 4 19.8v-8.2c0-.7.5-1.2 1.2-1.2h3.3m0 10.6h8.2c1 0 1.8-.7 2-1.6l1.2-6.5c.2-1.2-.7-2.4-2-2.4h-4.3l.7-3.6c.3-1.6-.9-3.1-2.5-3.1h-.4l-2.9 6.6V21Z"/></svg><svg class="message-arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 4 18 8-18 8 2.2-6.3L14 12l-8.8-1.7Z"/></svg>`; PilingoSocial.updateComposerState(); }
   }
 }
 
