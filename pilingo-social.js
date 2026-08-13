@@ -373,7 +373,7 @@ const PilingoSocial = {
         ? thread.messages.map((message) => `
             <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""}">
               ${message.type === "voice" && message.audioUrl
-                ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls preload="metadata" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
+                ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls playsinline preload="metadata" onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
                 : escapeHtml(message.text)}
             </div>
           `).join("")
@@ -405,7 +405,7 @@ const PilingoSocial = {
     const bubble = document.createElement("div");
     bubble.className = `message-bubble ${message.senderEmail === this.currentEmail() ? "mine" : ""}`;
     bubble.innerHTML = message.type === "voice" && message.audioUrl
-      ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls preload="metadata" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
+      ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls playsinline preload="metadata" onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
       : escapeHtml(message.text);
     thread.appendChild(bubble);
     thread.scrollTo({ top:thread.scrollHeight, behavior:"smooth" });
@@ -425,6 +425,7 @@ const PilingoSocial = {
     try {
       this.cancelVoiceRecording();
       this.voiceWarning = "";
+      this.setBrowserAudioSession("play-and-record");
       const input = document.getElementById("voiceInputSelect");
       const deviceId = String(input?.value || "");
       this.voiceStream = await navigator.mediaDevices.getUserMedia({
@@ -459,6 +460,7 @@ const PilingoSocial = {
       }, 250);
     } catch(error) {
       this.cancelVoiceRecording();
+      this.setBrowserAudioSession("playback");
       alert("Pilingo needs microphone permission to record a voice message.");
     }
   },
@@ -484,13 +486,37 @@ const PilingoSocial = {
   releaseVoiceRecorder(){
     window.clearInterval(this.voiceTimer);
     this.voiceTimer = null;
-    this.voiceStream?.getTracks?.().forEach((track) => track.stop());
+    this.voiceStream?.getTracks?.().forEach((track) => {
+      track.onmute = null;
+      track.onunmute = null;
+      track.onended = null;
+      track.enabled = false;
+      track.stop();
+    });
     this.voiceStream = null;
     this.voiceAudioContext?.close?.().catch?.(() => {});
     this.voiceAudioContext = null;
     this.voiceAnalyser = null;
     this.voiceRecorder = null;
     this.voiceChunks = [];
+    this.setBrowserAudioSession("playback");
+  },
+
+  setBrowserAudioSession(type){
+    try {
+      if(navigator.audioSession && "type" in navigator.audioSession) navigator.audioSession.type = type;
+    } catch(error) {
+      // Audio-session routing is optional and currently supported mainly by Safari.
+    }
+  },
+
+  prepareVoicePlayback(audio){
+    if(!audio) return;
+    this.releaseVoiceRecorder();
+    this.setBrowserAudioSession("playback");
+    document.querySelectorAll("audio").forEach((other) => {
+      if(other !== audio && !other.paused) other.pause();
+    });
   },
 
   monitorVoiceInput(){
@@ -565,7 +591,7 @@ const PilingoSocial = {
     if(button) button.title = recording ? "Stop recording" : "Record voice message";
     if(button) button.classList.toggle("recording", !!recording);
     if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
-    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls playsinline onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
     if(recording) this.detectVoiceSignal();
   },
 

@@ -170,11 +170,26 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
         return res.end("Voice message not found");
       }
-      res.writeHead(200, {
+      const range = String(req.headers.range || "");
+      const match = range.match(/^bytes=(\d*)-(\d*)$/);
+      const commonHeaders = {
         "Content-Type": message.mimeType || "audio/webm",
-        "Content-Length": content.length,
-        "Cache-Control": "private, max-age=86400"
-      });
+        "Cache-Control": "private, max-age=86400",
+        "Accept-Ranges": "bytes"
+      };
+      if (match) {
+        const start = match[1] ? Number(match[1]) : 0;
+        const requestedEnd = match[2] ? Number(match[2]) : content.length - 1;
+        const end = Math.min(requestedEnd, content.length - 1);
+        if (!Number.isFinite(start) || start < 0 || start > end || start >= content.length) {
+          res.writeHead(416, { ...commonHeaders, "Content-Range": `bytes */${content.length}` });
+          return res.end();
+        }
+        const chunk = content.subarray(start, end + 1);
+        res.writeHead(206, { ...commonHeaders, "Content-Length": chunk.length, "Content-Range": `bytes ${start}-${end}/${content.length}` });
+        return res.end(chunk);
+      }
+      res.writeHead(200, { ...commonHeaders, "Content-Length": content.length });
       res.end(content);
     });
   }
