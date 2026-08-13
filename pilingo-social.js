@@ -358,6 +358,7 @@ const PilingoSocial = {
   async openConversation(targetEmail){
     const modal = document.getElementById("messageModal");
     const title = document.getElementById("messageModalTitle");
+    const avatar = document.getElementById("messageContactAvatar");
     const threadElement = document.getElementById("messageThread");
     if(!modal || !title || !threadElement) return;
     this.activeConversationEmail = String(targetEmail || "").trim().toLowerCase();
@@ -365,7 +366,8 @@ const PilingoSocial = {
     threadElement.innerHTML = `<div class="social-empty">Loading messages...</div>`;
     try {
       const thread = await this.fetchThread(this.activeConversationEmail);
-      title.textContent = `💬 ${thread.participant?.name || "Messages"}`;
+      title.textContent = thread.participant?.name || "Messages";
+      if(avatar) avatar.innerHTML = `${this.avatarMarkup(thread.participant, "message-contact-avatar-media")}<span class="message-active-dot"></span>`;
       const viewerEmail = this.currentEmail();
       threadElement.innerHTML = (thread.messages || []).length
         ? thread.messages.map((message) => `
