@@ -23,6 +23,7 @@ const PUSH_SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "push-subscriptions.json");
 const PUSH_KEYS_FILE = path.join(DATA_DIR, "vapid-keys.json");
 const VISITS_FILE = path.join(DATA_DIR, "visits.json");
 const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
+const VOICE_MESSAGES_DIR = path.join(DATA_DIR, "voice-messages");
 const CALLS_FILE = path.join(DATA_DIR, "calls.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
@@ -34,6 +35,8 @@ const OWNER_PANEL_TOKEN = process.env.OWNER_PANEL_TOKEN || `owner-${Math.random(
 const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 const PUSH_REMINDER_INTERVAL_MS = 5 * 60 * 1000;
 const VISITOR_IP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_VOICE_MESSAGE_BYTES = 700_000;
+const MAX_VOICE_MESSAGE_SECONDS = 60;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -153,6 +156,27 @@ const server = http.createServer(async (req, res) => {
     const thread = getMessageThread(viewerEmail, targetEmail, true);
     if (!thread.ok) return sendJson(res, 400, thread);
     return sendJson(res, 200, thread);
+  }
+
+  if (req.method === "GET" && parsed.pathname.startsWith("/api/messages/audio/")) {
+    const audioId = path.basename(parsed.pathname);
+    const message = readMessages().find((item) => item.id === audioId && item.type === "voice");
+    if (!message?.audioFile || path.basename(message.audioFile) !== message.audioFile) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      return res.end("Voice message not found");
+    }
+    return fs.readFile(path.join(VOICE_MESSAGES_DIR, message.audioFile), (error, content) => {
+      if (error) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        return res.end("Voice message not found");
+      }
+      res.writeHead(200, {
+        "Content-Type": message.mimeType || "audio/webm",
+        "Content-Length": content.length,
+        "Cache-Control": "private, max-age=86400"
+      });
+      res.end(content);
+    });
   }
 
   if (req.method === "GET" && parsed.pathname === "/api/calls/poll") {
@@ -529,6 +553,7 @@ server.listen(PORT, () => {
 
 function ensureDataFile() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(VOICE_MESSAGES_DIR)) fs.mkdirSync(VOICE_MESSAGES_DIR, { recursive: true });
   if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, "[]", "utf8");
   if (!fs.existsSync(STATS_FILE)) fs.writeFileSync(STATS_FILE, "[]", "utf8");
   if (!fs.existsSync(ACCOUNTS_FILE)) fs.writeFileSync(ACCOUNTS_FILE, "[]", "utf8");
@@ -708,7 +733,9 @@ function sendDirectMessage(payload) {
   const senderEmail = normalizeEmail(payload?.senderEmail);
   const recipientEmail = normalizeEmail(payload?.recipientEmail);
   const text = String(payload?.text || "").trim();
-  if (!senderEmail || !recipientEmail || !text) {
+  const voiceData = String(payload?.voiceData || "");
+  const isVoice = !!voiceData;
+  if (!senderEmail || !recipientEmail || (!text && !isVoice)) {
     return { ok: false, error: "Sender, recipient, and message are required." };
   }
   if (senderEmail === recipientEmail) {
@@ -716,6 +743,21 @@ function sendDirectMessage(payload) {
   }
   if (text.length > 1000) {
     return { ok: false, error: "Messages can contain up to 1,000 characters." };
+  }
+
+  let voiceBuffer = null;
+  let mimeType = "";
+  let duration = 0;
+  if (isVoice) {
+    mimeType = String(payload?.mimeType || "").split(";")[0].toLowerCase();
+    if (!["audio/webm", "audio/mp4", "audio/ogg"].includes(mimeType)) {
+      return { ok: false, error: "This voice message format is not supported." };
+    }
+    duration = Math.max(1, Math.min(MAX_VOICE_MESSAGE_SECONDS, Math.round(Number(payload?.duration) || 0)));
+    voiceBuffer = Buffer.from(voiceData, "base64");
+    if (!voiceBuffer.length || voiceBuffer.length > MAX_VOICE_MESSAGE_BYTES) {
+      return { ok: false, error: "Voice messages must be smaller than 700 KB." };
+    }
   }
 
   const accounts = readAccounts();
@@ -730,10 +772,19 @@ function sendDirectMessage(payload) {
     id: `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
     senderEmail,
     recipientEmail,
-    text,
+    type: isVoice ? "voice" : "text",
+    text: isVoice ? "Voice message" : text,
     readAt: "",
     createdAt: new Date().toISOString()
   };
+  if (isVoice) {
+    const extension = mimeType === "audio/mp4" ? ".m4a" : mimeType === "audio/ogg" ? ".ogg" : ".webm";
+    message.audioFile = `${message.id}${extension}`;
+    message.audioUrl = `/api/messages/audio/${encodeURIComponent(message.id)}`;
+    message.mimeType = mimeType;
+    message.duration = duration;
+    fs.writeFileSync(path.join(VOICE_MESSAGES_DIR, message.audioFile), voiceBuffer);
+  }
   const messages = readMessages();
   messages.push(message);
   writeMessages(messages);
@@ -747,7 +798,7 @@ async function notifyMessageRecipient(sender, recipient, message) {
   const badgeCount = Math.max(1, getUnreadMessageCount(recipient.email));
   await sendPushNotificationToUser(recipient.email, {
     title: `💬 Message from ${sender.name || "a learner"}`,
-    body: message.text.slice(0, 120),
+    body: message.type === "voice" ? "🎤 Voice message" : message.text.slice(0, 120),
     url: "/index.html#messages",
     appBadge: true,
     data: {
@@ -771,7 +822,7 @@ async function notifyMessageRecipient(sender, recipient, message) {
         <div style="font-family:Arial,sans-serif;line-height:1.5">
           <h2>You have a new Pilingo message</h2>
           <p><strong>${escapeHtml(sender.name || "A learner")}:</strong></p>
-          <p style="padding:12px 14px;background:#fff7e8;border-radius:12px">${escapeHtml(message.text.slice(0, 500))}</p>
+          <p style="padding:12px 14px;background:#fff7e8;border-radius:12px">${message.type === "voice" ? "🎤 Voice message" : escapeHtml(message.text.slice(0, 500))}</p>
           <p><a href="https://pilingoacademy.com/index.html#messages">Open Pilingo to reply</a></p>
         </div>
       `

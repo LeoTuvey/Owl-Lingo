@@ -2313,6 +2313,16 @@ button.is-pressed{
   background:#dff7c9;
 }
 
+.voice-message-label{display:block;font-size:12px;font-weight:900;margin-bottom:7px}
+.voice-message-player{display:block;width:min(260px,100%);height:36px}
+.voice-message-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.voice-message-tools button{width:auto;margin:0;padding:9px 12px;border-radius:999px}
+.voice-message-tools button.recording{background:#c9342f;color:#fff;animation:messageLauncherPulse 1.2s infinite}
+.voice-record-status{font-size:12px;font-weight:900;color:#a12d28}
+.voice-message-preview{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.voice-message-preview audio{height:36px;max-width:240px}
+.voice-message-preview:empty{display:none}
+
 .message-compose{
   display:flex;
   gap:10px;
@@ -3201,6 +3211,11 @@ button.call-end-button.is-pressed{
             <textarea id="messageInput" maxlength="1000" placeholder="Write a respectful message..." required></textarea>
             <button class="social-follow-button" type="submit">Send</button>
           </form>
+          <div class="voice-message-tools">
+            <button id="voiceRecordButton" class="secondary-button" type="button" onclick="PilingoSocial.toggleVoiceRecording()">🎤 Record</button>
+            <span id="voiceRecordStatus" class="voice-record-status"></span>
+            <div id="voiceMessagePreview" class="voice-message-preview"></div>
+          </div>
         </div>
       </div>
 
@@ -3431,7 +3446,7 @@ button.call-end-button.is-pressed{
 <script src="pilingo-mascot.js?v=3"></script>
 <script src="pilingo-auth.js?v=10"></script>
 <script src="pilingo-notify.js?v=12"></script>
-<script src="pilingo-social.js?v=4"></script>
+<script src="pilingo-social.js?v=5"></script>
 <script src="pilingo-calls.js?v=9"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>

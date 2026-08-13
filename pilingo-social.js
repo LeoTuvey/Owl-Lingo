@@ -11,6 +11,12 @@ const PilingoSocial = {
   lastSnapshot: null,
   activeProfile: null,
   activeConversationEmail: "",
+  voiceRecorder: null,
+  voiceStream: null,
+  voiceChunks: [],
+  voiceStartedAt: 0,
+  voiceTimer: null,
+  pendingVoice: null,
 
   canUseServer(){
     return location.protocol.startsWith("http");
@@ -98,6 +104,16 @@ const PilingoSocial = {
       senderEmail,
       recipientEmail: targetEmail,
       text: String(text || "").trim()
+    });
+  },
+
+  async sendVoiceMessage(targetEmail, recording){
+    return await this.postAction(this.messageSendEndpoint, {
+      senderEmail: this.currentEmail(),
+      recipientEmail: targetEmail,
+      voiceData: await blobToBase64(recording.blob),
+      mimeType: recording.blob.type || "audio/webm",
+      duration: recording.duration
     });
   },
 
@@ -350,7 +366,9 @@ const PilingoSocial = {
       threadElement.innerHTML = (thread.messages || []).length
         ? thread.messages.map((message) => `
             <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""}">
-              ${escapeHtml(message.text)}
+              ${message.type === "voice" && message.audioUrl
+                ? `<span class="voice-message-label">🎤 Voice message · ${formatVoiceDuration(message.duration)}</span><audio class="voice-message-player" controls preload="metadata" src="${escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString())}"></audio>`
+                : escapeHtml(message.text)}
             </div>
           `).join("")
         : `<div class="social-empty">Start the conversation with a friendly message.</div>`;
@@ -362,6 +380,7 @@ const PilingoSocial = {
   },
 
   closeConversation(){
+    this.cancelVoiceRecording();
     const modal = document.getElementById("messageModal");
     if(modal) modal.hidden = true;
     this.activeConversationEmail = "";
@@ -371,6 +390,86 @@ const PilingoSocial = {
     if(!this.activeConversationEmail) return;
     await this.sendMessage(this.activeConversationEmail, text);
     await this.openConversation(this.activeConversationEmail);
+  },
+
+  async toggleVoiceRecording(){
+    if(this.voiceRecorder?.state === "recording") return this.voiceRecorder.stop();
+    if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder){
+      alert("Voice recording is not supported by this browser.");
+      return;
+    }
+    try {
+      this.cancelVoiceRecording();
+      this.voiceStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+      const preferred = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
+      this.voiceChunks = [];
+      this.voiceRecorder = new MediaRecorder(this.voiceStream, preferred ? { mimeType:preferred, audioBitsPerSecond:24000 } : { audioBitsPerSecond:24000 });
+      this.voiceRecorder.ondataavailable = (event) => { if(event.data?.size) this.voiceChunks.push(event.data); };
+      this.voiceRecorder.onstop = () => this.finishVoiceRecording();
+      this.voiceStartedAt = Date.now();
+      this.voiceRecorder.start(500);
+      this.updateVoiceControls();
+      this.voiceTimer = window.setInterval(() => {
+        this.updateVoiceControls();
+        if(Date.now() - this.voiceStartedAt >= 60_000) this.voiceRecorder?.stop();
+      }, 250);
+    } catch(error) {
+      this.cancelVoiceRecording();
+      alert("Pilingo needs microphone permission to record a voice message.");
+    }
+  },
+
+  finishVoiceRecording(){
+    const duration = Math.max(1, Math.min(60, Math.round((Date.now() - this.voiceStartedAt) / 1000)));
+    const type = this.voiceRecorder?.mimeType || this.voiceChunks[0]?.type || "audio/webm";
+    const blob = new Blob(this.voiceChunks, { type });
+    this.releaseVoiceRecorder();
+    if(blob.size > 700000){
+      alert("That recording is too large. Please record a shorter voice message.");
+      return this.updateVoiceControls();
+    }
+    this.pendingVoice = { blob, duration, url:URL.createObjectURL(blob) };
+    this.updateVoiceControls();
+  },
+
+  releaseVoiceRecorder(){
+    window.clearInterval(this.voiceTimer);
+    this.voiceTimer = null;
+    this.voiceStream?.getTracks?.().forEach((track) => track.stop());
+    this.voiceStream = null;
+    this.voiceRecorder = null;
+    this.voiceChunks = [];
+  },
+
+  cancelVoiceRecording(){
+    if(this.voiceRecorder?.state === "recording") this.voiceRecorder.onstop = null;
+    try { this.voiceRecorder?.stop?.(); } catch(error) {}
+    this.releaseVoiceRecorder();
+    if(this.pendingVoice?.url) URL.revokeObjectURL(this.pendingVoice.url);
+    this.pendingVoice = null;
+    this.updateVoiceControls();
+  },
+
+  updateVoiceControls(){
+    const button = document.getElementById("voiceRecordButton");
+    const preview = document.getElementById("voiceMessagePreview");
+    const status = document.getElementById("voiceRecordStatus");
+    const recording = this.voiceRecorder?.state === "recording";
+    if(button) button.textContent = recording ? "⏹ Stop" : "🎤 Record";
+    if(button) button.classList.toggle("recording", !!recording);
+    if(status) status.textContent = recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio><button class="secondary-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()">Delete</button><button class="social-follow-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice</button>` : "";
+  },
+
+  async submitVoiceMessage(){
+    if(!this.pendingVoice || !this.activeConversationEmail) return;
+    try {
+      await this.sendVoiceMessage(this.activeConversationEmail, this.pendingVoice);
+      this.cancelVoiceRecording();
+      await this.openConversation(this.activeConversationEmail);
+    } catch(error) {
+      alert(error?.message || "Could not send this voice message.");
+    }
   },
 
   renderStudentList(title, students, emptyMessage){
@@ -599,6 +698,20 @@ function escapeAttr(value){
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function formatVoiceDuration(seconds){
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
 async function openStudentProfile(targetEmail){
