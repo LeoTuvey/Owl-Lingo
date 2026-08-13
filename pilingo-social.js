@@ -558,10 +558,12 @@ const PilingoSocial = {
     const preview = document.getElementById("voiceMessagePreview");
     const status = document.getElementById("voiceRecordStatus");
     const recording = this.voiceRecorder?.state === "recording";
-    if(button) button.innerHTML = recording ? "<span>⏹</span> Stop recording" : "<span>🎤</span> Record voice";
+    if(button) button.innerHTML = recording ? messageIconMarkup("stop") : messageIconMarkup("microphone");
+    if(button) button.setAttribute("aria-label", recording ? "Stop recording" : "Record voice message");
+    if(button) button.title = recording ? "Stop recording" : "Record voice message";
     if(button) button.classList.toggle("recording", !!recording);
     if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
-    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice <span>➤</span></button></div>` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">${messageIconMarkup("microphone")}</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">${messageIconMarkup("trash")}</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()">Send voice ${messageIconMarkup("send")}</button></div>` : "";
     if(recording) this.detectVoiceSignal();
   },
 
@@ -822,6 +824,13 @@ function formatVoiceDuration(seconds){
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
+function messageIconMarkup(name){
+  if(name === "stop") return `<svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>`;
+  if(name === "send") return `<svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 3.2a1 1 0 0 0-1.1-.2L3 10.4a1 1 0 0 0 .1 1.9l7 2.3 2.3 7a1 1 0 0 0 .9.7h.1a1 1 0 0 0 .9-.6l7.4-17.5a1 1 0 0 0-.1-1ZM12 13.1 6.2 11.2l11.2-4.7L12 13.1Zm1 4.8-1.3-4 5.8-7-4.5 11Z"></path></svg>`;
+  if(name === "trash") return `<svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4a1 1 0 1 1 0 2h-1l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 7H4a1 1 0 1 1 0-2h4l1-2Zm-1 4 1 13h6l1-13H8Z"></path></svg>`;
+  return `<svg class="message-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Zm7-4a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.9V20H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.1A7 7 0 0 0 19 11Z"></path></svg>`;
+}
+
 async function openStudentProfile(targetEmail){
   await PilingoSocial.openProfile(targetEmail);
 }
@@ -851,7 +860,7 @@ async function sendConversationMessage(event){
   } catch(error) {
     alert(error?.message || "Could not send this message.");
   } finally {
-    if(sendButton){ sendButton.disabled = false; sendButton.innerHTML = `➤`; }
+    if(sendButton){ sendButton.disabled = false; sendButton.innerHTML = messageIconMarkup("send"); }
   }
 }
 
