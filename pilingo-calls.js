@@ -331,6 +331,10 @@ const PilingoCalls = {
   },
 
   showIncoming(){
+    if(this.call?.recipientEmail !== this.currentEmail()){
+      this.showCall("Calling…");
+      return;
+    }
     const modal = document.getElementById("callModal");
     const incomingActions = document.getElementById("callIncomingActions");
     const activeActions = document.getElementById("callActiveActions");
