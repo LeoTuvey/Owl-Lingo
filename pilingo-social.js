@@ -578,7 +578,7 @@ const PilingoSocial = {
   },
 
   closeConversation(){
-    this.cancelVoiceRecording();
+    this.cancelVoiceRecording(true);
     const modal = document.getElementById("messageModal");
     if(modal) modal.hidden = true;
     this.activeConversationEmail = "";
@@ -622,14 +622,16 @@ const PilingoSocial = {
       this.setBrowserAudioSession("play-and-record");
       const input = document.getElementById("voiceInputSelect");
       const deviceId = String(input?.value || "");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          ...(deviceId ? { deviceId:{ ideal:deviceId } } : {}),
-          echoCancellation:true,
-          noiseSuppression:true,
-          autoGainControl:true
-        }
-      });
+      const cachedTrack = this.voiceStream?.getAudioTracks?.()[0];
+      const canReuseStream = cachedTrack?.readyState === "live" && (!deviceId || cachedTrack.getSettings?.().deviceId === deviceId);
+      const stream = canReuseStream ? this.voiceStream : await navigator.mediaDevices.getUserMedia({
+          audio: {
+            ...(deviceId ? { deviceId:{ ideal:deviceId } } : {}),
+            echoCancellation:true,
+            noiseSuppression:true,
+            autoGainControl:true
+          }
+        });
       if(sessionId !== this.voiceSessionId){
         stream.getTracks().forEach((track) => track.stop());
         return;
@@ -637,6 +639,7 @@ const PilingoSocial = {
       this.voiceStream = stream;
       const audioTrack = this.voiceStream.getAudioTracks()[0];
       if(!audioTrack) throw new Error("No microphone was found.");
+      audioTrack.enabled = true;
       this.refreshVoiceInputs(audioTrack.getSettings?.().deviceId || deviceId).catch(() => {});
       audioTrack.onmute = () => this.setVoiceStatus("Microphone paused — check your AirPods connection.");
       audioTrack.onunmute = () => { this.voiceWarning = ""; this.updateVoiceControls(); };
@@ -674,7 +677,7 @@ const PilingoSocial = {
     const duration = Math.max(1, Math.min(60, Math.round((Date.now() - this.voiceStartedAt) / 1000)));
     const type = this.voiceRecorder?.mimeType || this.voiceChunks[0]?.type || "audio/webm";
     const blob = new Blob(this.voiceChunks, { type });
-    this.releaseVoiceRecorder();
+    this.releaseVoiceRecorder(false);
     if(blob.size < 100){
       alert("No audio was recorded. Check your microphone and try again.");
       return this.updateVoiceControls();
@@ -704,17 +707,19 @@ const PilingoSocial = {
     }
   },
 
-  releaseVoiceRecorder(){
+  releaseVoiceRecorder(releaseStream = true){
     window.clearInterval(this.voiceTimer);
     this.voiceTimer = null;
     this.voiceStream?.getTracks?.().forEach((track) => {
-      track.onmute = null;
-      track.onunmute = null;
-      track.onended = null;
       track.enabled = false;
-      track.stop();
+      if(releaseStream){
+        track.onmute = null;
+        track.onunmute = null;
+        track.onended = null;
+        track.stop();
+      }
     });
-    this.voiceStream = null;
+    if(releaseStream) this.voiceStream = null;
     this.voiceRecorder = null;
     this.voiceChunks = [];
     this.setBrowserAudioSession("playback");
@@ -747,7 +752,7 @@ const PilingoSocial = {
 
   async changeVoiceInput(){
     if(this.voiceRecorder?.state !== "recording") return;
-    this.cancelVoiceRecording();
+    this.cancelVoiceRecording(true);
     await this.toggleVoiceRecording();
   },
 
@@ -757,12 +762,12 @@ const PilingoSocial = {
     if(status) status.textContent = this.voiceWarning;
   },
 
-  cancelVoiceRecording(){
+  cancelVoiceRecording(releaseStream = false){
     this.voiceSessionId += 1;
     this.voiceStarting = false;
     if(this.voiceRecorder?.state === "recording") this.voiceRecorder.onstop = null;
     try { this.voiceRecorder?.stop?.(); } catch(error) {}
-    this.releaseVoiceRecorder();
+    this.releaseVoiceRecorder(releaseStream);
     if(this.pendingVoice?.url) URL.revokeObjectURL(this.pendingVoice.url);
     this.pendingVoice = null;
     this.updateVoiceControls();

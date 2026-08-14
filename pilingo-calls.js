@@ -135,7 +135,7 @@ const PilingoCalls = {
     if(liveAudio && (mode !== "video" || liveVideo)) return;
     this.localStream?.getTracks?.().forEach((track) => track.stop());
     this.localStream = null;
-    window.PilingoSocial?.cancelVoiceRecording?.();
+    window.PilingoSocial?.cancelVoiceRecording?.(true);
     window.PilingoSocial?.pauseVoiceMessages?.();
     this.setAudioSession("play-and-record");
     this.localStream = await navigator.mediaDevices.getUserMedia({
