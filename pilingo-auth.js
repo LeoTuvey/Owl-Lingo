@@ -8,6 +8,7 @@ const PilingoAuth = {
   requestResetEndpoint: "/api/auth/request-reset",
   resetPasswordEndpoint: "/api/auth/reset-password",
   updateProfileEndpoint: "/api/profile/update",
+  profilePhotoEndpoint: "/api/profile/photo",
   progressEndpoint: "/api/progress",
   progressSyncTimer: null,
   progressSyncSuppressed: false,
@@ -610,6 +611,34 @@ const PilingoAuth = {
     }
 
     const dataOut = await this.postJson(this.updateProfileEndpoint, payload);
+    return this.saveAccount(dataOut.account);
+  },
+
+  async uploadProfilePhoto(file){
+    const current = this.loadAccount();
+    if(!current?.email) throw new Error("Please log in first.");
+    if(!file || !["image/jpeg", "image/png", "image/webp"].includes(file.type)){
+      throw new Error("Please choose a JPEG, PNG, or WebP photo.");
+    }
+    if(file.size > 5_000_000) throw new Error("Photos must be smaller than 5 MB.");
+
+    if(this.shouldUseLocalMode()){
+      const avatarValue = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Could not read this photo."));
+        reader.readAsDataURL(file);
+      });
+      return this.updateProfile({ ...current, avatarType: "image", avatarValue });
+    }
+
+    const response = await fetch(`${this.profilePhotoEndpoint}?email=${encodeURIComponent(current.email)}`, {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file
+    });
+    const dataOut = await response.json().catch(() => ({}));
+    if(!response.ok || !dataOut?.ok) throw new Error(dataOut?.error || "Could not upload this photo.");
     return this.saveAccount(dataOut.account);
   },
 

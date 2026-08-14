@@ -24,6 +24,7 @@ const PUSH_KEYS_FILE = path.join(DATA_DIR, "vapid-keys.json");
 const VISITS_FILE = path.join(DATA_DIR, "visits.json");
 const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
 const VOICE_MESSAGES_DIR = path.join(DATA_DIR, "voice-messages");
+const PROFILE_PHOTOS_DIR = path.join(DATA_DIR, "profile-photos");
 const CALLS_FILE = path.join(DATA_DIR, "calls.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
@@ -37,6 +38,7 @@ const PUSH_REMINDER_INTERVAL_MS = 5 * 60 * 1000;
 const VISITOR_IP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_VOICE_MESSAGE_BYTES = 700_000;
 const MAX_VOICE_MESSAGE_SECONDS = 60;
+const MAX_PROFILE_PHOTO_BYTES = 5_000_000;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -47,6 +49,7 @@ const MIME_TYPES = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
   ".webmanifest": "application/manifest+json"
 };
 
@@ -147,6 +150,26 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, {
       ok: true,
       conversations: getMessageConversations(viewerEmail)
+    });
+  }
+
+  if (req.method === "GET" && parsed.pathname.startsWith("/api/profile/photo/")) {
+    const photoFile = path.basename(parsed.pathname);
+    if (!photoFile || photoFile !== decodeURIComponent(parsed.pathname.split("/").pop() || "")) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      return res.end("Profile photo not found");
+    }
+    return fs.readFile(path.join(PROFILE_PHOTOS_DIR, photoFile), (error, content) => {
+      if (error) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        return res.end("Profile photo not found");
+      }
+      res.writeHead(200, {
+        "Content-Type": MIME_TYPES[path.extname(photoFile).toLowerCase()] || "application/octet-stream",
+        "Content-Length": content.length,
+        "Cache-Control": "public, max-age=31536000, immutable"
+      });
+      return res.end(content);
     });
   }
 
@@ -483,6 +506,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && parsed.pathname === "/api/profile/photo") {
+    try {
+      const email = normalizeEmail(parsed.searchParams.get("email") || "");
+      const photoBuffer = await readBinaryBody(req, MAX_PROFILE_PHOTO_BYTES, "Photos must be smaller than 5 MB.");
+      const account = saveStudentProfilePhoto(email, photoBuffer, req.headers["content-type"]);
+      if (!account) return sendJson(res, 400, { ok: false, error: "Could not save this profile photo." });
+      return sendJson(res, 200, { ok: true, account: publicAccount(account) });
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: error?.message || "Invalid profile photo." });
+    }
+  }
+
   if (req.method === "GET" && parsed.pathname === "/api/push/public-key") {
     if (!PUSH_RUNTIME.enabled) {
       return sendJson(res, 200, {
@@ -597,6 +632,7 @@ server.listen(PORT, () => {
 function ensureDataFile() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(VOICE_MESSAGES_DIR)) fs.mkdirSync(VOICE_MESSAGES_DIR, { recursive: true });
+  if (!fs.existsSync(PROFILE_PHOTOS_DIR)) fs.mkdirSync(PROFILE_PHOTOS_DIR, { recursive: true });
   if (!fs.existsSync(EVENTS_FILE)) fs.writeFileSync(EVENTS_FILE, "[]", "utf8");
   if (!fs.existsSync(STATS_FILE)) fs.writeFileSync(STATS_FILE, "[]", "utf8");
   if (!fs.existsSync(ACCOUNTS_FILE)) fs.writeFileSync(ACCOUNTS_FILE, "[]", "utf8");
@@ -1292,7 +1328,7 @@ function readBody(req) {
   });
 }
 
-function readBinaryBody(req, maxBytes) {
+function readBinaryBody(req, maxBytes, sizeError = "Voice messages must be smaller than 700 KB.") {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
@@ -1306,7 +1342,7 @@ function readBinaryBody(req, maxBytes) {
       if (settled) return;
       size += chunk.length;
       if (size > maxBytes) {
-        fail(new Error("Voice messages must be smaller than 700 KB."));
+        fail(new Error(sizeError));
         return;
       }
       chunks.push(chunk);
@@ -2066,6 +2102,39 @@ function updateStudentProfile(payload) {
   };
 
   writeAccounts(accounts);
+  return accounts[index];
+}
+
+function saveStudentProfilePhoto(email, photoBuffer, contentType) {
+  if (!email || !Buffer.isBuffer(photoBuffer) || !photoBuffer.length) return null;
+  const declaredType = String(contentType || "").split(";")[0].toLowerCase();
+  const signatures = [
+    { type: "image/jpeg", ext: ".jpg", valid: photoBuffer[0] === 0xff && photoBuffer[1] === 0xd8 && photoBuffer[2] === 0xff },
+    { type: "image/png", ext: ".png", valid: photoBuffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) },
+    { type: "image/webp", ext: ".webp", valid: photoBuffer.subarray(0, 4).toString() === "RIFF" && photoBuffer.subarray(8, 12).toString() === "WEBP" }
+  ];
+  const format = signatures.find((item) => item.type === declaredType && item.valid);
+  if (!format) throw new Error("Please choose a JPEG, PNG, or WebP photo.");
+
+  const accounts = readAccounts();
+  const index = accounts.findIndex((account) => normalizeEmail(account?.email) === email);
+  if (index < 0) return null;
+  const current = normalizeAccountRecord(accounts[index]);
+  const safeId = String(current.id || email).replace(/[^a-z0-9_-]/gi, "-").slice(0, 80);
+  const photoFile = `${safeId}-${Date.now()}${format.ext}`;
+  fs.writeFileSync(path.join(PROFILE_PHOTOS_DIR, photoFile), photoBuffer);
+
+  const previousFile = String(current.profilePhotoFile || "");
+  accounts[index] = {
+    ...current,
+    avatarType: "image",
+    avatarValue: `/api/profile/photo/${encodeURIComponent(photoFile)}`,
+    profilePhotoFile: photoFile
+  };
+  writeAccounts(accounts);
+  if (previousFile && path.basename(previousFile) === previousFile && previousFile !== photoFile) {
+    fs.unlink(path.join(PROFILE_PHOTOS_DIR, previousFile), () => {});
+  }
   return accounts[index];
 }
 

@@ -2037,6 +2037,13 @@ button.is-pressed{
   border:1px solid rgba(240,210,122,0.74);
 }
 
+.settings-photo-input{
+  padding:10px;
+  background:#fff;
+  border:2px dashed #efd27a;
+  border-radius:14px;
+}
+
 .settings-save{
   width:auto;
   min-width:170px;
@@ -3468,17 +3475,21 @@ button.call-end-button.is-pressed{
                 Avatar type
                 <select id="settingsAvatarType" onchange="refreshSettingsAvatarPreview()">
                   <option value="emoji">Emoji</option>
-                  <option value="image">Photo URL</option>
+                  <option value="image">My photo</option>
                 </select>
               </label>
               <label>
-                Avatar emoji or photo URL
-                <input id="settingsAvatarValue" type="text" placeholder="🐯 or https://...">
+                Avatar emoji
+                <input id="settingsAvatarValue" type="text" placeholder="🐯">
               </label>
             </div>
+            <label>
+              Upload or change your profile photo
+              <input id="settingsPhotoFile" class="settings-photo-input" type="file" accept="image/jpeg,image/png,image/webp" onchange="chooseSettingsPhoto(event)">
+            </label>
             <div class="settings-avatar-preview">
               <div id="settingsAvatarPreview" class="my-profile-avatar">🐯</div>
-              <div class="mini-note">Use one emoji or a real image link.</div>
+              <div class="mini-note">Choose a JPEG, PNG, or WebP photo up to 5 MB. You can replace it whenever you want.</div>
             </div>
             <label>
               Bio
@@ -3642,7 +3653,7 @@ button.call-end-button.is-pressed{
 <!-- SCRIPTS -->
 <script src="engine-core.js"></script>
 <script src="pilingo-mascot.js?v=3"></script>
-<script src="pilingo-auth.js?v=10"></script>
+<script src="pilingo-auth.js?v=11"></script>
 <script src="pilingo-notify.js?v=12"></script>
 <script src="pilingo-social.js?v=10"></script>
 <script src="pilingo-calls.js?v=10"></script>
@@ -4056,7 +4067,7 @@ function renderAvatarHtml(account, className, idAttribute){
   const value = String(account?.avatarValue || "🐯").trim() || "🐯";
   const idPart = idAttribute ? ` id="${idAttribute}"` : "";
 
-  if(type === "image" && /^https?:\/\//i.test(value)){
+  if(type === "image" && (/^https?:\/\//i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
     return `<div${idPart} class="${className}"><img src="${value.replace(/"/g, "&quot;")}" alt="Profile photo"></div>`;
   }
 
@@ -4089,6 +4100,10 @@ function openMySettings(){
   document.getElementById("settingsStatus").value = account.statusMessage || "";
   document.getElementById("settingsAvatarType").value = account.avatarType === "image" ? "image" : "emoji";
   document.getElementById("settingsAvatarValue").value = account.avatarValue || "🐯";
+  if(window.pendingSettingsPhotoUrl) URL.revokeObjectURL(window.pendingSettingsPhotoUrl);
+  window.pendingSettingsPhotoUrl = "";
+  document.getElementById("settingsPhotoFile").value = "";
+  window.pendingSettingsPhoto = null;
   document.getElementById("settingsBio").value = account.bio || "";
   document.getElementById("settingsVisibility").value = account?.settings?.profileVisibility === "private" ? "private" : "public";
   document.getElementById("settingsStudyReminders").checked = account?.settings?.studyReminders !== false;
@@ -4114,21 +4129,43 @@ function refreshSettingsAvatarPreview(){
   const value = String(document.getElementById("settingsAvatarValue")?.value || "🐯").trim() || "🐯";
   if(!preview) return;
 
-  if(type === "image" && /^https?:\/\//i.test(value)){
+  const pendingUrl = window.pendingSettingsPhotoUrl || "";
+  if(type === "image" && pendingUrl){
+    preview.innerHTML = `<img src="${pendingUrl.replace(/"/g, "&quot;")}" alt="Selected profile photo">`;
+  } else if(type === "image" && (/^https?:\/\//i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
     preview.innerHTML = `<img src="${value.replace(/"/g, "&quot;")}" alt="Profile photo">`;
   } else {
     preview.innerHTML = value;
   }
 }
 
+function chooseSettingsPhoto(event){
+  const file = event?.target?.files?.[0] || null;
+  if(!file) return;
+  if(!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5_000_000){
+    event.target.value = "";
+    alert(file.size > 5_000_000 ? "Please choose a photo smaller than 5 MB." : "Please choose a JPEG, PNG, or WebP photo.");
+    return;
+  }
+  if(window.pendingSettingsPhotoUrl) URL.revokeObjectURL(window.pendingSettingsPhotoUrl);
+  window.pendingSettingsPhoto = file;
+  window.pendingSettingsPhotoUrl = URL.createObjectURL(file);
+  document.getElementById("settingsAvatarType").value = "image";
+  refreshSettingsAvatarPreview();
+}
+
 async function saveMySettings(event){
   event.preventDefault();
   try {
+    let uploadedAccount = null;
+    if(window.pendingSettingsPhoto && document.getElementById("settingsAvatarType").value === "image"){
+      uploadedAccount = await window.PilingoAuth?.uploadProfilePhoto?.(window.pendingSettingsPhoto);
+    }
     const updated = await window.PilingoAuth?.updateProfile?.({
       name: document.getElementById("settingsName").value.trim(),
       statusMessage: document.getElementById("settingsStatus").value.trim(),
-      avatarType: document.getElementById("settingsAvatarType").value,
-      avatarValue: document.getElementById("settingsAvatarValue").value.trim(),
+      avatarType: uploadedAccount ? "image" : document.getElementById("settingsAvatarType").value,
+      avatarValue: uploadedAccount?.avatarValue || document.getElementById("settingsAvatarValue").value.trim(),
       bio: document.getElementById("settingsBio").value.trim(),
       settings: {
         profileVisibility: document.getElementById("settingsVisibility").value,
@@ -4151,6 +4188,9 @@ async function saveMySettings(event){
 
     updateAccountUI();
     updateMyProfileCard();
+    if(window.pendingSettingsPhotoUrl) URL.revokeObjectURL(window.pendingSettingsPhotoUrl);
+    window.pendingSettingsPhotoUrl = "";
+    window.pendingSettingsPhoto = null;
     closeMySettings();
   } catch(error){
     alert(error?.message || "Could not save your profile.");
