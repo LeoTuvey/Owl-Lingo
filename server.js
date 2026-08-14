@@ -2801,7 +2801,7 @@ function getSocialSnapshot(viewerEmail) {
       id: student.id || account?.id || "",
       name: student.name || account?.name || "Student",
       email,
-      phone: email === viewerEmail ? (student.phone || account?.phone || "") : "",
+      phone: student.phone || account?.phone || "",
       hasAccount: !!account,
       avatarType: account?.avatarType || "image",
       avatarValue: account?.avatarValue || DEFAULT_AVATAR_VALUE,
@@ -2844,10 +2844,6 @@ function getSocialSnapshot(viewerEmail) {
   const followerStudents = currentStudent
     ? students.filter((student) => currentStudent.followers.includes(student.email) && !currentBlocked.includes(student.email))
     : [];
-  const friendEmails = new Set([...(currentStudent?.following || []), ...(currentStudent?.followers || [])]);
-  const friendStudents = currentStudent
-    ? students.filter((student) => friendEmails.has(student.email) && !currentBlocked.includes(student.email) && !student.blockedYou)
-    : [];
   const requestStudents = currentStudent
     ? students.filter((student) => currentStudent.pendingFollowRequests.includes(student.email) && !currentBlocked.includes(student.email))
     : [];
@@ -2867,7 +2863,6 @@ function getSocialSnapshot(viewerEmail) {
     currentStudent,
     followingStudents,
     followerStudents,
-    friendStudents,
     requestStudents,
     outgoingRequestStudents,
     suggestedStudents,
@@ -2882,13 +2877,11 @@ function getStudentProfile(viewerEmail, targetEmail) {
 
   const current = snapshot.currentStudent || null;
   const currentBlocked = current?.blocked || [];
-  const friendEmails = new Set([...(target.followers || []), ...(target.following || [])]);
 
   return {
     ...target,
     followerStudents: (snapshot.students || []).filter((student) => (target.followers || []).includes(student.email)),
     followingStudents: (snapshot.students || []).filter((student) => (target.following || []).includes(student.email)),
-    friendStudents: (snapshot.students || []).filter((student) => friendEmails.has(student.email) && !student.blockedYou),
     pendingRequestStudents: (snapshot.students || []).filter((student) => (target.pendingFollowRequests || []).includes(student.email)),
     sentRequestStudents: (snapshot.students || []).filter((student) => (target.sentFollowRequests || []).includes(student.email)),
     canFollow: !target.isCurrentStudent && !target.isBlocked && !target.blockedYou && !target.isFollowing && !target.hasPendingRequestTo,
