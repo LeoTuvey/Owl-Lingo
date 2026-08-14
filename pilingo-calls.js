@@ -311,8 +311,9 @@ const PilingoCalls = {
         this.showIncoming();
       } else if(this.call?.id === incoming.id){
         this.call = incoming;
-        if(["declined", "ended"].includes(incoming.status)){
-          this.cleanup(incoming.status === "declined" ? "Call declined" : "Call ended");
+        if(["declined", "ended", "missed"].includes(incoming.status)){
+          const missedMessage = incoming.callerEmail === email ? "No answer" : "Missed call";
+          this.cleanup(incoming.status === "declined" ? "Call declined" : incoming.status === "missed" ? missedMessage : "Call ended");
           return;
         }
         if(incoming.status === "active"){

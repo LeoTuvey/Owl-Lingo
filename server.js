@@ -40,6 +40,7 @@ const MAX_VOICE_MESSAGE_BYTES = 700_000;
 const MAX_VOICE_MESSAGE_SECONDS = 60;
 const MAX_PROFILE_PHOTO_BYTES = 5_000_000;
 const DEFAULT_AVATAR_VALUE = "/pilingo-icon-192.png";
+const CALL_RING_TIMEOUT_MS = 45_000;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -712,12 +713,15 @@ function updateLearnerCall(payload) {
   if (action === "accept" && email === call.recipientEmail && call.status === "ringing") {
     call.status = "active";
   } else if (["decline", "end"].includes(action)) {
-    call.status = action === "decline" ? "declined" : "ended";
+    call.status = action === "decline"
+      ? "declined"
+      : (call.status === "ringing" && email === call.callerEmail ? "missed" : "ended");
   } else {
     return { ok: false, error: "This call action is unavailable." };
   }
   call.updatedAt = new Date().toISOString();
   writeCalls(calls);
+  if (call.status === "missed") recordMissedCall(call);
   return { ok: true, call: publicCall(call, email) };
 }
 
@@ -764,8 +768,51 @@ function pollCalls(email, after) {
     new Date(item.updatedAt || 0).getTime() > Date.now() - (10 * 60 * 1000)
   );
   if (!call) return { call: null, signals: [] };
+  if (call.status === "ringing" && Date.now() - new Date(call.createdAt || 0).getTime() >= CALL_RING_TIMEOUT_MS) {
+    call.status = "missed";
+    call.updatedAt = new Date().toISOString();
+    writeCalls(calls);
+    recordMissedCall(call);
+  }
   const signals = (call.signals || []).filter((signal) => signal.targetEmail === email && signal.seq > after);
   return { call: publicCall(call, email), signals };
+}
+
+function recordMissedCall(call) {
+  if (!call?.id || !call?.callerEmail || !call?.recipientEmail) return null;
+  const messages = readMessages();
+  const existing = messages.find((message) => message.type === "call" && message.callId === call.id);
+  if (existing) return existing;
+  const accounts = readAccounts();
+  const caller = accounts.find((account) => account.email === call.callerEmail);
+  const recipient = accounts.find((account) => account.email === call.recipientEmail);
+  if (!caller || !recipient) return null;
+  const label = call.mode === "audio" ? "voice" : "video";
+  const message = {
+    id: `missed-${call.id}`,
+    callId: call.id,
+    senderEmail: call.callerEmail,
+    recipientEmail: call.recipientEmail,
+    type: "call",
+    callMode: call.mode,
+    callStatus: "missed",
+    text: `Missed ${label} call`,
+    readAt: "",
+    createdAt: call.updatedAt || new Date().toISOString()
+  };
+  messages.push(message);
+  writeMessages(messages);
+  const badgeCount = Math.max(1, getUnreadMessageCount(recipient.email));
+  sendPushNotificationToUser(recipient.email, {
+    title: `📵 Missed ${label} call`,
+    body: `${caller.name || "A learner"} called you on Pilingo.`,
+    url: "/index.html#messages",
+    appBadge: true,
+    tag: `pilingo-missed-${call.id}`,
+    renotify: true,
+    data: { type: "missed-call", callId: call.id, badgeCount }
+  }).catch(() => {});
+  return message;
 }
 
 async function notifyCallRecipient(caller, recipient, call) {

@@ -419,6 +419,10 @@ const PilingoSocial = {
   },
 
   renderMessageBody(message){
+    if(message.type === "call"){
+      const video = message.callMode === "video";
+      return `<div class="missed-call-event"><span class="missed-call-icon" aria-hidden="true">${video ? "📹" : "📞"}</span><span><strong>Missed ${video ? "video" : "voice"} call</strong><small>Tap the call button above to call back</small></span></div>`;
+    }
     if(message.type !== "voice" || !message.audioUrl) return escapeHtml(message.text);
     const source = escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString());
     const bars = this.renderVoiceWaveform();
@@ -432,7 +436,8 @@ const PilingoSocial = {
   renderMessage(message, viewerEmail){
     const mine = message.senderEmail === viewerEmail;
     const voice = message.type === "voice";
-    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""}">${this.renderMessageBody(message)}</div></div>`;
+    const call = message.type === "call";
+    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""} ${call ? "call-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""} ${call ? "call-bubble" : ""}">${this.renderMessageBody(message)}</div></div>`;
   },
 
   async deleteMessage(button, messageId){
