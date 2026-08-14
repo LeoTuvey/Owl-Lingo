@@ -422,7 +422,7 @@ const PilingoSocial = {
     if(message.type !== "voice" || !message.audioUrl) return escapeHtml(message.text);
     const source = escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString());
     const bars = Array.from({ length:24 }, () => "<i></i>").join("");
-    return `<div class="messenger-voice-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play voice message"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${bars}</span><span class="messenger-voice-duration">${formatVoiceDuration(message.duration)}</span><audio playsinline preload="metadata" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onended="PilingoSocial.syncVoicePlayback(this)" src="${source}"></audio></div><span class="message-delivery-check" aria-label="Delivered">✓</span>`;
+    return `<div class="messenger-voice-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play voice message"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${bars}</span><span class="messenger-voice-duration">${formatVoiceDuration(message.duration)}</span><audio playsinline preload="auto" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onwaiting="PilingoSocial.syncVoicePlayback(this)" oncanplay="PilingoSocial.syncVoicePlayback(this)" onerror="PilingoSocial.voicePlaybackFailed(this)" onended="PilingoSocial.syncVoicePlayback(this)" src="${source}"></audio></div><span class="message-delivery-check" aria-label="Delivered">✓</span>`;
   },
 
   renderMessage(message, viewerEmail){
@@ -450,21 +450,48 @@ const PilingoSocial = {
     }
   },
 
-  toggleVoicePlayback(button){
+  async toggleVoicePlayback(button){
     const audio = button?.parentElement?.querySelector("audio");
     if(!audio) return;
+    if(button.classList.contains("loading")) return;
     if(audio.paused){
-      this.prepareVoicePlayback(audio);
-      audio.play().catch(() => {});
+      this.setBrowserAudioSession("playback");
+      this.pauseVoiceMessages(audio);
+      button.classList.add("loading");
+      window.setTimeout(() => button.classList.remove("loading"), 8000);
+      try {
+        await audio.play();
+      } catch(error) {
+        try {
+          audio.load();
+          await audio.play();
+        } catch(retryError) {
+          button.classList.remove("loading", "playing");
+          this.setVoiceStatus("Could not start playback. Check your phone volume and tap play again.");
+        }
+      }
     } else {
       audio.pause();
     }
+  },
+
+  voicePlaybackFailed(audio){
+    const button = audio?.parentElement?.querySelector(".messenger-voice-play");
+    button?.classList.remove("loading", "playing");
+    this.setVoiceStatus("This voice message could not load. Check your connection and try again.");
+  },
+
+  pauseVoiceMessages(except){
+    document.querySelectorAll(".messenger-voice-player audio, #voiceMessagePreview audio").forEach((audio) => {
+      if(audio !== except && !audio.paused) audio.pause();
+    });
   },
 
   syncVoicePlayback(audio){
     const button = audio?.parentElement?.querySelector(".messenger-voice-play");
     const playing = !!audio && !audio.paused && !audio.ended;
     button?.classList.toggle("playing", playing);
+    button?.classList.toggle("loading", !!audio && !audio.paused && audio.readyState < 3);
     button?.setAttribute("aria-label", playing ? "Pause voice message" : "Play voice message");
   },
 
@@ -642,11 +669,9 @@ const PilingoSocial = {
 
   prepareVoicePlayback(audio){
     if(!audio) return;
-    this.releaseVoiceRecorder();
+    if(this.voiceRecorder?.state === "recording") this.cancelVoiceRecording();
     this.setBrowserAudioSession("playback");
-    document.querySelectorAll("audio").forEach((other) => {
-      if(other !== audio && !other.paused) other.pause();
-    });
+    this.pauseVoiceMessages(audio);
   },
 
   async refreshVoiceInputs(selectedDeviceId){

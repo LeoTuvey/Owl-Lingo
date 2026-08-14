@@ -13,6 +13,10 @@ const PilingoCalls = {
   toneTimers: [],
   wakeLock: null,
   facingMode: "user",
+  polling: false,
+  missingCallPolls: 0,
+  operationStarting: false,
+  operationId: 0,
 
   currentEmail(){
     return String(window.PilingoAuth?.loadAccount?.()?.email || "").trim().toLowerCase();
@@ -35,14 +39,27 @@ const PilingoCalls = {
     }
     const email = this.currentEmail();
     if(!email || !targetEmail) return;
-    await this.prepareMedia(mode);
+    if(this.operationStarting) return;
+    if(this.call) this.cleanup();
+    const operationId = ++this.operationId;
+    this.operationStarting = true;
+    this.call = { mode, other:{ name:document.getElementById("messageModalTitle")?.textContent || "Learner" } };
+    this.showCall(mode === "video" ? "Opening camera and microphone…" : "Opening microphone…");
     try {
+      await this.prepareMedia(mode);
+      if(operationId !== this.operationId){
+        this.localStream?.getTracks?.().forEach((track) => track.stop());
+        this.localStream = null;
+        return;
+      }
       const data = await this.post(this.startEndpoint, {
         callerEmail: email,
         recipientEmail: targetEmail,
         mode
       });
       this.call = data.call;
+      this.operationStarting = false;
+      this.missingCallPolls = 0;
       this.lastSignalSeq = 0;
       await this.requestWakeLock();
       this.showCall("Calling…");
@@ -58,19 +75,34 @@ const PilingoCalls = {
   },
 
   async accept(){
-    if(!this.call) return;
+    if(!this.call || this.operationStarting) return;
+    const operationId = ++this.operationId;
+    this.operationStarting = true;
     this.stopTone();
-    await this.prepareMedia(this.call.mode);
-    await this.post(this.actionEndpoint, {
-      callId: this.call.id,
-      email: this.currentEmail(),
-      action: "accept"
-    });
-    this.call.status = "active";
-    await this.requestWakeLock();
-    this.showCall("Connecting…");
-    await this.createPeer();
-    await this.poll();
+    this.showCall(this.call.mode === "video" ? "Opening camera and microphone…" : "Opening microphone…");
+    try {
+      await this.prepareMedia(this.call.mode);
+      if(operationId !== this.operationId){
+        this.localStream?.getTracks?.().forEach((track) => track.stop());
+        this.localStream = null;
+        return;
+      }
+      await this.post(this.actionEndpoint, {
+        callId: this.call.id,
+        email: this.currentEmail(),
+        action: "accept"
+      });
+      this.call.status = "active";
+      this.operationStarting = false;
+      this.missingCallPolls = 0;
+      await this.requestWakeLock();
+      this.showCall("Connecting…");
+      await this.createPeer();
+      await this.poll();
+    } catch(error) {
+      this.cleanup();
+      alert(error?.message || "Could not open the microphone or camera.");
+    }
   },
 
   async decline(){
@@ -96,13 +128,37 @@ const PilingoCalls = {
   },
 
   async prepareMedia(mode){
-    if(this.localStream) return;
+    const liveAudio = this.localStream?.getAudioTracks?.().some((track) => track.readyState === "live");
+    const liveVideo = this.localStream?.getVideoTracks?.().some((track) => track.readyState === "live");
+    if(liveAudio && (mode !== "video" || liveVideo)) return;
+    this.localStream?.getTracks?.().forEach((track) => track.stop());
+    this.localStream = null;
+    window.PilingoSocial?.cancelVoiceRecording?.();
+    window.PilingoSocial?.pauseVoiceMessages?.();
+    this.setAudioSession("play-and-record");
     this.localStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: mode === "video" ? { facingMode:{ ideal:this.facingMode } } : false
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true },
+      video: mode === "video" ? {
+        facingMode:{ ideal:this.facingMode },
+        width:{ ideal:640 },
+        height:{ ideal:480 },
+        frameRate:{ ideal:24, max:30 }
+      } : false
     });
     const localVideo = document.getElementById("callLocalVideo");
     if(localVideo) localVideo.srcObject = this.localStream;
+  },
+
+  setAudioSession(type){
+    try {
+      if(navigator.audioSession && "type" in navigator.audioSession) navigator.audioSession.type = type;
+    } catch(error) {}
+  },
+
+  unlockMediaPlayback(){
+    this.setAudioSession("play-and-record");
+    this.ensureToneContext();
+    window.PilingoSocial?.pauseVoiceMessages?.();
   },
 
   async requestWakeLock(){
@@ -151,8 +207,11 @@ const PilingoCalls = {
     this.peer = new RTCPeerConnection({
       iceServers: [
         { urls:"stun:stun.l.google.com:19302" },
-        { urls:"stun:stun1.l.google.com:19302" }
-      ]
+        { urls:"stun:stun1.l.google.com:19302" },
+        { urls:"stun:stun.cloudflare.com:3478" }
+      ],
+      iceCandidatePoolSize:4,
+      bundlePolicy:"max-bundle"
     });
     this.localStream?.getTracks().forEach((track) => this.peer.addTrack(track, this.localStream));
     this.peer.onicecandidate = (event) => {
@@ -161,12 +220,14 @@ const PilingoCalls = {
     this.peer.ontrack = (event) => {
       const remoteVideo = document.getElementById("callRemoteVideo");
       const remoteAudio = document.getElementById("callRemoteAudio");
-      const remoteStream = event.streams[0];
+      const remoteStream = event.streams?.[0] || new MediaStream([event.track]);
       if(this.call?.mode === "video"){
         if(remoteAudio) remoteAudio.srcObject = null;
         if(remoteVideo){
           remoteVideo.srcObject = remoteStream;
-          remoteVideo.play().catch(() => this.setStatus("Tap the screen to hear the call"));
+          remoteVideo.muted = false;
+          remoteVideo.volume = 1;
+          remoteVideo.play().catch(() => this.showAudioUnlock());
         }
       } else {
         if(remoteVideo) remoteVideo.srcObject = null;
@@ -224,8 +285,10 @@ const PilingoCalls = {
   },
 
   async poll(){
+    if(this.polling) return;
     const email = this.currentEmail();
     if(!email) return;
+    this.polling = true;
     try {
       const response = await fetch(
         `${this.pollEndpoint}?email=${encodeURIComponent(email)}&after=${this.lastSignalSeq}`,
@@ -233,7 +296,14 @@ const PilingoCalls = {
       );
       const data = await response.json();
       const incoming = data.call;
-      if(!incoming) return;
+      if(!incoming){
+        if(this.call && !this.operationStarting){
+          this.missingCallPolls += 1;
+          if(this.missingCallPolls >= 4) this.cleanup("Call ended");
+        }
+        return;
+      }
+      this.missingCallPolls = 0;
 
       if(!this.call && incoming.status === "ringing" && incoming.recipientEmail === email){
         this.call = incoming;
@@ -255,6 +325,8 @@ const PilingoCalls = {
       }
     } catch(error) {
       // A temporary polling failure should not end an active call.
+    } finally {
+      this.polling = false;
     }
   },
 
@@ -475,6 +547,7 @@ const PilingoCalls = {
   },
 
   cleanup(message){
+    this.operationId += 1;
     this.stopTone();
     this.wakeLock?.release?.().catch(() => {});
     this.wakeLock = null;
@@ -483,6 +556,10 @@ const PilingoCalls = {
     this.localStream?.getTracks?.().forEach((track) => track.stop());
     this.localStream = null;
     this.call = null;
+    this.operationStarting = false;
+    this.missingCallPolls = 0;
+    this.polling = false;
+    this.setAudioSession("playback");
     this.facingMode = "user";
     const switchButton = document.getElementById("callSwitchCameraButton");
     if(switchButton){
@@ -518,13 +595,13 @@ const PilingoCalls = {
       }
     });
     this.poll();
-    this.pollTimer = setInterval(() => this.poll(), 1800);
+    this.pollTimer = setInterval(() => this.poll(), 1100);
   }
 };
 
 async function startLearnerCall(mode){
   try {
-    PilingoCalls.ensureToneContext();
+    PilingoCalls.unlockMediaPlayback();
     await PilingoCalls.start(window.PilingoSocial?.activeConversationEmail, mode);
   } catch(error) {
     alert(error?.message || "Could not start the call. Allow microphone and camera access.");
