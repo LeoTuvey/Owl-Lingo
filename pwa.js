@@ -322,6 +322,43 @@
     updateReminderCard();
   }
 
+  function hidePushReconnectPrompt(){
+    document.getElementById("pushReconnectCard")?.remove();
+  }
+
+  function showPushReconnectPrompt(){
+    if(document.getElementById("pushReconnectCard") || !currentAccount()?.email) return;
+    const card = document.createElement("div");
+    card.id = "pushReconnectCard";
+    card.className = "push-reconnect-card";
+    const message = document.createElement("span");
+    message.textContent = Notification.permission === "denied"
+      ? "Call alerts are blocked. Enable Pilingo notifications in iPhone Settings."
+      : "Reconnect Pilingo notifications to receive calls when the app is closed.";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = Notification.permission === "denied" ? "Instructions" : "Reconnect";
+    button.addEventListener("click", async () => {
+      if(Notification.permission === "denied"){
+        alert("Open iPhone Settings → Notifications → Pilingo, then turn on Allow Notifications and Sounds.");
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "Connecting…";
+      try {
+        await enablePushFromUserAction();
+        hidePushReconnectPrompt();
+        alert("Pilingo call notifications are connected to this iPhone again.");
+      } catch(error) {
+        button.disabled = false;
+        button.textContent = "Reconnect";
+        alert(error?.message || "Could not reconnect notifications.");
+      }
+    });
+    card.append(message, button);
+    document.body.appendChild(card);
+  }
+
   async function syncSubscriptionWithSettings(){
     if(!supportsPush()) {
       updateSettingsInputs();
@@ -347,14 +384,16 @@
 
     if(Notification.permission !== "granted"){
       updateSettingsInputs(settings);
+      showPushReconnectPrompt();
       return;
     }
 
     try {
       const subscription = await subscribeToPush();
       if(!subscription) return;
+      hidePushReconnectPrompt();
     } catch(error) {
-      // leave the app usable even if push sync fails
+      showPushReconnectPrompt();
     } finally {
       updateSettingsInputs(settings);
     }
@@ -532,6 +571,11 @@
       return updated;
     }
   };
+
+  window.setTimeout(() => syncSubscriptionWithSettings().catch(() => showPushReconnectPrompt()), 0);
+  window.addEventListener("pilingo:account-changed", () => {
+    window.setTimeout(() => syncSubscriptionWithSettings().catch(() => showPushReconnectPrompt()), 250);
+  });
 
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", () => {

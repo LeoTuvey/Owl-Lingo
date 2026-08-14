@@ -2050,6 +2050,27 @@ button.is-pressed{
   border-radius:14px;
 }
 
+.push-reconnect-card{
+  position:fixed;
+  left:50%;
+  bottom:calc(18px + env(safe-area-inset-bottom));
+  z-index:10000;
+  width:min(440px,calc(100vw - 24px));
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:14px;
+  border:1px solid #d9dde3;
+  border-radius:18px;
+  background:#fff;
+  color:#172033;
+  box-shadow:0 14px 44px rgba(15,23,42,.24);
+  transform:translateX(-50%);
+}
+.push-reconnect-card[hidden]{display:none!important}
+.push-reconnect-card span{flex:1;font-size:14px;font-weight:750;line-height:1.35}
+.push-reconnect-card button{flex:none;width:auto!important;margin:0!important;padding:10px 14px!important;border:0!important;border-radius:999px!important;background:#0866ff!important;color:#fff!important;box-shadow:none!important;font-size:13px!important}
+
 .settings-save{
   width:auto;
   min-width:170px;
@@ -3677,7 +3698,7 @@ button.call-end-button.is-pressed{
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
 <script src="pilingo-sounds.js?v=5"></script>
-<script src="pwa.js?v=13"></script>
+<script src="pwa.js?v=14"></script>
 
 <script>
 
