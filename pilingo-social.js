@@ -263,12 +263,8 @@ const PilingoSocial = {
     const current = snapshot.currentStudent;
     summary.innerHTML = `
       <button class="social-stat social-stat-button" type="button" onclick="jumpToSocialSection('following')">
-        Following
-        <span>${Number(current.followingCount || 0)}</span>
-      </button>
-      <button class="social-stat social-stat-button" type="button" onclick="jumpToSocialSection('followers')">
-        Followers
-        <span>${Number(current.followersCount || 0)}</span>
+        Friends
+        <span>${Number(snapshot.friendStudents?.length || 0)}</span>
       </button>
       <button class="social-stat social-stat-button" type="button" onclick="jumpToSocialSection('requests')">
         Requests
@@ -293,16 +289,11 @@ const PilingoSocial = {
     );
 
     followingList.innerHTML = this.renderStudentList(
-      "Following",
-      snapshot.followingStudents,
-      "You are not following anyone yet. Open a learner profile and follow them."
+      "Friends",
+      snapshot.friendStudents,
+      "No friends yet. Open a learner profile and send a request."
     );
-
-    followersList.innerHTML = this.renderStudentList(
-      "Followers",
-      snapshot.followerStudents,
-      "No followers yet. When students follow you, they will appear here."
-    );
+    followersList.innerHTML = "";
 
     const conversations = await this.fetchConversations();
     messagesList.innerHTML = this.renderConversations(conversations);
@@ -852,12 +843,13 @@ const PilingoSocial = {
   },
 
   statusLine(student){
+    const friendCount = new Set([...(student?.followers || []), ...(student?.following || [])]).size;
     if(student?.blockedYou) return "This student blocked you";
     if(student?.isBlocked) return "You blocked this student";
     if(student?.hasPendingRequestFrom) return "Asked to follow you";
     if(student?.hasPendingRequestTo) return "Follow request sent";
-    if(student?.isFollowing) return `Following • ${Number(student?.followersCount || 0)} followers`;
-    return `${Number(student?.followersCount || 0)} followers • ${Number(student?.followingCount || 0)} following`;
+    if(student?.isFollowing) return `Friends • ${friendCount} friends`;
+    return `${friendCount} friends`;
   },
 
   async openProfile(targetEmail){
@@ -886,6 +878,9 @@ const PilingoSocial = {
   },
 
   renderProfile(profile){
+    const friends = Array.isArray(profile.friendStudents)
+      ? profile.friendStudents
+      : [...(profile.followerStudents || []), ...(profile.followingStudents || [])].filter((student, index, all) => all.findIndex((item) => item.email === student.email) === index);
     const messageButton = (!profile.isCurrentStudent && !profile.blockedYou && !profile.isBlocked)
       ? `<button class="secondary-button" type="button" onclick="openConversation('${escapeAttr(profile.email)}')">Message</button>`
       : "";
@@ -943,15 +938,12 @@ const PilingoSocial = {
         <div class="student-profile-stat"><strong>Grade</strong><span>${Math.round(Number(profile.averageGrade || 0))}%</span></div>
         <div class="student-profile-stat"><strong>Streak</strong><span>${Number(profile.streak || 0)}</span></div>
         <div class="student-profile-stat"><strong>Sections</strong><span>${Number(profile.completedSections || 0)}</span></div>
-        <div class="student-profile-stat"><strong>Followers</strong><span>${Number(profile.followersCount || 0)}</span></div>
+        <div class="student-profile-stat"><strong>Friends</strong><span>${friends.length}</span></div>
       </div>
       <div class="student-profile-meta">
-        <div><strong>Email</strong><span>${escapeHtml(profile.email || "No email")}</span></div>
-        <div><strong>Phone</strong><span>${escapeHtml(profile.phone || "No phone")}</span></div>
         <div><strong>Status</strong><span>${escapeHtml(this.statusLine(profile))}</span></div>
       </div>
-      ${this.renderProfileConnections("Followers", profile.followerStudents, "No followers yet.")}
-      ${this.renderProfileConnections("Following", profile.followingStudents, "Not following anyone yet.")}
+      ${this.renderProfileConnections("Friends", friends, "No friends yet.")}
       ${profile.isCurrentStudent ? this.renderProfileConnections("Waiting requests", profile.pendingRequestStudents, "No pending requests.") : ""}
       ${profile.isCurrentStudent ? this.renderProfileConnections("Sent requests", profile.sentRequestStudents, "No sent requests.") : ""}
       ${messageButton ? `<div class="student-profile-actions">${messageButton}</div>` : ""}
@@ -970,7 +962,7 @@ const PilingoSocial = {
     }
 
     return `
-      <div class="student-profile-connections">
+      <div class="student-profile-connections ${String(title).toLowerCase() === "friends" ? "student-profile-friends" : ""}">
         <strong>${escapeHtml(title)}</strong>
         <div class="student-profile-people">
           ${students.map((student) => `

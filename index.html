@@ -1952,6 +1952,10 @@ button.is-pressed{
   padding:22px;
 }
 
+.settings-security-card{padding:14px;border:1px solid #dfe5ee;border-radius:16px;background:#f7f9fc}
+.settings-security-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#172033;font-size:15px;font-weight:900}
+.settings-security-card input[readonly]{color:#4b5563;background:#fff;cursor:default}
+
 .settings-top{
   display:flex;
   align-items:center;
@@ -3092,6 +3096,10 @@ button.call-end-button.is-pressed{
   gap:10px;
 }
 
+.student-profile-friends .student-profile-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.student-profile-friends .student-mini-card{width:100%;justify-content:flex-start}
+#socialFollowersList:empty{display:none}
+
 .student-mini-card{
   width:auto;
   min-width:0;
@@ -3550,6 +3558,14 @@ html,body{max-width:100%;overflow-x:clip}
             <button class="secondary-button settings-close" type="button" onclick="closeMySettings()">Close</button>
           </div>
           <form class="settings-form" onsubmit="saveMySettings(event)">
+            <div class="settings-security-card">
+              <div class="settings-security-title">🔒 Account &amp; Security</div>
+              <div class="settings-grid">
+                <label>Email<input id="settingsAccountEmail" type="email" readonly aria-readonly="true"></label>
+                <label>Phone number<input id="settingsAccountPhone" type="tel" readonly aria-readonly="true"></label>
+              </div>
+              <div class="mini-note">Your contact details are private and are not shown on learner profiles.</div>
+            </div>
             <div class="settings-grid">
               <label>
                 Full name
@@ -3745,7 +3761,7 @@ html,body{max-width:100%;overflow-x:clip}
 <script src="pilingo-mascot.js?v=3"></script>
 <script src="pilingo-auth.js?v=12"></script>
 <script src="pilingo-notify.js?v=12"></script>
-<script src="pilingo-social.js?v=16"></script>
+<script src="pilingo-social.js?v=17"></script>
 <script src="pilingo-calls.js?v=20"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
@@ -4187,6 +4203,8 @@ function openMySettings(){
   if(!modal || !account) return;
 
   document.getElementById("settingsName").value = account.name || "";
+  document.getElementById("settingsAccountEmail").value = account.email || "";
+  document.getElementById("settingsAccountPhone").value = account.phone || "";
   document.getElementById("settingsStatus").value = account.statusMessage || "";
   document.getElementById("settingsAvatarType").value = account.avatarType === "image" ? "image" : "emoji";
   document.getElementById("settingsAvatarValue").value = account.avatarValue || "🐯";
