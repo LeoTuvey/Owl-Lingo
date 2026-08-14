@@ -432,7 +432,7 @@ const PilingoSocial = {
   renderMessage(message, viewerEmail){
     const mine = message.senderEmail === viewerEmail;
     const voice = message.type === "voice";
-    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8l-.7 13H8.7L8 7Zm2-3h4l1 2H9l1-2ZM5 6h14v2H5V6Z"/></svg></button><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""}">${this.renderMessageBody(message)}</div></div>`;
+    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""}">${this.renderMessageBody(message)}</div></div>`;
   },
 
   async deleteMessage(button, messageId){
