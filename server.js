@@ -39,6 +39,7 @@ const VISITOR_IP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_VOICE_MESSAGE_BYTES = 700_000;
 const MAX_VOICE_MESSAGE_SECONDS = 60;
 const MAX_PROFILE_PHOTO_BYTES = 5_000_000;
+const DEFAULT_AVATAR_VALUE = "/pilingo-icon-192.png";
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -1594,8 +1595,8 @@ function publicAccount(account) {
     phone: account.phone,
     location: account.location || "",
     createdAt: account.createdAt,
-    avatarType: account.avatarType || "emoji",
-    avatarValue: account.avatarValue || "🐯",
+    avatarType: account.avatarType || "image",
+    avatarValue: account.avatarValue || DEFAULT_AVATAR_VALUE,
     bio: account.bio || "",
     statusMessage: account.statusMessage || "",
     settings: normalizeStudentSettings(account.settings || {}),
@@ -1632,8 +1633,8 @@ function registerAccount(payload) {
     password,
     location,
     createdAt: new Date().toISOString(),
-    avatarType: "emoji",
-    avatarValue: "🐯",
+    avatarType: "image",
+    avatarValue: DEFAULT_AVATAR_VALUE,
     bio: "",
     statusMessage: "Ready to learn",
     settings: normalizeStudentSettings({}),
@@ -1729,13 +1730,16 @@ function normalizeAccountRecord(account) {
     ? account.blocked.map((email) => normalizeEmail(email)).filter(Boolean)
     : [];
 
+  const storedAvatarValue = String(account?.avatarValue || "").trim();
+  const usesOriginalDefault = !storedAvatarValue || storedAvatarValue === "🐯";
+
   return {
     ...account,
     email: normalizeEmail(account?.email),
     phone: String(account?.phone || "").trim(),
     location: String(account?.location || "").trim(),
-    avatarType: account?.avatarType === "image" ? "image" : "emoji",
-    avatarValue: String(account?.avatarValue || "🐯").trim() || "🐯",
+    avatarType: usesOriginalDefault || account?.avatarType === "image" ? "image" : "emoji",
+    avatarValue: usesOriginalDefault ? DEFAULT_AVATAR_VALUE : storedAvatarValue,
     bio: String(account?.bio || "").trim(),
     statusMessage: String(account?.statusMessage || "").trim(),
     learningProgress: normalizeLearningProgress(account?.learningProgress),
@@ -2737,8 +2741,8 @@ function getSocialSnapshot(viewerEmail) {
       email,
       phone: student.phone || account?.phone || "",
       hasAccount: !!account,
-      avatarType: account?.avatarType || "emoji",
-      avatarValue: account?.avatarValue || "🐯",
+      avatarType: account?.avatarType || "image",
+      avatarValue: account?.avatarValue || DEFAULT_AVATAR_VALUE,
       bio: account?.bio || "",
       statusMessage: account?.statusMessage || "",
       settings: normalizeStudentSettings(account?.settings || {}),

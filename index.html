@@ -3356,7 +3356,7 @@ button.call-end-button.is-pressed{
         </div>
         <div class="my-profile-card">
           <div class="my-profile-head">
-            <div id="myProfileAvatar" class="my-profile-avatar">🐯</div>
+            <div id="myProfileAvatar" class="my-profile-avatar"><img src="/pilingo-icon-192.png" alt="Pilingo"></div>
             <div class="my-profile-titles">
               <strong id="myProfileName">Learner</strong>
               <span id="myProfileStatus">Ready to learn</span>
@@ -3503,7 +3503,7 @@ button.call-end-button.is-pressed{
               <input id="settingsPhotoFile" class="settings-photo-input" type="file" accept="image/jpeg,image/png,image/webp" onchange="chooseSettingsPhoto(event)">
             </label>
             <div class="settings-avatar-preview">
-              <div id="settingsAvatarPreview" class="my-profile-avatar">🐯</div>
+              <div id="settingsAvatarPreview" class="my-profile-avatar"><img src="/pilingo-icon-192.png" alt="Pilingo"></div>
               <div class="mini-note">Choose a JPEG, PNG, or WebP photo up to 5 MB. You can replace it whenever you want.</div>
             </div>
             <label>
@@ -3668,7 +3668,7 @@ button.call-end-button.is-pressed{
 <!-- SCRIPTS -->
 <script src="engine-core.js"></script>
 <script src="pilingo-mascot.js?v=3"></script>
-<script src="pilingo-auth.js?v=11"></script>
+<script src="pilingo-auth.js?v=12"></script>
 <script src="pilingo-notify.js?v=12"></script>
 <script src="pilingo-social.js?v=10"></script>
 <script src="pilingo-calls.js?v=10"></script>
@@ -3676,7 +3676,7 @@ button.call-end-button.is-pressed{
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
 <script src="pilingo-sounds.js?v=5"></script>
-<script src="pwa.js?v=12"></script>
+<script src="pwa.js?v=13"></script>
 
 <script>
 
@@ -4078,11 +4078,11 @@ function syncAccountGateState(){
 }
 
 function renderAvatarHtml(account, className, idAttribute){
-  const type = account?.avatarType === "image" ? "image" : "emoji";
-  const value = String(account?.avatarValue || "🐯").trim() || "🐯";
+  const type = account?.avatarType === "emoji" ? "emoji" : "image";
+  const value = String(account?.avatarValue || "/pilingo-icon-192.png").trim() || "/pilingo-icon-192.png";
   const idPart = idAttribute ? ` id="${idAttribute}"` : "";
 
-  if(type === "image" && (/^https?:\/\//i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
+  if(type === "image" && (/^https?:\/\//i.test(value) || /^\/[a-z0-9/_-]+\.(?:png|jpe?g|webp)(?:\?.*)?$/i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
     return `<div${idPart} class="${className}"><img src="${value.replace(/"/g, "&quot;")}" alt="Profile photo"></div>`;
   }
 
@@ -4147,7 +4147,7 @@ function refreshSettingsAvatarPreview(){
   const pendingUrl = window.pendingSettingsPhotoUrl || "";
   if(type === "image" && pendingUrl){
     preview.innerHTML = `<img src="${pendingUrl.replace(/"/g, "&quot;")}" alt="Selected profile photo">`;
-  } else if(type === "image" && (/^https?:\/\//i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
+  } else if(type === "image" && (/^https?:\/\//i.test(value) || /^\/[a-z0-9/_-]+\.(?:png|jpe?g|webp)(?:\?.*)?$/i.test(value) || /^\/api\/profile\/photo\//.test(value) || /^data:image\//.test(value))){
     preview.innerHTML = `<img src="${value.replace(/"/g, "&quot;")}" alt="Profile photo">`;
   } else {
     preview.innerHTML = value;

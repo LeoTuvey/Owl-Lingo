@@ -248,8 +248,8 @@
     };
     const updated = await window.PilingoAuth.updateProfile({
       name: account.name || "",
-      avatarType: account.avatarType || "emoji",
-      avatarValue: account.avatarValue || "🐯",
+      avatarType: account.avatarType || "image",
+      avatarValue: account.avatarValue || "/pilingo-icon-192.png",
       bio: account.bio || "",
       statusMessage: account.statusMessage || "",
       settings: mergedSettings

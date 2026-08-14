@@ -9,6 +9,7 @@ const PilingoAuth = {
   resetPasswordEndpoint: "/api/auth/reset-password",
   updateProfileEndpoint: "/api/profile/update",
   profilePhotoEndpoint: "/api/profile/photo",
+  defaultAvatarValue: "/pilingo-icon-192.png",
   progressEndpoint: "/api/progress",
   progressSyncTimer: null,
   progressSyncSuppressed: false,
@@ -120,7 +121,13 @@ const PilingoAuth = {
   loadAccount(){
     try {
       const raw = localStorage.getItem(this.accountKey);
-      return raw ? JSON.parse(raw) : null;
+      const account = raw ? JSON.parse(raw) : null;
+      if(account && (!account.avatarValue || account.avatarValue === "🐯")){
+        account.avatarType = "image";
+        account.avatarValue = this.defaultAvatarValue;
+        localStorage.setItem(this.accountKey, JSON.stringify(account));
+      }
+      return account;
     } catch(error) {
       return null;
     }
@@ -178,7 +185,17 @@ const PilingoAuth = {
     try {
       const raw = localStorage.getItem(this.accountsKey);
       const accounts = raw ? JSON.parse(raw) : [];
-      return Array.isArray(accounts) ? accounts : [];
+      if(!Array.isArray(accounts)) return [];
+      let migrated = false;
+      const normalized = accounts.map((account) => {
+        if(account && (!account.avatarValue || account.avatarValue === "🐯")){
+          migrated = true;
+          return { ...account, avatarType: "image", avatarValue: this.defaultAvatarValue };
+        }
+        return account;
+      });
+      if(migrated) localStorage.setItem(this.accountsKey, JSON.stringify(normalized));
+      return normalized;
     } catch(error) {
       return [];
     }
@@ -227,8 +244,8 @@ const PilingoAuth = {
       password,
       location,
       createdAt: new Date().toISOString(),
-      avatarType: "emoji",
-      avatarValue: "🐯",
+      avatarType: "image",
+      avatarValue: this.defaultAvatarValue,
       bio: "",
       statusMessage: "Ready to learn",
       settings: {
