@@ -297,6 +297,12 @@ const PilingoSocial = {
     const conversations = await this.fetchConversations();
     messagesList.innerHTML = this.renderConversations(conversations);
     this.updateMessageLauncher(conversations);
+    if(this.activeConversationEmail){
+      const activeParticipant = conversations.find((conversation) =>
+        String(conversation?.participant?.email || "").trim().toLowerCase() === this.activeConversationEmail
+      )?.participant;
+      if(activeParticipant) this.updateConversationPresence(activeParticipant);
+    }
 
     discoverList.innerHTML = this.renderStudentList(
       "Explore learners",
@@ -368,6 +374,7 @@ const PilingoSocial = {
       const thread = await this.fetchThread(this.activeConversationEmail);
       title.textContent = thread.participant?.name || "Messages";
       if(avatar) avatar.innerHTML = `${this.avatarMarkup(thread.participant, "message-contact-avatar-media")}<span class="message-active-dot"></span>`;
+      this.updateConversationPresence(thread.participant);
       const viewerEmail = this.currentEmail();
       threadElement.innerHTML = (thread.messages || []).length
         ? thread.messages.map((message) => `
@@ -381,6 +388,28 @@ const PilingoSocial = {
       threadElement.innerHTML = `<div class="social-empty">${escapeHtml(error?.message || "Could not load messages.")}</div>`;
     }
     this.updateComposerState();
+  },
+
+  updateConversationPresence(participant){
+    const status = document.getElementById("messageContactStatus");
+    const avatar = document.getElementById("messageContactAvatar");
+    const online = participant?.online === true;
+    if(status) status.textContent = online ? "Active now" : this.formatLastActive(participant?.lastPresenceAt);
+    avatar?.classList.toggle("offline", !online);
+  },
+
+  formatLastActive(value){
+    const timestamp = new Date(value || 0).getTime();
+    if(!Number.isFinite(timestamp) || timestamp <= 0) return "Last active unavailable";
+    const elapsed = Math.max(0, Date.now() - timestamp);
+    const minutes = Math.floor(elapsed / 60000);
+    if(minutes < 2) return "Last active just now";
+    if(minutes < 60) return `Last active ${minutes} minutes ago`;
+    const hours = Math.floor(minutes / 60);
+    if(hours < 24) return `Last active ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    const days = Math.floor(hours / 24);
+    if(days < 7) return `Last active ${days} ${days === 1 ? "day" : "days"} ago`;
+    return `Last active ${new Date(timestamp).toLocaleString([], { dateStyle:"medium", timeStyle:"short" })}`;
   },
 
   renderMessageBody(message){
@@ -434,6 +463,7 @@ const PilingoSocial = {
     const modal = document.getElementById("messageModal");
     if(modal) modal.hidden = true;
     this.activeConversationEmail = "";
+    document.getElementById("messageContactAvatar")?.classList.remove("offline");
   },
 
   async submitConversationMessage(text){

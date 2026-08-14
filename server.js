@@ -1468,6 +1468,13 @@ function isNamedStudentEvent(event) {
 
 function publicAccount(account) {
   const isOwner = isOwnerEmail(account?.email);
+  const lastPresenceAt = String(account?.lastPresenceAt || "");
+  const presenceTime = new Date(lastPresenceAt || 0).getTime();
+  const online = Boolean(
+    account?.presenceOnline === true &&
+    Number.isFinite(presenceTime) &&
+    presenceTime >= Date.now() - (75 * 1000)
+  );
   return {
     id: account.id,
     name: account.name,
@@ -1486,6 +1493,8 @@ function publicAccount(account) {
     blocked: Array.isArray(account?.blocked) ? account.blocked.slice() : [],
     learningProgress: normalizeLearningProgress(account?.learningProgress),
     progressUpdatedAt: String(account?.progressUpdatedAt || ""),
+    online,
+    lastPresenceAt,
     isOwner,
     ownerPanelToken: isOwner ? OWNER_PANEL_TOKEN : ""
   };

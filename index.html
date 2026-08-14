@@ -2401,7 +2401,7 @@ button.is-pressed{
 .message-modal-card{width:min(960px,calc(100vw - 28px))!important;height:min(760px,calc(100vh - 28px));max-width:none!important;display:flex;flex-direction:column;border-radius:28px!important;background:#fff!important;box-shadow:0 24px 80px rgba(7,19,38,.3)!important}
 .message-modal-header{min-height:92px!important;padding:13px 26px!important;box-shadow:none!important}
 .message-contact-identity{gap:15px}.message-contact-avatar,.message-contact-avatar-media{width:58px;height:58px;flex-basis:58px}.message-active-dot{width:16px;height:16px;border-width:3px;right:-1px;bottom:0}
-.message-contact-title strong{font-size:25px!important;font-weight:800!important}.message-contact-title small{font-size:16px!important;color:#72767d!important}
+.message-contact-title strong{font-size:25px!important;font-weight:800!important}.message-contact-title small{font-size:16px!important;color:#72767d!important}.message-contact-avatar.offline .message-active-dot{display:none}
 .message-header-actions{gap:24px!important;flex-wrap:nowrap!important}.message-header-actions button,.message-header-actions button:not(.message-close-button),.message-header-actions .message-close-button{width:48px!important;min-width:48px!important;height:48px!important;padding:0!important;border:0!important;background:transparent!important;color:#0866ff!important;box-shadow:none!important}.message-header-actions button svg{width:34px;height:34px;display:block;fill:currentColor}.message-header-actions button:hover{background:#edf4ff!important}
 .message-thread{flex:1;min-height:0!important;max-height:none!important;padding:30px 34px!important;gap:16px!important;background:#fff!important}
 .message-bubble{font-size:15px}.message-bubble.mine{background:#0866ff!important;color:#fff!important}
@@ -3386,7 +3386,7 @@ button.call-end-button.is-pressed{
           <div class="student-profile-top message-modal-header">
             <div class="message-contact-identity">
               <div id="messageContactAvatar" class="message-contact-avatar">P<span class="message-active-dot"></span></div>
-              <div class="message-contact-title"><strong id="messageModalTitle">Messages</strong><small>Active now</small></div>
+              <div class="message-contact-title"><strong id="messageModalTitle">Messages</strong><small id="messageContactStatus">Last active unavailable</small></div>
             </div>
             <div class="message-call-actions message-header-actions">
               <button class="secondary-button" type="button" onclick="startLearnerCall('audio')" aria-label="Start voice call" title="Voice call"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.7 3.4 3.2 4.9 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1v3.8c0 .6-.4 1-1 1C10.6 21.3 2.7 13.4 2.7 3.7c0-.6.4-1 1-1h3.8c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2Z"/></svg></button>
