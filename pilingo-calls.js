@@ -11,6 +11,7 @@ const PilingoCalls = {
   processingSignals: false,
   toneContext: null,
   toneTimers: [],
+  toneSources: [],
   wakeLock: null,
   facingMode: "user",
   polling: false,
@@ -500,34 +501,83 @@ const PilingoCalls = {
     });
   },
 
+  playRingtoneVoice(frequency, delay, duration, volume, options = {}){
+    const context = this.ensureToneContext();
+    if(!context || context.state === "closed") return;
+    const start = context.currentTime + delay;
+    const end = start + duration;
+    const gain = context.createGain();
+    const filter = context.createBiquadFilter();
+    const panner = context.createStereoPanner?.();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(options.brightness || 2800, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + (options.attack || 0.035));
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    filter.connect(gain);
+    if(panner){
+      gain.connect(panner);
+      panner.pan.setValueAtTime(options.pan || 0, start);
+      panner.connect(context.destination);
+    } else {
+      gain.connect(context.destination);
+    }
+
+    const voices = options.pad
+      ? [{ ratio:1, type:"sine", level:0.8 }, { ratio:2, type:"sine", level:0.12 }]
+      : [{ ratio:1, type:"sine", level:0.8 }, { ratio:2, type:"sine", level:0.2 }, { ratio:3, type:"triangle", level:0.055 }];
+    voices.forEach((voice) => {
+      const oscillator = context.createOscillator();
+      const voiceGain = context.createGain();
+      oscillator.type = voice.type;
+      oscillator.frequency.setValueAtTime(frequency * voice.ratio, start);
+      oscillator.detune.setValueAtTime(options.detune || 0, start);
+      voiceGain.gain.value = voice.level;
+      oscillator.connect(voiceGain);
+      voiceGain.connect(filter);
+      oscillator.start(start);
+      oscillator.stop(end + 0.04);
+      this.toneSources.push(oscillator);
+      oscillator.onended = () => {
+        this.toneSources = this.toneSources.filter((source) => source !== oscillator);
+      };
+    });
+  },
+
+  playIncomingTheme(){
+    // Original "Pilingo Aurora" theme in D major: calm enough to loop, clear enough to notice.
+    [
+      [293.66, 0], [369.99, 0], [440, 0],
+      [246.94, 1.65], [293.66, 1.65], [369.99, 1.65],
+      [196, 3.3], [246.94, 3.3], [293.66, 3.3]
+    ].forEach(([frequency, delay], index) => {
+      this.playRingtoneVoice(frequency, delay, 1.8, 0.024, { pad:true, attack:0.3, brightness:1050, pan:(index % 3 - 1) * 0.25 });
+    });
+    [
+      [587.33, 0, .3], [739.99, .34, .3], [880, .68, .54],
+      [659.25, 1.42, .3], [739.99, 1.76, .3], [987.77, 2.1, .62],
+      [739.99, 3.04, .3], [880, 3.38, .3], [1174.66, 3.72, .72],
+      [987.77, 4.62, .3], [880, 4.96, .62]
+    ].forEach(([frequency, delay, duration], index) => {
+      this.playRingtoneVoice(frequency, delay, duration, 0.095, { brightness:3600, pan:index % 2 ? 0.22 : -0.22 });
+    });
+    [[146.83, 0], [123.47, 1.65], [98, 3.3]].forEach(([frequency, delay]) => {
+      this.playRingtoneVoice(frequency, delay, 1.05, 0.032, { pad:true, attack:0.08, brightness:500 });
+    });
+    navigator.vibrate?.([120, 80, 120, 350, 180]);
+  },
+
   startTone(kind){
     this.stopTone();
     const ring = () => {
       if(kind === "incoming"){
-        const flutterNotes = [
-          { delay:0, frequency:659.25, duration:0.34, volume:0.16 },
-          { delay:180, frequency:783.99, duration:0.36, volume:0.17 },
-          { delay:370, frequency:987.77, duration:0.48, volume:0.18 },
-          { delay:720, frequency:880, duration:0.34, volume:0.15 },
-          { delay:900, frequency:987.77, duration:0.38, volume:0.17 },
-          { delay:1090, frequency:1174.66, duration:0.58, volume:0.18 }
-        ];
-        const firstNote = flutterNotes[0];
-        this.playFlutterChime(firstNote.frequency, firstNote.duration, firstNote.volume);
-        flutterNotes.slice(1).forEach((note) => {
-          const timer = window.setTimeout(
-            () => this.playFlutterChime(note.frequency, note.duration, note.volume),
-            note.delay
-          );
-          this.toneTimers.push(timer);
-        });
-        navigator.vibrate?.([180, 70, 180, 70, 420]);
+        this.playIncomingTheme();
       } else {
         this.playTone([440, 480], 0.9, 0.065);
       }
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, 3000));
+    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 6200 : 3000));
   },
 
   stopTone(){
@@ -536,6 +586,10 @@ const PilingoCalls = {
       window.clearInterval(timer);
     });
     this.toneTimers = [];
+    this.toneSources.forEach((source) => {
+      try { source.stop(); } catch(error) {}
+    });
+    this.toneSources = [];
     navigator.vibrate?.(0);
   },
 
