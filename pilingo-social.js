@@ -437,19 +437,38 @@ const PilingoSocial = {
     const mine = message.senderEmail === viewerEmail;
     const voice = message.type === "voice";
     const call = message.type === "call";
-    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""} ${call ? "call-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="message-swipe-content"><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""} ${call ? "call-bubble" : ""}">${this.renderMessageBody(message)}</div></div></div>`;
+    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""} ${call ? "call-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-more-button" type="button" onclick="PilingoSocial.openMessageMenu(this,'${escapeAttr(message.id)}',${mine})" aria-label="More actions" title="More"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button><div class="message-action-content"><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""} ${call ? "call-bubble" : ""}">${this.renderMessageBody(message)}</div></div></div>`;
   },
 
-  deleteMessage(button, messageId){
+  openMessageMenu(button, messageId, mine){
+    const menu = document.getElementById("messageActionMenu");
+    if(!menu) return;
+    const rect = button.getBoundingClientRect();
+    menu.dataset.messageId = messageId;
+    menu.dataset.mine = mine ? "true" : "false";
+    menu._moreButton = button;
+    menu.style.top = `${Math.min(window.innerHeight - 68, rect.bottom + 5)}px`;
+    menu.style.left = `${Math.max(8, Math.min(window.innerWidth - 170, rect.left - 55))}px`;
+    menu.hidden = false;
+    menu.querySelector("button")?.focus();
+  },
+
+  closeMessageMenu(){
+    const menu = document.getElementById("messageActionMenu");
+    if(menu) menu.hidden = true;
+  },
+
+  deleteMessage(){
+    const menu = document.getElementById("messageActionMenu");
     const dialog = document.getElementById("messageDeleteDialog");
-    const confirmButton = document.getElementById("messageDeleteConfirm");
-    if(!dialog || !confirmButton) return;
-    document.querySelectorAll(".message-row.swipe-open").forEach((row) => row.classList.remove("swipe-open"));
-    confirmButton.dataset.messageId = messageId;
-    confirmButton._deleteButton = button;
+    if(!menu || !dialog) return;
+    dialog.dataset.messageId = menu.dataset.messageId || "";
+    dialog._moreButton = menu._moreButton;
+    document.getElementById("messageDeleteEveryone").hidden = menu.dataset.mine !== "true";
+    this.closeMessageMenu();
     dialog.hidden = false;
     requestAnimationFrame(() => dialog.classList.add("open"));
-    confirmButton.focus();
+    document.getElementById("messageDeleteForYou")?.focus();
   },
 
   closeDeleteDialog(){
@@ -459,18 +478,21 @@ const PilingoSocial = {
     window.setTimeout(() => { dialog.hidden = true; }, 180);
   },
 
-  async confirmDeleteMessage(){
-    const confirmButton = document.getElementById("messageDeleteConfirm");
-    const button = confirmButton?._deleteButton;
-    const messageId = confirmButton?.dataset.messageId;
+  async confirmDeleteMessage(deleteMode = "forMe"){
+    const dialog = document.getElementById("messageDeleteDialog");
+    const confirmButton = deleteMode === "forEveryone" ? document.getElementById("messageDeleteEveryone") : document.getElementById("messageDeleteForYou");
+    const button = dialog?._moreButton;
+    const messageId = dialog?.dataset.messageId;
     if(!button || !messageId) return;
     confirmButton.disabled = true;
-    confirmButton.textContent = "Removing…";
+    const originalText = confirmButton.textContent;
+    confirmButton.textContent = "Deleting…";
     button.disabled = true;
     try {
       const result = await this.postAction(this.messageDeleteEndpoint, {
         viewerEmail:this.currentEmail(),
-        messageId
+        messageId,
+        deleteMode
       });
       if(!result?.ok) throw new Error("Could not delete this message.");
       button.closest(".message-row")?.remove();
@@ -483,9 +505,9 @@ const PilingoSocial = {
       alert(error?.message || "Could not delete this message.");
     } finally {
       confirmButton.disabled = false;
-      confirmButton.textContent = "Remove for you";
-      delete confirmButton.dataset.messageId;
-      confirmButton._deleteButton = null;
+      confirmButton.textContent = originalText;
+      delete dialog.dataset.messageId;
+      dialog._moreButton = null;
     }
   },
 
@@ -1113,44 +1135,37 @@ window.openConversation = openConversation;
 window.closeConversation = closeConversation;
 window.sendConversationMessage = sendConversationMessage;
 
-// Reveal each message's delete action with a short swipe toward the outside edge.
+// Messenger-style actions: hover + More on desktop, press and hold on touch screens.
 (() => {
-  let swipe = null;
-  const revealDistance = 54;
+  let holdTimer = null;
+  let holdTarget = null;
+  const cancelHold = () => {
+    window.clearTimeout(holdTimer);
+    holdTimer = null;
+    holdTarget = null;
+  };
 
   document.addEventListener("pointerdown", (event) => {
-    const content = event.target.closest?.(".message-swipe-content");
-    if(!content || event.target.closest("button, audio") || event.button > 0) return;
+    const content = event.target.closest?.(".message-action-content");
+    if(!content || event.pointerType === "mouse" || event.target.closest("button, audio")) return;
     const row = content.closest(".message-row");
-    if(!row) return;
-    document.querySelectorAll(".message-row.swipe-open").forEach((openRow) => {
-      if(openRow !== row) openRow.classList.remove("swipe-open");
-    });
-    swipe = { row, content, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, dragging:false };
-    content.setPointerCapture?.(event.pointerId);
+    const moreButton = row?.querySelector(".message-more-button");
+    if(!row || !moreButton) return;
+    holdTarget = { x:event.clientX, y:event.clientY };
+    holdTimer = window.setTimeout(() => {
+      row.classList.add("actions-open");
+      PilingoSocial.openMessageMenu(moreButton, row.dataset.messageId, row.classList.contains("mine"));
+      navigator.vibrate?.(20);
+      cancelHold();
+    }, 500);
   });
 
   document.addEventListener("pointermove", (event) => {
-    if(!swipe || event.pointerId !== swipe.pointerId) return;
-    const dx = event.clientX - swipe.startX;
-    const dy = event.clientY - swipe.startY;
-    if(!swipe.dragging && Math.abs(dy) > Math.abs(dx)) return;
-    if(Math.abs(dx) < 5 && !swipe.dragging) return;
-    swipe.dragging = true;
-    const direction = swipe.row.classList.contains("mine") ? -1 : 1;
-    const distance = Math.max(0, Math.min(revealDistance, dx * direction));
-    swipe.content.style.transform = `translateX(${distance * direction}px)`;
-    event.preventDefault();
-  }, { passive:false });
-
-  const finishMessageSwipe = (event) => {
-    if(!swipe || (event?.pointerId != null && event.pointerId !== swipe.pointerId)) return;
-    const transform = swipe.content.style.transform;
-    const moved = Math.abs(Number(transform.match(/-?[\d.]+/)?.[0] || 0));
-    swipe.row.classList.toggle("swipe-open", swipe.dragging && moved >= revealDistance * .55);
-    swipe.content.style.transform = "";
-    swipe = null;
-  };
-  document.addEventListener("pointerup", finishMessageSwipe);
-  document.addEventListener("pointercancel", finishMessageSwipe);
+    if(holdTarget && (Math.abs(event.clientX - holdTarget.x) > 10 || Math.abs(event.clientY - holdTarget.y) > 10)) cancelHold();
+  });
+  document.addEventListener("pointerup", cancelHold);
+  document.addEventListener("pointercancel", cancelHold);
+  document.addEventListener("click", (event) => {
+    if(!event.target.closest("#messageActionMenu,.message-more-button")) PilingoSocial.closeMessageMenu();
+  });
 })();

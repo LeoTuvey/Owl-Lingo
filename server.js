@@ -1040,12 +1040,22 @@ function deleteMessageForViewer(payload) {
   if (!message || (message.senderEmail !== viewerEmail && message.recipientEmail !== viewerEmail)) {
     return { ok: false, error: "This message is unavailable." };
   }
+  const deleteMode = payload?.deleteMode === "forEveryone" ? "forEveryone" : "forMe";
+  if (deleteMode === "forEveryone" && message.senderEmail !== viewerEmail) {
+    return { ok: false, error: "Only the sender can delete this message for everyone." };
+  }
   const deletedFor = new Set((message.deletedFor || []).map(normalizeEmail).filter(Boolean));
-  deletedFor.add(viewerEmail);
+  if (deleteMode === "forEveryone") {
+    deletedFor.add(message.senderEmail);
+    deletedFor.add(message.recipientEmail);
+    message.deletedForEveryoneAt = new Date().toISOString();
+  } else {
+    deletedFor.add(viewerEmail);
+  }
   message.deletedFor = Array.from(deletedFor);
   if (message.recipientEmail === viewerEmail && !message.readAt) message.readAt = new Date().toISOString();
   writeMessages(messages);
-  return { ok: true, messageId };
+  return { ok: true, messageId, deleteMode };
 }
 
 function readVisits() {
