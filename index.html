@@ -3277,6 +3277,34 @@ html,body{max-width:100%;overflow-x:clip}
   .voice-preview-shell{gap:6px}.voice-message-preview .voice-delete-button,.voice-message-preview .voice-send-button{width:40px!important;min-width:40px!important;height:40px!important}.voice-preview-player{padding-inline:9px!important}
   .settings-grid,.social-columns,.profile-details-grid{grid-template-columns:minmax(0,1fr)!important}
   input,textarea,select,button,img,video,audio{max-width:100%}
+
+  /* Compact learner profile: phone-sized typography and spacing, not a scaled desktop card. */
+  #studentProfileModal .student-profile-card{padding:10px 12px calc(12px + env(safe-area-inset-bottom))!important;border-width:2px!important;border-radius:18px!important}
+  #studentProfileModal .student-profile-top{position:sticky;z-index:3;top:-10px;min-height:44px;margin:-2px 0 8px!important;padding:4px 0 6px;background:#fffdf5;gap:8px!important}
+  #studentProfileModal .student-profile-top>strong{font-size:17px!important;line-height:1.2}
+  #studentProfileModal .student-profile-close{width:auto!important;min-width:64px!important;height:38px!important;min-height:38px!important;padding:0 13px!important;border-radius:19px!important;font-size:14px!important;box-shadow:0 3px 0 var(--leaf-deep)!important}
+  #studentProfileModal .student-profile-body{width:100%}
+  #studentProfileModal .student-profile-head{gap:10px;margin-bottom:10px}
+  #studentProfileModal .student-profile-avatar{width:44px;height:44px;font-size:16px}
+  #studentProfileModal .student-profile-titles{min-width:0}
+  #studentProfileModal .student-profile-titles h3{font-size:20px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #studentProfileModal .student-profile-titles p{margin-top:3px;font-size:12px;line-height:1.3}
+  #studentProfileModal .student-profile-grid{gap:6px;margin-bottom:10px}
+  #studentProfileModal .student-profile-stat{min-width:0;padding:8px 4px;border-width:1px;border-radius:14px}
+  #studentProfileModal .student-profile-stat strong{font-size:9px;letter-spacing:.04em}
+  #studentProfileModal .student-profile-stat span{margin-top:3px;font-size:19px;line-height:1.15}
+  #studentProfileModal .student-profile-meta{gap:6px;margin-bottom:10px}
+  #studentProfileModal .student-profile-meta div{padding:8px 10px;border-radius:13px}
+  #studentProfileModal .student-profile-meta strong{font-size:9px}
+  #studentProfileModal .student-profile-meta span{margin-top:2px;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+  #studentProfileModal .student-profile-connections{margin-bottom:10px}
+  #studentProfileModal .student-profile-connections>strong{margin-bottom:5px;font-size:10px}
+  #studentProfileModal .student-profile-people{flex-wrap:nowrap;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+  #studentProfileModal .student-profile-people::-webkit-scrollbar{display:none}
+  #studentProfileModal .student-mini-card{min-width:max-content;padding:6px 9px;gap:6px;border-radius:12px;box-shadow:0 2px 0 rgba(231,197,114,.26);font-size:12px}
+  #studentProfileModal .student-mini-avatar{width:26px;height:26px;font-size:10px}
+  #studentProfileModal .student-profile-actions{gap:8px;margin-top:8px}
+  #studentProfileModal .student-profile-actions button{width:100%!important;min-height:44px!important;margin:0!important;padding:9px 14px!important;border-radius:14px!important;font-size:15px!important}
 }
 </style>
 </head>
