@@ -12,6 +12,7 @@ const PilingoCalls = {
   toneContext: null,
   toneTimers: [],
   toneSources: [],
+  ringtoneAudio: null,
   wakeLock: null,
   facingMode: "user",
   polling: false,
@@ -436,6 +437,15 @@ const PilingoCalls = {
     return this.toneContext;
   },
 
+  ensureRingtoneAudio(){
+    if(!this.ringtoneAudio){
+      this.ringtoneAudio = new Audio("assets/audio/pilingo-flutterlight.wav?v=1");
+      this.ringtoneAudio.preload = "auto";
+      this.ringtoneAudio.volume = 0.82;
+    }
+    return this.ringtoneAudio;
+  },
+
   async enableCallSound(){
     const context = this.ensureToneContext();
     if(!context){
@@ -446,7 +456,10 @@ const PilingoCalls = {
     localStorage.setItem("pilingo-call-sound-enabled", "1");
     this.updateCallSoundButton();
     this.stopTone();
-    this.playIncomingTheme();
+    const ringtone = this.ensureRingtoneAudio();
+    ringtone.loop = false;
+    ringtone.currentTime = 0;
+    ringtone.play().catch(() => this.playIncomingTheme());
   },
 
   updateCallSoundButton(){
@@ -564,15 +577,23 @@ const PilingoCalls = {
 
   startTone(kind){
     this.stopTone();
-    const ring = () => {
-      if(kind === "incoming"){
+    if(kind === "incoming"){
+      const ringtone = this.ensureRingtoneAudio();
+      ringtone.loop = true;
+      ringtone.currentTime = 0;
+      ringtone.play().catch(() => {
         this.playIncomingTheme();
-      } else {
-        this.playTone([440, 480], 0.9, 0.065);
-      }
+        this.toneTimers.push(window.setInterval(() => this.playIncomingTheme(), 4100));
+      });
+      navigator.vibrate?.([90, 70, 90]);
+      this.toneTimers.push(window.setInterval(() => navigator.vibrate?.([90, 70, 90]), 4200));
+      return;
+    }
+    const ring = () => {
+      this.playTone([440, 480], 0.9, 0.065);
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 4100 : 3000));
+    this.toneTimers.push(window.setInterval(ring, 3000));
   },
 
   stopTone(){
@@ -585,6 +606,11 @@ const PilingoCalls = {
       try { source.stop(); } catch(error) {}
     });
     this.toneSources = [];
+    if(this.ringtoneAudio){
+      this.ringtoneAudio.pause();
+      this.ringtoneAudio.currentTime = 0;
+      this.ringtoneAudio.loop = false;
+    }
     navigator.vibrate?.(0);
   },
 

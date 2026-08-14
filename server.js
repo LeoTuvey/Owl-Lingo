@@ -52,6 +52,7 @@ const MIME_TYPES = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".wav": "audio/wav",
   ".webmanifest": "application/manifest+json"
 };
 
