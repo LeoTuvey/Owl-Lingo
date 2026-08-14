@@ -307,6 +307,17 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && parsed.pathname === "/api/messages/delete") {
+    try {
+      const payload = JSON.parse((await readBody(req)) || "{}");
+      const result = deleteMessageForViewer(payload);
+      if (!result.ok) return sendJson(res, 400, result);
+      return sendJson(res, 200, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid delete request" });
+    }
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/calls/start") {
     try {
       const payload = JSON.parse((await readBody(req)) || "{}");
@@ -879,8 +890,9 @@ function getMessageThread(viewerEmail, targetEmail, markRead) {
 
   const messages = readMessages();
   const thread = messages.filter((message) =>
-    (message.senderEmail === viewerEmail && message.recipientEmail === targetEmail) ||
-    (message.senderEmail === targetEmail && message.recipientEmail === viewerEmail)
+    !((message.deletedFor || []).map(normalizeEmail).includes(viewerEmail)) &&
+    ((message.senderEmail === viewerEmail && message.recipientEmail === targetEmail) ||
+    (message.senderEmail === targetEmail && message.recipientEmail === viewerEmail))
   );
   if (markRead) {
     const now = new Date().toISOString();
@@ -909,6 +921,7 @@ function getMessageConversations(viewerEmail) {
   const conversations = new Map();
   readMessages().forEach((message) => {
     if (message.senderEmail !== viewerEmail && message.recipientEmail !== viewerEmail) return;
+    if ((message.deletedFor || []).map(normalizeEmail).includes(viewerEmail)) return;
     const otherEmail = message.senderEmail === viewerEmail ? message.recipientEmail : message.senderEmail;
     const other = accountMap.get(otherEmail);
     if (!other) return;
@@ -930,8 +943,25 @@ function getUnreadMessageCount(email) {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) return 0;
   return readMessages().reduce((count, message) =>
-    count + (message.recipientEmail === normalizedEmail && !message.readAt ? 1 : 0),
+    count + (message.recipientEmail === normalizedEmail && !message.readAt && !(message.deletedFor || []).map(normalizeEmail).includes(normalizedEmail) ? 1 : 0),
   0);
+}
+
+function deleteMessageForViewer(payload) {
+  const viewerEmail = normalizeEmail(payload?.viewerEmail);
+  const messageId = String(payload?.messageId || "").trim();
+  if (!viewerEmail || !messageId) return { ok: false, error: "Message and learner are required." };
+  const messages = readMessages();
+  const message = messages.find((item) => item.id === messageId);
+  if (!message || (message.senderEmail !== viewerEmail && message.recipientEmail !== viewerEmail)) {
+    return { ok: false, error: "This message is unavailable." };
+  }
+  const deletedFor = new Set((message.deletedFor || []).map(normalizeEmail).filter(Boolean));
+  deletedFor.add(viewerEmail);
+  message.deletedFor = Array.from(deletedFor);
+  if (message.recipientEmail === viewerEmail && !message.readAt) message.readAt = new Date().toISOString();
+  writeMessages(messages);
+  return { ok: true, messageId };
 }
 
 function readVisits() {

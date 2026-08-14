@@ -8,6 +8,7 @@ const PilingoSocial = {
   messageThreadEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/thread" : "/api/messages/thread",
   messageSendEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/send" : "/api/messages/send",
   voiceMessageSendEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/voice" : "/api/messages/voice",
+  messageDeleteEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/delete" : "/api/messages/delete",
   pollTimer: null,
   lastSnapshot: null,
   activeProfile: null,
@@ -386,11 +387,7 @@ const PilingoSocial = {
       this.updateConversationPresence(thread.participant);
       const viewerEmail = this.currentEmail();
       threadElement.innerHTML = (thread.messages || []).length
-        ? thread.messages.map((message) => `
-            <div class="message-bubble ${message.senderEmail === viewerEmail ? "mine" : ""} ${message.type === "voice" ? "voice-bubble" : ""}">
-              ${this.renderMessageBody(message)}
-            </div>
-          `).join("")
+        ? thread.messages.map((message) => this.renderMessage(message, viewerEmail)).join("")
         : `<div class="social-empty">Start the conversation with a friendly message.</div>`;
       threadElement.scrollTop = threadElement.scrollHeight;
     } catch(error) {
@@ -426,6 +423,31 @@ const PilingoSocial = {
     const source = escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString());
     const bars = Array.from({ length:24 }, () => "<i></i>").join("");
     return `<div class="messenger-voice-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play voice message"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${bars}</span><span class="messenger-voice-duration">${formatVoiceDuration(message.duration)}</span><audio playsinline preload="metadata" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onended="PilingoSocial.syncVoicePlayback(this)" src="${source}"></audio></div><span class="message-delivery-check" aria-label="Delivered">✓</span>`;
+  },
+
+  renderMessage(message, viewerEmail){
+    const mine = message.senderEmail === viewerEmail;
+    const voice = message.type === "voice";
+    return `<div class="message-row ${mine ? "mine" : "theirs"} ${voice ? "voice-row" : ""}" data-message-id="${escapeAttr(message.id)}"><button class="message-delete-button" type="button" onclick="PilingoSocial.deleteMessage(this,'${escapeAttr(message.id)}')" aria-label="Delete message for me" title="Delete for me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8l-.7 13H8.7L8 7Zm2-3h4l1 2H9l1-2ZM5 6h14v2H5V6Z"/></svg></button><div class="message-bubble ${mine ? "mine" : ""} ${voice ? "voice-bubble" : ""}">${this.renderMessageBody(message)}</div></div>`;
+  },
+
+  async deleteMessage(button, messageId){
+    if(!confirm("Delete this message from your conversation? The other learner will still keep their copy.")) return;
+    button.disabled = true;
+    try {
+      const result = await this.postAction(this.messageDeleteEndpoint, {
+        viewerEmail:this.currentEmail(),
+        messageId
+      });
+      if(!result?.ok) throw new Error("Could not delete this message.");
+      button.closest(".message-row")?.remove();
+      const thread = document.getElementById("messageThread");
+      if(thread && !thread.querySelector(".message-row")) thread.innerHTML = `<div class="social-empty">Start the conversation with a friendly message.</div>`;
+      this.refreshMessagesInBackground();
+    } catch(error) {
+      button.disabled = false;
+      alert(error?.message || "Could not delete this message.");
+    }
   },
 
   toggleVoicePlayback(button){
@@ -486,10 +508,7 @@ const PilingoSocial = {
     const thread = document.getElementById("messageThread");
     if(!thread || !message) return;
     thread.querySelector(".social-empty")?.remove();
-    const bubble = document.createElement("div");
-    bubble.className = `message-bubble ${message.senderEmail === this.currentEmail() ? "mine" : ""} ${message.type === "voice" ? "voice-bubble" : ""}`;
-    bubble.innerHTML = this.renderMessageBody(message);
-    thread.appendChild(bubble);
+    thread.insertAdjacentHTML("beforeend", this.renderMessage(message, this.currentEmail()));
     thread.scrollTo({ top:thread.scrollHeight, behavior:"smooth" });
   },
 
