@@ -445,7 +445,8 @@ const PilingoCalls = {
     await context.resume().catch(() => {});
     localStorage.setItem("pilingo-call-sound-enabled", "1");
     this.updateCallSoundButton();
-    this.playTone([660, 880], 0.45, 0.1);
+    this.stopTone();
+    this.playIncomingTheme();
   },
 
   updateCallSoundButton(){
@@ -545,26 +546,20 @@ const PilingoCalls = {
   },
 
   playIncomingTheme(){
-    // Original "Pilingo Aurora" theme in D major: calm enough to loop, clear enough to notice.
-    [
-      [293.66, 0], [369.99, 0], [440, 0],
-      [246.94, 1.65], [293.66, 1.65], [369.99, 1.65],
-      [196, 3.3], [246.94, 3.3], [293.66, 3.3]
-    ].forEach(([frequency, delay], index) => {
-      this.playRingtoneVoice(frequency, delay, 1.8, 0.024, { pad:true, attack:0.3, brightness:1050, pan:(index % 3 - 1) * 0.25 });
+    // Original "Pilingo Flutterlight": a short, airy plucked motif with a soft echo.
+    const melody = [
+      [783.99, 0], [987.77, .19], [1174.66, .38], [987.77, .57],
+      [880, .88], [1046.5, 1.07], [1318.51, 1.26], [1046.5, 1.45],
+      [987.77, 1.76], [880, 1.95]
+    ];
+    melody.forEach(([frequency, delay], index) => {
+      const pan = index % 2 ? 0.18 : -0.18;
+      this.playRingtoneVoice(frequency, delay, 0.3, 0.085, { attack:0.008, brightness:3100, pan });
+      this.playRingtoneVoice(frequency / 2, delay + 0.11, 0.36, 0.018, { attack:0.012, brightness:1700, pan:-pan });
     });
-    [
-      [587.33, 0, .3], [739.99, .34, .3], [880, .68, .54],
-      [659.25, 1.42, .3], [739.99, 1.76, .3], [987.77, 2.1, .62],
-      [739.99, 3.04, .3], [880, 3.38, .3], [1174.66, 3.72, .72],
-      [987.77, 4.62, .3], [880, 4.96, .62]
-    ].forEach(([frequency, delay, duration], index) => {
-      this.playRingtoneVoice(frequency, delay, duration, 0.095, { brightness:3600, pan:index % 2 ? 0.22 : -0.22 });
-    });
-    [[146.83, 0], [123.47, 1.65], [98, 3.3]].forEach(([frequency, delay]) => {
-      this.playRingtoneVoice(frequency, delay, 1.05, 0.032, { pad:true, attack:0.08, brightness:500 });
-    });
-    navigator.vibrate?.([120, 80, 120, 350, 180]);
+    this.playRingtoneVoice(196, 0, 1.05, 0.018, { pad:true, attack:0.12, brightness:650 });
+    this.playRingtoneVoice(220, .88, 1.15, 0.016, { pad:true, attack:0.12, brightness:650 });
+    navigator.vibrate?.([90, 70, 90]);
   },
 
   startTone(kind){
@@ -577,7 +572,7 @@ const PilingoCalls = {
       }
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 6200 : 3000));
+    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 4100 : 3000));
   },
 
   stopTone(){
