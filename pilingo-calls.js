@@ -475,14 +475,15 @@ const PilingoCalls = {
     this.stopTone();
     const ring = () => {
       if(kind === "incoming"){
-        this.playTone([660, 880], 0.38, 0.1);
-        this.toneTimers.push(window.setTimeout(() => this.playTone([660, 880], 0.38, 0.1), 560));
+        this.playTone([587, 784], 0.48, 0.16);
+        this.toneTimers.push(window.setTimeout(() => this.playTone([659, 880], 0.48, 0.16), 620));
+        navigator.vibrate?.([450, 180, 450]);
       } else {
         this.playTone([440, 480], 0.9, 0.065);
       }
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2400 : 3000));
+    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2200 : 3000));
   },
 
   stopTone(){
@@ -491,6 +492,7 @@ const PilingoCalls = {
       window.clearInterval(timer);
     });
     this.toneTimers = [];
+    navigator.vibrate?.(0);
   },
 
   toggleMute(){
@@ -584,11 +586,13 @@ const PilingoCalls = {
 
   startPolling(){
     if(this.pollTimer) clearInterval(this.pollTimer);
-    document.addEventListener("pointerdown", () => {
-      if(localStorage.getItem("pilingo-call-sound-enabled") === "1"){
-        this.ensureToneContext();
-      }
-    });
+    const unlockRingtone = () => {
+      this.ensureToneContext();
+      localStorage.setItem("pilingo-call-sound-enabled", "1");
+      this.updateCallSoundButton();
+    };
+    document.addEventListener("pointerdown", unlockRingtone, { once:true, capture:true });
+    document.addEventListener("keydown", unlockRingtone, { once:true, capture:true });
     this.updateCallSoundButton();
     document.addEventListener("visibilitychange", () => {
       if(!this.call) return;

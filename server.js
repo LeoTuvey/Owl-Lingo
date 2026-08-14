@@ -2354,7 +2354,11 @@ async function sendPushNotificationRecord(record, payload) {
   });
 
   try {
-    await webPush.sendNotification(record.subscription, notificationPayload);
+    const isIncomingCall = payload?.data?.type === "incoming-call";
+    await webPush.sendNotification(record.subscription, notificationPayload, {
+      TTL: isIncomingCall ? 60 : 3600,
+      urgency: isIncomingCall ? "high" : "normal"
+    });
     return true;
   } catch (error) {
     const statusCode = Number(error?.statusCode || 0);
