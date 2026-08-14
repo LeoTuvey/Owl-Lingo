@@ -421,8 +421,12 @@ const PilingoSocial = {
   renderMessageBody(message){
     if(message.type !== "voice" || !message.audioUrl) return escapeHtml(message.text);
     const source = escapeAttr(new URL(message.audioUrl, new URL(this.messageThreadEndpoint, location.href)).toString());
-    const bars = Array.from({ length:24 }, () => "<i></i>").join("");
+    const bars = this.renderVoiceWaveform();
     return `<div class="messenger-voice-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play voice message"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${bars}</span><span class="messenger-voice-duration">${formatVoiceDuration(message.duration)}</span><audio playsinline preload="auto" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onwaiting="PilingoSocial.syncVoicePlayback(this)" oncanplay="PilingoSocial.syncVoicePlayback(this)" onerror="PilingoSocial.voicePlaybackFailed(this)" onended="PilingoSocial.syncVoicePlayback(this)" src="${source}"></audio></div><span class="message-delivery-check" aria-label="Delivered">✓</span>`;
+  },
+
+  renderVoiceWaveform(){
+    return Array.from({ length:24 }, () => "<i></i>").join("");
   },
 
   renderMessage(message, viewerEmail){
@@ -717,21 +721,21 @@ const PilingoSocial = {
     if(button) button.setAttribute("aria-label", recording ? "Stop recording" : "Record voice message");
     if(button) button.title = recording ? "Stop recording" : "Record voice message";
     if(status) status.textContent = this.voiceWarning || (this.voiceStarting ? "Connecting microphone…" : recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
-    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls playsinline onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
+    if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-shell"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8l-.7 13H8.7L8 7Zm2-3h4l1 2H9l1-2ZM5 6h14v2H5V6Z"/></svg></button><div class="messenger-voice-player voice-preview-player"><button class="messenger-voice-play" type="button" onclick="PilingoSocial.toggleVoicePlayback(this)" aria-label="Play recording"><svg class="play-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5Z"/></svg><svg class="pause-shape" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg></button><span class="messenger-waveform" aria-hidden="true">${this.renderVoiceWaveform()}</span><span class="messenger-voice-duration">${formatVoiceDuration(this.pendingVoice.duration)}</span><audio playsinline preload="auto" onplay="PilingoSocial.syncVoicePlayback(this)" onpause="PilingoSocial.syncVoicePlayback(this)" onwaiting="PilingoSocial.syncVoicePlayback(this)" oncanplay="PilingoSocial.syncVoicePlayback(this)" src="${escapeAttr(this.pendingVoice.url)}"></audio></div><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 4 18 8-18 8 2.2-6.3L14 12l-8.8-1.7Z"/></svg></button></div>` : "";
   },
 
   async submitVoiceMessage(){
     if(!this.pendingVoice || !this.activeConversationEmail) return;
     const sendButton = document.getElementById("voiceSendButton");
     try {
-      if(sendButton){ sendButton.disabled = true; sendButton.textContent = "⏳"; }
+      if(sendButton){ sendButton.disabled = true; sendButton.innerHTML = `<span class="send-button-spinner"></span>`; }
       const result = await this.sendVoiceMessage(this.activeConversationEmail, this.pendingVoice);
       this.cancelVoiceRecording();
       this.appendConversationMessage(result.message);
       this.refreshMessagesInBackground();
     } catch(error) {
       alert(error?.message || "Could not send this voice message.");
-      if(sendButton){ sendButton.disabled = false; sendButton.textContent = "➤"; }
+      this.updateVoiceControls();
     }
   },
 
