@@ -475,15 +475,27 @@ const PilingoCalls = {
     this.stopTone();
     const ring = () => {
       if(kind === "incoming"){
-        this.playTone([587, 784], 0.48, 0.16);
-        this.toneTimers.push(window.setTimeout(() => this.playTone([659, 880], 0.48, 0.16), 620));
-        navigator.vibrate?.([450, 180, 450]);
+        const flutterNotes = [
+          { delay:0, frequencies:[659, 988], duration:0.22, volume:0.14 },
+          { delay:270, frequencies:[784, 1175], duration:0.22, volume:0.13 },
+          { delay:540, frequencies:[880, 1319], duration:0.28, volume:0.14 },
+          { delay:950, frequencies:[784, 1175], duration:0.2, volume:0.12 },
+          { delay:1190, frequencies:[659, 988], duration:0.32, volume:0.14 }
+        ];
+        flutterNotes.forEach((note) => {
+          const timer = window.setTimeout(
+            () => this.playTone(note.frequencies, note.duration, note.volume),
+            note.delay
+          );
+          this.toneTimers.push(timer);
+        });
+        navigator.vibrate?.([280, 100, 280, 100, 520]);
       } else {
         this.playTone([440, 480], 0.9, 0.065);
       }
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2200 : 3000));
+    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2800 : 3000));
   },
 
   stopTone(){
