@@ -428,7 +428,7 @@ const PilingoCalls = {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if(AudioContextClass) this.toneContext = new AudioContextClass();
     }
-    if(this.toneContext?.state === "suspended"){
+    if(this.toneContext && !["running", "closed"].includes(this.toneContext.state)){
       this.toneContext.resume().catch(() => {});
     }
     return this.toneContext;
@@ -504,14 +504,16 @@ const PilingoCalls = {
     const ring = () => {
       if(kind === "incoming"){
         const flutterNotes = [
-          { delay:0, frequency:659.25, duration:0.34, volume:0.105 },
-          { delay:180, frequency:783.99, duration:0.36, volume:0.11 },
-          { delay:370, frequency:987.77, duration:0.48, volume:0.12 },
-          { delay:720, frequency:880, duration:0.34, volume:0.1 },
-          { delay:900, frequency:987.77, duration:0.38, volume:0.11 },
-          { delay:1090, frequency:1174.66, duration:0.58, volume:0.12 }
+          { delay:0, frequency:659.25, duration:0.34, volume:0.16 },
+          { delay:180, frequency:783.99, duration:0.36, volume:0.17 },
+          { delay:370, frequency:987.77, duration:0.48, volume:0.18 },
+          { delay:720, frequency:880, duration:0.34, volume:0.15 },
+          { delay:900, frequency:987.77, duration:0.38, volume:0.17 },
+          { delay:1090, frequency:1174.66, duration:0.58, volume:0.18 }
         ];
-        flutterNotes.forEach((note) => {
+        const firstNote = flutterNotes[0];
+        this.playFlutterChime(firstNote.frequency, firstNote.duration, firstNote.volume);
+        flutterNotes.slice(1).forEach((note) => {
           const timer = window.setTimeout(
             () => this.playFlutterChime(note.frequency, note.duration, note.volume),
             note.delay
@@ -632,10 +634,11 @@ const PilingoCalls = {
       localStorage.setItem("pilingo-call-sound-enabled", "1");
       this.updateCallSoundButton();
     };
-    document.addEventListener("pointerdown", unlockRingtone, { once:true, capture:true });
-    document.addEventListener("keydown", unlockRingtone, { once:true, capture:true });
+    document.addEventListener("pointerdown", unlockRingtone, { capture:true, passive:true });
+    document.addEventListener("keydown", unlockRingtone, { capture:true });
     this.updateCallSoundButton();
     document.addEventListener("visibilitychange", () => {
+      if(document.visibilityState === "visible") this.ensureToneContext();
       if(!this.call) return;
       if(document.visibilityState === "visible"){
         this.restoreMediaAfterBackground();
