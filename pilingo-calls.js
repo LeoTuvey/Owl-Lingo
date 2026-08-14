@@ -471,31 +471,60 @@ const PilingoCalls = {
     });
   },
 
+  playFlutterChime(frequency, duration = 0.42, volume = 0.12){
+    const context = this.ensureToneContext();
+    if(!context || context.state === "closed") return;
+    const now = context.currentTime;
+    const master = context.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(volume, now + 0.018);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    master.connect(context.destination);
+
+    [
+      { ratio:1, type:"sine", level:0.88, detune:-2 },
+      { ratio:2, type:"sine", level:0.22, detune:3 },
+      { ratio:3, type:"triangle", level:0.07, detune:0 }
+    ].forEach((voice) => {
+      const oscillator = context.createOscillator();
+      const voiceGain = context.createGain();
+      oscillator.type = voice.type;
+      oscillator.frequency.setValueAtTime(frequency * voice.ratio, now);
+      oscillator.detune.setValueAtTime(voice.detune, now);
+      voiceGain.gain.value = voice.level;
+      oscillator.connect(voiceGain);
+      voiceGain.connect(master);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.03);
+    });
+  },
+
   startTone(kind){
     this.stopTone();
     const ring = () => {
       if(kind === "incoming"){
         const flutterNotes = [
-          { delay:0, frequencies:[659, 988], duration:0.22, volume:0.14 },
-          { delay:270, frequencies:[784, 1175], duration:0.22, volume:0.13 },
-          { delay:540, frequencies:[880, 1319], duration:0.28, volume:0.14 },
-          { delay:950, frequencies:[784, 1175], duration:0.2, volume:0.12 },
-          { delay:1190, frequencies:[659, 988], duration:0.32, volume:0.14 }
+          { delay:0, frequency:659.25, duration:0.34, volume:0.105 },
+          { delay:180, frequency:783.99, duration:0.36, volume:0.11 },
+          { delay:370, frequency:987.77, duration:0.48, volume:0.12 },
+          { delay:720, frequency:880, duration:0.34, volume:0.1 },
+          { delay:900, frequency:987.77, duration:0.38, volume:0.11 },
+          { delay:1090, frequency:1174.66, duration:0.58, volume:0.12 }
         ];
         flutterNotes.forEach((note) => {
           const timer = window.setTimeout(
-            () => this.playTone(note.frequencies, note.duration, note.volume),
+            () => this.playFlutterChime(note.frequency, note.duration, note.volume),
             note.delay
           );
           this.toneTimers.push(timer);
         });
-        navigator.vibrate?.([280, 100, 280, 100, 520]);
+        navigator.vibrate?.([180, 70, 180, 70, 420]);
       } else {
         this.playTone([440, 480], 0.9, 0.065);
       }
     };
     ring();
-    this.toneTimers.push(window.setInterval(ring, kind === "incoming" ? 2800 : 3000));
+    this.toneTimers.push(window.setInterval(ring, 3000));
   },
 
   stopTone(){
