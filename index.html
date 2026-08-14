@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#58cc02">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pilingo">
@@ -3260,6 +3260,23 @@ html,body{max-width:100%;overflow-x:clip}
   #callModal .call-actions{margin-top:4px;padding:6px 10px;gap:8px}
   #callModal .call-actions button,#callModal #callIncomingActions button{width:48px;min-width:48px;height:48px;min-height:48px}
   #callModal .call-video-grid{margin-top:5px}#callModal .call-video-grid video{min-height:110px}
+}
+
+/* Final phone-fit guard for authenticated cards and overlays. */
+@media(max-width:680px){
+  html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+  body .student-profile-modal,body .settings-modal,body .account-gate{box-sizing:border-box;width:100dvw!important;max-width:100dvw!important;height:100dvh!important;max-height:100dvh!important;inset:0!important;margin:0!important;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))!important;overflow:hidden!important}
+  body .student-profile-card,body .message-modal-card,body .call-card,body .settings-card,body .account-card{box-sizing:border-box;width:100%!important;max-width:100%!important;min-width:0!important;max-height:calc(100dvh - max(8px,env(safe-area-inset-top) + env(safe-area-inset-bottom)))!important;margin:0!important;overflow-x:hidden!important;overflow-y:auto!important}
+  body .message-modal-card,body #callModal .call-card{height:100%!important;min-height:0!important;overflow-y:hidden!important}
+  .message-modal-header,.message-contact-identity,.message-contact-title,.message-thread,.message-composer,.message-compose,.message-input-pill,.voice-preview-shell,.voice-preview-player,.settings-form,.settings-grid,.student-profile-body,.social-panel{box-sizing:border-box;min-width:0!important;max-width:100%!important}
+  .message-contact-title{flex:1}.message-contact-title strong{max-width:100%!important;font-size:clamp(16px,5vw,19px)!important}
+  .message-thread{width:100%!important;overflow-x:hidden!important;overflow-y:auto!important}
+  .message-row,.message-row.voice-row,.message-row.call-row{max-width:96%!important}.message-row.voice-row{width:min(330px,96%)!important}.message-row .message-bubble,.message-bubble.voice-bubble{max-width:100%!important;width:auto}
+  .messenger-voice-player{width:100%;min-width:0;padding-inline:10px;gap:8px}.messenger-waveform{min-width:0}.messenger-voice-duration{min-width:34px}
+  .message-composer{width:100%!important}.message-attachment-tools{max-width:118px;overflow:hidden}.message-input-pill{flex:1}.message-input-pill textarea{min-width:0;width:100%!important}
+  .voice-preview-shell{gap:6px}.voice-message-preview .voice-delete-button,.voice-message-preview .voice-send-button{width:40px!important;min-width:40px!important;height:40px!important}.voice-preview-player{padding-inline:9px!important}
+  .settings-grid,.social-columns,.profile-details-grid{grid-template-columns:minmax(0,1fr)!important}
+  input,textarea,select,button,img,video,audio{max-width:100%}
 }
 </style>
 </head>
