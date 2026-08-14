@@ -290,6 +290,23 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && parsed.pathname === "/api/messages/voice") {
+    try {
+      const voiceBuffer = await readBinaryBody(req, MAX_VOICE_MESSAGE_BYTES);
+      const result = sendDirectMessage({
+        senderEmail: parsed.searchParams.get("senderEmail"),
+        recipientEmail: parsed.searchParams.get("recipientEmail"),
+        duration: parsed.searchParams.get("duration"),
+        mimeType: req.headers["content-type"],
+        _voiceBuffer: voiceBuffer
+      });
+      if (!result.ok) return sendJson(res, 400, result);
+      return sendJson(res, 200, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: error?.message || "Invalid voice message" });
+    }
+  }
+
   if (req.method === "POST" && parsed.pathname === "/api/calls/start") {
     try {
       const payload = JSON.parse((await readBody(req)) || "{}");
@@ -749,7 +766,8 @@ function sendDirectMessage(payload) {
   const recipientEmail = normalizeEmail(payload?.recipientEmail);
   const text = String(payload?.text || "").trim();
   const voiceData = String(payload?.voiceData || "");
-  const isVoice = !!voiceData;
+  const directVoiceBuffer = Buffer.isBuffer(payload?._voiceBuffer) ? payload._voiceBuffer : null;
+  const isVoice = !!voiceData || !!directVoiceBuffer;
   if (!senderEmail || !recipientEmail || (!text && !isVoice)) {
     return { ok: false, error: "Sender, recipient, and message are required." };
   }
@@ -769,7 +787,7 @@ function sendDirectMessage(payload) {
       return { ok: false, error: "This voice message format is not supported." };
     }
     duration = Math.max(1, Math.min(MAX_VOICE_MESSAGE_SECONDS, Math.round(Number(payload?.duration) || 0)));
-    voiceBuffer = Buffer.from(voiceData, "base64");
+    voiceBuffer = directVoiceBuffer || Buffer.from(voiceData, "base64");
     if (!voiceBuffer.length || voiceBuffer.length > MAX_VOICE_MESSAGE_BYTES) {
       return { ok: false, error: "Voice messages must be smaller than 700 KB." };
     }
@@ -1241,6 +1259,34 @@ function readBody(req) {
     });
     req.on("end", () => resolve(data));
     req.on("error", reject);
+  });
+}
+
+function readBinaryBody(req, maxBytes) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    let settled = false;
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+    req.on("data", (chunk) => {
+      if (settled) return;
+      size += chunk.length;
+      if (size > maxBytes) {
+        fail(new Error("Voice messages must be smaller than 700 KB."));
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      if (settled) return;
+      settled = true;
+      resolve(Buffer.concat(chunks));
+    });
+    req.on("error", fail);
   });
 }
 

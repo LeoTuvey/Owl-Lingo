@@ -7,6 +7,7 @@ const PilingoSocial = {
   messagesEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages" : "/api/messages",
   messageThreadEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/thread" : "/api/messages/thread",
   messageSendEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/send" : "/api/messages/send",
+  voiceMessageSendEndpoint: location.hostname.endsWith("github.io") ? "https://pilingo.onrender.com/api/messages/voice" : "/api/messages/voice",
   pollTimer: null,
   lastSnapshot: null,
   activeProfile: null,
@@ -21,6 +22,8 @@ const PilingoSocial = {
   voiceAnalyser: null,
   voiceHasSignal: false,
   voiceWarning: "",
+  voiceStarting: false,
+  voiceSessionId: 0,
 
   canUseServer(){
     return location.protocol.startsWith("http");
@@ -112,13 +115,19 @@ const PilingoSocial = {
   },
 
   async sendVoiceMessage(targetEmail, recording){
-    return await this.postAction(this.messageSendEndpoint, {
-      senderEmail: this.currentEmail(),
-      recipientEmail: targetEmail,
-      voiceData: await blobToBase64(recording.blob),
-      mimeType: recording.blob.type || "audio/webm",
-      duration: recording.duration
+    const query = new URLSearchParams({
+      senderEmail:this.currentEmail(),
+      recipientEmail:targetEmail,
+      duration:String(recording.duration || 1)
     });
+    const response = await fetch(`${this.voiceMessageSendEndpoint}?${query}`, {
+      method:"POST",
+      headers:{ "Content-Type":recording.blob.type || "audio/webm" },
+      body:recording.blob
+    });
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok || !data?.ok) throw new Error(data?.error || "Could not send this voice message.");
+    return data;
   },
 
   async setFollow(targetEmail, follow){
@@ -490,51 +499,67 @@ const PilingoSocial = {
   },
 
   async toggleVoiceRecording(){
+    if(this.voiceStarting) return;
     if(this.voiceRecorder?.state === "recording") return this.voiceRecorder.stop();
     if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder){
       alert("Voice recording is not supported by this browser.");
       return;
     }
+    let sessionId = 0;
     try {
       this.cancelVoiceRecording();
+      sessionId = ++this.voiceSessionId;
+      this.voiceStarting = true;
       this.voiceWarning = "";
+      this.updateVoiceControls();
       this.setBrowserAudioSession("play-and-record");
       const input = document.getElementById("voiceInputSelect");
       const deviceId = String(input?.value || "");
-      this.voiceStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          ...(deviceId ? { deviceId:{ exact:deviceId } } : {}),
+          ...(deviceId ? { deviceId:{ ideal:deviceId } } : {}),
           echoCancellation:true,
           noiseSuppression:true,
           autoGainControl:true
         }
       });
-      await this.refreshVoiceInputs(this.voiceStream.getAudioTracks()[0]?.getSettings?.().deviceId || deviceId);
-      this.monitorVoiceInput();
+      if(sessionId !== this.voiceSessionId){
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      this.voiceStream = stream;
       const audioTrack = this.voiceStream.getAudioTracks()[0];
       if(!audioTrack) throw new Error("No microphone was found.");
+      this.refreshVoiceInputs(audioTrack.getSettings?.().deviceId || deviceId).catch(() => {});
       audioTrack.onmute = () => this.setVoiceStatus("Microphone paused — check your AirPods connection.");
       audioTrack.onunmute = () => { this.voiceWarning = ""; this.updateVoiceControls(); };
       audioTrack.onended = () => {
         if(this.voiceRecorder?.state === "recording") this.voiceRecorder.stop();
         this.setVoiceStatus("Microphone disconnected. Reconnect your AirPods and try again.");
       };
-      const preferred = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
       this.voiceChunks = [];
-      this.voiceRecorder = new MediaRecorder(this.voiceStream, preferred ? { mimeType:preferred, audioBitsPerSecond:24000 } : { audioBitsPerSecond:24000 });
+      this.voiceRecorder = this.createVoiceRecorder(this.voiceStream);
       this.voiceRecorder.ondataavailable = (event) => { if(event.data?.size) this.voiceChunks.push(event.data); };
       this.voiceRecorder.onstop = () => this.finishVoiceRecording();
       this.voiceStartedAt = Date.now();
-      this.voiceRecorder.start(500);
+      this.voiceRecorder.start();
       this.updateVoiceControls();
       this.voiceTimer = window.setInterval(() => {
         this.updateVoiceControls();
         if(Date.now() - this.voiceStartedAt >= 60_000) this.voiceRecorder?.stop();
       }, 250);
     } catch(error) {
-      this.cancelVoiceRecording();
-      this.setBrowserAudioSession("playback");
-      alert("Pilingo needs microphone permission to record a voice message.");
+      const currentRequest = sessionId === this.voiceSessionId;
+      if(currentRequest){
+        this.cancelVoiceRecording();
+        this.setBrowserAudioSession("playback");
+        alert("Pilingo could not open the selected microphone. Check microphone permission or reconnect your headset, then try again.");
+      }
+    } finally {
+      if(sessionId === this.voiceSessionId){
+        this.voiceStarting = false;
+        this.updateVoiceControls();
+      }
     }
   },
 
@@ -542,10 +567,9 @@ const PilingoSocial = {
     const duration = Math.max(1, Math.min(60, Math.round((Date.now() - this.voiceStartedAt) / 1000)));
     const type = this.voiceRecorder?.mimeType || this.voiceChunks[0]?.type || "audio/webm";
     const blob = new Blob(this.voiceChunks, { type });
-    const heardAudio = this.voiceHasSignal;
     this.releaseVoiceRecorder();
-    if(!heardAudio){
-      alert("Pilingo did not hear any sound. Choose your AirPods microphone, check that it is connected, and try again.");
+    if(blob.size < 100){
+      alert("No audio was recorded. Check your microphone and try again.");
       return this.updateVoiceControls();
     }
     if(blob.size > 700000){
@@ -554,6 +578,23 @@ const PilingoSocial = {
     }
     this.pendingVoice = { blob, duration, url:URL.createObjectURL(blob) };
     this.updateVoiceControls();
+  },
+
+  createVoiceRecorder(stream){
+    const safari = /AppleWebKit/i.test(navigator.userAgent) && !/(Chrome|CriOS|Edg|OPR)/i.test(navigator.userAgent);
+    const candidates = safari
+      ? ["audio/mp4;codecs=mp4a.40.2", "audio/mp4", "audio/webm;codecs=opus", "audio/webm"]
+      : ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
+    const supported = candidates.find((type) => {
+      try { return MediaRecorder.isTypeSupported(type); } catch(error) { return false; }
+    });
+    const options = supported ? { mimeType:supported, audioBitsPerSecond:32000 } : { audioBitsPerSecond:32000 };
+    try {
+      return new MediaRecorder(stream, options);
+    } catch(error) {
+      try { return supported ? new MediaRecorder(stream, { mimeType:supported }) : new MediaRecorder(stream); }
+      catch(fallbackError) { return new MediaRecorder(stream); }
+    }
   },
 
   releaseVoiceRecorder(){
@@ -567,9 +608,6 @@ const PilingoSocial = {
       track.stop();
     });
     this.voiceStream = null;
-    this.voiceAudioContext?.close?.().catch?.(() => {});
-    this.voiceAudioContext = null;
-    this.voiceAnalyser = null;
     this.voiceRecorder = null;
     this.voiceChunks = [];
     this.setBrowserAudioSession("playback");
@@ -590,37 +628,6 @@ const PilingoSocial = {
     document.querySelectorAll("audio").forEach((other) => {
       if(other !== audio && !other.paused) other.pause();
     });
-  },
-
-  monitorVoiceInput(){
-    this.voiceHasSignal = false;
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if(!AudioContextClass) {
-      this.voiceHasSignal = true;
-      return;
-    }
-    try {
-      this.voiceAudioContext = new AudioContextClass();
-      const source = this.voiceAudioContext.createMediaStreamSource(this.voiceStream);
-      this.voiceAnalyser = this.voiceAudioContext.createAnalyser();
-      this.voiceAnalyser.fftSize = 256;
-      source.connect(this.voiceAnalyser);
-    } catch(error) {
-      this.voiceAudioContext = null;
-      this.voiceAnalyser = null;
-      this.voiceHasSignal = true;
-    }
-  },
-
-  detectVoiceSignal(){
-    if(!this.voiceAnalyser || this.voiceHasSignal) return;
-    if(this.voiceAudioContext?.state !== "running") {
-      this.voiceHasSignal = true;
-      return;
-    }
-    const samples = new Uint8Array(this.voiceAnalyser.fftSize);
-    this.voiceAnalyser.getByteTimeDomainData(samples);
-    this.voiceHasSignal = samples.some((sample) => Math.abs(sample - 128) > 2);
   },
 
   async refreshVoiceInputs(selectedDeviceId){
@@ -646,6 +653,8 @@ const PilingoSocial = {
   },
 
   cancelVoiceRecording(){
+    this.voiceSessionId += 1;
+    this.voiceStarting = false;
     if(this.voiceRecorder?.state === "recording") this.voiceRecorder.onstop = null;
     try { this.voiceRecorder?.stop?.(); } catch(error) {}
     this.releaseVoiceRecorder();
@@ -659,12 +668,12 @@ const PilingoSocial = {
     const preview = document.getElementById("voiceMessagePreview");
     const status = document.getElementById("voiceRecordStatus");
     const recording = this.voiceRecorder?.state === "recording";
+    if(button) button.disabled = this.voiceStarting;
     if(button) button.classList.toggle("recording", !!recording);
     if(button) button.setAttribute("aria-label", recording ? "Stop recording" : "Record voice message");
     if(button) button.title = recording ? "Stop recording" : "Record voice message";
-    if(status) status.textContent = this.voiceWarning || (recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
+    if(status) status.textContent = this.voiceWarning || (this.voiceStarting ? "Connecting microphone…" : recording ? `Recording ${formatVoiceDuration(Math.ceil((Date.now() - this.voiceStartedAt) / 1000))} / 1:00` : "");
     if(preview) preview.innerHTML = this.pendingVoice ? `<div class="voice-preview-main"><span class="voice-preview-icon">🎤</span><div><strong>Voice message ready</strong><small>${formatVoiceDuration(this.pendingVoice.duration)}</small></div><audio controls playsinline onplay="PilingoSocial.prepareVoicePlayback(this)" src="${escapeAttr(this.pendingVoice.url)}"></audio></div><div class="voice-preview-actions"><button class="voice-delete-button" type="button" onclick="PilingoSocial.cancelVoiceRecording()" aria-label="Delete recording" title="Delete recording">🗑️</button><button id="voiceSendButton" class="voice-send-button" type="button" onclick="PilingoSocial.submitVoiceMessage()" aria-label="Send voice message" title="Send voice message">➤</button></div>` : "";
-    if(recording) this.detectVoiceSignal();
   },
 
   async submitVoiceMessage(){
@@ -908,15 +917,6 @@ function escapeAttr(value){
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-}
-
-function blobToBase64(blob){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
 }
 
 function formatVoiceDuration(seconds){
