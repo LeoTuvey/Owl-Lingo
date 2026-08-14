@@ -1877,6 +1877,12 @@ button.is-pressed{
   object-fit:cover;
 }
 
+.my-profile-avatar:has(img){
+  background:transparent;
+  border:1px solid #e4e6eb;
+  box-shadow:none;
+}
+
 .my-profile-titles{
   min-width:0;
   flex:1;
@@ -2876,6 +2882,15 @@ button.call-end-button.is-pressed{
   font-weight:1000;
   box-shadow:0 6px 0 rgba(62,140,8,0.42);
   flex:none;
+}
+
+.social-avatar:is(img),
+.student-profile-avatar:is(img){
+  display:block;
+  object-fit:cover;
+  background:transparent;
+  border:1px solid #e4e6eb;
+  box-shadow:none;
 }
 
 .social-you-tag{
