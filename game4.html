@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#58cc02">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="🐯 Pilingo">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="pilingo-icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="pilingo-icon-192.png">
@@ -19,7 +19,15 @@ radial-gradient(circle at top left, rgba(255,211,154,0.32), transparent 28%),
 linear-gradient(180deg, #fff6e5 0%, #ffedd0 52%, #ffd8a8 100%);
 text-align:center;
 margin:0;
-padding:20px;
+padding:calc(20px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+min-height:100vh;
+min-height:100dvh;
+box-sizing:border-box;
+}
+
+@media(max-width:600px){
+body{padding:0;}
+body .card{max-width:none;min-height:100dvh;padding:calc(24px + env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));border:0;border-radius:0;box-shadow:none;}
 }
 
 .card{

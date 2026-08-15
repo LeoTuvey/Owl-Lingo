@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#58cc02">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="🐯 Pilingo">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
 if (window.location.protocol === "file:") {
   const target = "http://localhost:3000/lesson.html" + window.location.search + window.location.hash;
@@ -26,14 +26,21 @@ if (window.location.protocol === "file:") {
 body{
   font-family:Inter,Arial,sans-serif;
   text-align: center;
-  padding: 28px 16px;
+  padding:calc(28px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   margin:0;
   background:#f7fbff;
   color:#253044;
   min-height:100vh;
+  min-height:100dvh;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+}
+
+@media(max-width:600px){
+  body{padding:0;align-items:stretch;}
+  body .lesson-card{width:100%;max-width:none;min-height:100dvh;flex:0 0 100%;padding:calc(26px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) calc(26px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));display:flex;flex-direction:column;justify-content:center;border:0;border-radius:0;box-shadow:none;}
 }
 
 .lesson-card{
