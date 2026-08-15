@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#58cc02">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pilingo">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
 if (window.location.protocol === "file:") {
   const target = "http://localhost:3000/index.html" + window.location.search + window.location.hash;
@@ -21,6 +21,11 @@ if (window.location.protocol === "file:") {
 <style>
 *{
   box-sizing:border-box;
+}
+
+html{
+  min-height:100%;
+  background:#58cc02;
 }
 
 :root{
@@ -59,6 +64,7 @@ body{
     linear-gradient(180deg, #fffdf7 0%, #f7fbff 35%, #f6edd3 100%);
   color:var(--ink);
   min-height:100vh;
+  min-height:100dvh;
 }
 
 body.account-gate-open{
@@ -73,7 +79,7 @@ body.account-gate-open{
     radial-gradient(circle at 78% 24%, rgba(255,255,255,0.16), transparent 24%),
     linear-gradient(180deg, #7be41d 0%, #58cc02 54%, #419f06 100%);
   color:white;
-  padding:42px 18px 44px;
+  padding:calc(42px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 44px max(18px, env(safe-area-inset-left));
   border-bottom:6px solid #2f8305;
   position:relative;
   overflow:hidden;
@@ -211,7 +217,7 @@ body.account-gate-open{
   display:none;
   align-items:flex-start;
   justify-content:center;
-  padding:18px;
+  padding:calc(18px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
   background:rgba(26, 39, 58, 0.7);
   backdrop-filter:blur(8px);
   z-index:1000;
@@ -1932,7 +1938,7 @@ button.is-pressed{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px;
+  padding:calc(20px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   background:rgba(24,32,50,0.58);
   backdrop-filter:blur(6px);
 }
@@ -2634,20 +2640,21 @@ button.call-end-button.is-pressed{
 #callModal #callIncomingActions .call-end-button,#callModal #callIncomingActions .call-end-button:hover,#callModal .call-actions .call-end-button,#callModal .call-actions .call-end-button:hover{background:#f0444f!important;color:#fff!important;border:0!important;box-shadow:none!important}
 #callModal .call-actions button.is-pressed{background:#0866ff!important;color:#fff!important;box-shadow:none!important}
 #callModal #callActiveActions.video-call{width:auto}
-@media(max-width:600px){#callModal{padding:6px}#callModal .call-card{width:100%;height:calc(100svh - 12px);min-height:0;max-height:none;padding:0 14px calc(16px + env(safe-area-inset-bottom));border-radius:18px}#callModal .student-profile-top{min-height:66px;margin:0 -14px;padding:0 17px;flex-direction:row;align-items:center}#callModal .student-profile-top strong{width:auto;font-size:18px}#callModal .call-status{padding-top:20px;font-size:20px}#callModal .call-note{font-size:11px}#callModal .call-audio-avatar{width:132px;height:132px;font-size:58px}#callModal .call-audio-name{font-size:26px}#callModal .call-actions{width:auto;padding:10px;gap:9px;border-radius:25px}#callModal .call-actions button,#callModal .call-actions button:hover,#callModal .call-actions button:focus{width:58px;min-width:58px;height:58px;min-height:58px}#callModal #callIncomingActions button{width:74px;min-width:74px;height:74px;min-height:74px}#callModal .call-video-grid video{min-height:180px}}
+@media(max-width:600px){#callModal{padding:calc(6px + env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left))}#callModal .call-card{width:100%;height:100%;min-height:0;max-height:100%;padding:0 14px 16px;border-radius:18px}#callModal .student-profile-top{min-height:66px;margin:0 -14px;padding:0 17px;flex-direction:row;align-items:center}#callModal .student-profile-top strong{width:auto;font-size:18px}#callModal .call-status{padding-top:20px;font-size:20px}#callModal .call-note{font-size:11px}#callModal .call-audio-avatar{width:132px;height:132px;font-size:58px}#callModal .call-audio-name{font-size:26px}#callModal .call-actions{width:auto;padding:10px;gap:9px;border-radius:25px}#callModal .call-actions button,#callModal .call-actions button:hover,#callModal .call-actions button:focus{width:58px;min-width:58px;height:58px;min-height:58px}#callModal #callIncomingActions button{width:74px;min-width:74px;height:74px;min-height:74px}#callModal .call-video-grid video{min-height:180px}}
 
 @media (max-width:600px){
   body .student-profile-modal{
     align-items:flex-end;
-    padding:8px;
+    padding:calc(8px + env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   }
 
   body .student-profile-card,
   body .call-card{
     width:100%;
-    min-height:calc(100svh - 12px);
-    max-height:calc(100svh - 12px);
-    padding:18px 14px calc(18px + env(safe-area-inset-bottom));
+    min-height:0;
+    height:100%;
+    max-height:100%;
+    padding:18px 14px 18px;
     border-radius:26px 26px 18px 18px;
   }
 
@@ -3238,13 +3245,13 @@ html,body{max-width:100%;overflow-x:clip}
   .student-profile-card,.message-modal-card,.call-card,.settings-card,.account-card{max-width:calc(100vw - 12px)!important}
 }
 @media(max-height:500px) and (orientation:landscape){
-  .header{padding:16px 10px 18px}
+  .header{padding:calc(16px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 18px max(10px, env(safe-area-inset-left))}
   .hero-wrap{width:calc(100% - 8px);gap:12px}
   .hero-panel{padding:12px;border-radius:20px}
   .hero-mascot-window{min-height:150px}
   .hero-mascot{margin-top:4px;transform:scale(.82)}
-  body .student-profile-modal{align-items:center;padding:4px}
-  body .student-profile-card,body .message-modal-card,body .call-card{width:calc(100vw - 8px)!important;height:calc(100svh - 8px)!important;min-height:0!important;max-height:calc(100svh - 8px)!important;border-radius:14px!important}
+  body .student-profile-modal{align-items:center;padding:calc(4px + env(safe-area-inset-top)) max(4px, env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left))}
+  body .student-profile-card,body .message-modal-card,body .call-card{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;border-radius:14px!important}
   .message-modal-header{min-height:54px!important;padding:5px 12px!important}
   .message-contact-avatar,.message-contact-avatar-media{width:38px;height:38px;flex-basis:38px}
   .message-contact-title strong{font-size:16px!important}.message-contact-title small{font-size:11px!important}
