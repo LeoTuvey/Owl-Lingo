@@ -1,0 +1,71 @@
+/*
+ * Pilingo's app-wide mobile screen contract.
+ * This file is injected into every HTML response by server.js so new pages
+ * inherit edge-to-edge sizing and safe-area behavior automatically.
+ */
+:root{
+  --pilingo-safe-top:env(safe-area-inset-top, 0px);
+  --pilingo-safe-right:env(safe-area-inset-right, 0px);
+  --pilingo-safe-bottom:env(safe-area-inset-bottom, 0px);
+  --pilingo-safe-left:env(safe-area-inset-left, 0px);
+}
+
+html{
+  width:100%;
+  min-height:100%;
+  overflow-x:clip;
+}
+
+body{
+  width:100%;
+  min-height:100vh;
+  min-height:100dvh;
+  overflow-x:clip;
+}
+
+body > main,
+body > .pilingo-screen{
+  min-height:100dvh;
+}
+
+@media(max-width:680px){
+  body #messageModal{
+    inset:0!important;
+    width:100vw!important;
+    height:100vh!important;
+    height:100dvh!important;
+    padding:0!important;
+    margin:0!important;
+    background:#fff!important;
+    backdrop-filter:none!important;
+  }
+
+  body #messageModal .message-modal-card{
+    width:100vw!important;
+    height:100vh!important;
+    height:100dvh!important;
+    min-width:100vw!important;
+    min-height:100dvh!important;
+    max-width:100vw!important;
+    max-height:100dvh!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+  }
+
+  body #messageModal .message-modal-header{
+    min-height:calc(76px + var(--pilingo-safe-top))!important;
+    padding:calc(10px + var(--pilingo-safe-top)) max(14px,var(--pilingo-safe-right)) 10px max(14px,var(--pilingo-safe-left))!important;
+  }
+
+  body #messageModal .message-thread{
+    min-height:0!important;
+    max-height:none!important;
+  }
+
+  body #messageModal .message-composer{
+    padding:9px max(10px,var(--pilingo-safe-right)) calc(9px + var(--pilingo-safe-bottom)) max(10px,var(--pilingo-safe-left))!important;
+    border-radius:0!important;
+  }
+}

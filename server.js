@@ -1430,6 +1430,38 @@ function applyApiHeaders(res) {
   res.setHeader("Cache-Control", "no-store");
 }
 
+function applyPilingoScreenContract(content) {
+  let html = content.toString("utf8");
+  const viewport = "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content";
+
+  if (/<meta\s+name=["']viewport["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta\s+name=["']viewport["'][^>]*>/i,
+      `<meta name="viewport" content="${viewport}">`
+    );
+  } else {
+    html = html.replace(/<head([^>]*)>/i, `<head$1>\n<meta name="viewport" content="${viewport}">`);
+  }
+
+  if (/<meta\s+name=["']apple-mobile-web-app-status-bar-style["'][^>]*>/i.test(html)) {
+    html = html.replace(
+      /<meta\s+name=["']apple-mobile-web-app-status-bar-style["'][^>]*>/i,
+      `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
+    );
+  } else {
+    html = html.replace(
+      /<head([^>]*)>/i,
+      `<head$1>\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
+    );
+  }
+
+  if (!/href=["'][^"']*pilingo-screen\.css(?:\?[^"']*)?["']/i.test(html)) {
+    html = html.replace(/<\/head>/i, `<link rel="stylesheet" href="/pilingo-screen.css?v=1">\n</head>`);
+  }
+
+  return Buffer.from(html, "utf8");
+}
+
 function serveStatic(requestPath, res) {
   let filePath = requestPath === "/" ? "/index.html" : requestPath;
   filePath = path.normalize(filePath).replace(/^(\.\.[/\\])+/, "");
@@ -1472,8 +1504,9 @@ function serveStatic(requestPath, res) {
       headers.Expires = "0";
     }
 
+    const responseContent = ext === ".html" ? applyPilingoScreenContract(content) : content;
     res.writeHead(200, headers);
-    res.end(content);
+    res.end(responseContent);
   });
 }
 
