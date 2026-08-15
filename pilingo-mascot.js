@@ -202,6 +202,7 @@
       .pilingo-mascot [data-part="tail"]{ transform-origin: 260px 300px; }
       .pilingo-mascot [data-part="brow-left"],
       .pilingo-mascot [data-part="brow-right"]{ transform-origin: center center; }
+      .pilingo-mascot[data-outfit="no-backpack"] [data-part="backpack"]{ display:none; }
       .pilingo-mascot [data-prop]{ display:none; }
 
       .pilingo-mascot [data-face="eyes-smile"],
