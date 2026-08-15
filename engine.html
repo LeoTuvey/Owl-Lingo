@@ -589,6 +589,17 @@ button{
   box-shadow:none;
   color:inherit;
   cursor:pointer;
+  position:relative;
+}
+
+.part-orb-hit::after{
+  content:"";
+  position:absolute;
+  inset:50%;
+  border:3px solid var(--part-bottom);
+  border-radius:50%;
+  opacity:0;
+  pointer-events:none;
 }
 
 .part-orb-hit:disabled{
@@ -609,7 +620,19 @@ button{
 }
 
 .part-orb-hit:not(:disabled):active .part-orb-ring{
-  transform:translateY(2px) scale(0.97);
+  transform:translateY(4px) scale(0.91,0.86);
+}
+
+.part-orb-hit.is-launching .part-orb-ring{
+  animation:partOrbLaunch 280ms cubic-bezier(.2,.9,.3,1) both;
+}
+
+.part-orb-hit.is-launching .part-orb-core{
+  animation:partOrbCorePop 280ms cubic-bezier(.2,.9,.3,1) both;
+}
+
+.part-orb-hit.is-launching::after{
+  animation:partOrbRipple 280ms ease-out both;
 }
 
 .part-orb-hit:focus-visible{
@@ -1020,6 +1043,30 @@ button{
 @keyframes floatTiger{
   0%,100%{ transform:translateY(0); }
   50%{ transform:translateY(-8px); }
+}
+
+@keyframes partOrbLaunch{
+  0%{transform:translateY(3px) scale(.9,.84) rotate(0deg)}
+  42%{transform:translateY(-10px) scale(1.12,.96) rotate(-3deg)}
+  72%{transform:translateY(2px) scale(.97,1.05) rotate(2deg)}
+  100%{transform:translateY(0) scale(1) rotate(0deg)}
+}
+
+@keyframes partOrbCorePop{
+  0%{transform:scale(.92)}
+  48%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+
+@keyframes partOrbRipple{
+  0%{inset:50%;opacity:.72}
+  100%{inset:-16px;opacity:0}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .part-orb-hit.is-launching .part-orb-ring,
+  .part-orb-hit.is-launching .part-orb-core,
+  .part-orb-hit.is-launching::after{animation-duration:1ms}
 }
 
 @media (max-width:860px){
@@ -1502,7 +1549,7 @@ function renderMap(){
                             class="part-orb-hit"
                             type="button"
                             aria-label="${actionLabel}: ${ball.title}. ${ball.summary}"
-                            onclick="openPartBall('${section.id}','${part.id}','${ball.id}')"
+                            onclick="openPartBall('${section.id}','${part.id}','${ball.id}',this)"
                             ${ballUnlocked ? "" : "disabled"}>
                             <span class="part-orb-ring ${ballProgress.segmented ? "segmented" : ""}" style="--part-progress:${progressDeg}deg">
                               <span class="part-orb-core">
@@ -1575,7 +1622,7 @@ function renderMap(){
   }).join("");
 }
 
-function openPartBall(sectionId, partId, ballId){
+function openPartBall(sectionId, partId, ballId, trigger){
   const part = COURSE_DATA.sections
     .find((section) => section.id === sectionId)
     ?.parts.find((entry) => entry.id === partId);
@@ -1593,6 +1640,10 @@ function openPartBall(sectionId, partId, ballId){
     return;
   }
 
+  trigger?.classList.remove("is-launching");
+  void trigger?.offsetWidth;
+  trigger?.classList.add("is-launching");
+
   if (!part.href) {
     showToast("This part is coming soon. The available lesson path will continue through the real lesson parts.");
     return;
@@ -1607,7 +1658,7 @@ function openPartBall(sectionId, partId, ballId){
 
   setTimeout(() => {
     window.location.href = targetUrl.toString();
-  }, 180);
+  }, 280);
 }
 
 function scrollToCurrentPart(){
