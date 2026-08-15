@@ -3313,6 +3313,15 @@ html,body{max-width:100%;overflow-x:clip}
   #callModal .call-actions button,#callModal #callIncomingActions button{width:48px;min-width:48px;height:48px;min-height:48px}
   #callModal .call-video-grid{margin-top:5px}#callModal .call-video-grid video{min-height:110px}
 }
+.app-rating-card{overflow:hidden}
+.app-rating-summary{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.app-rating-average{font-size:34px;line-height:1;font-weight:1000;color:#7b5809}
+.app-rating-count{color:#7b6a43;font-size:13px;font-weight:850}
+.app-rating-stars{display:flex;justify-content:center;gap:7px}
+.app-rating-star,.app-rating-star:hover,.app-rating-star:focus{width:52px;min-width:52px;height:52px;margin:0;padding:0;display:grid;place-items:center;border:2px solid #ead89f;border-radius:16px;background:#fffdf7;color:#c7b98d;font-size:31px;line-height:1;box-shadow:0 4px 0 #ead89f;transform:none}
+.app-rating-star.selected{border-color:#e4ae1a;background:#fff5bf;color:#f3b61f;box-shadow:0 4px 0 #c98f0a}
+.app-rating-status{min-height:20px;margin-top:13px;color:#6f5a22;font-size:13px;font-weight:800;text-align:center}
+@media(max-width:420px){.app-rating-stars{gap:5px}.app-rating-star,.app-rating-star:hover,.app-rating-star:focus{width:48px;min-width:48px;height:48px;font-size:28px}}
 </style>
 </head>
 
@@ -3450,6 +3459,23 @@ html,body{max-width:100%;overflow-x:clip}
         <div class="section-badge course">Active Course</div>
         <h2>🌍 Course</h2>
         <div class="course-label">Kurmanji to English</div>
+      </div>
+
+      <div class="card app-rating-card" id="appRatingCard">
+        <div class="section-badge quest">Community Feedback</div>
+        <h2>⭐ Rate Pilingo</h2>
+        <div class="app-rating-summary">
+          <strong id="appRatingAverage" class="app-rating-average">New</strong>
+          <span id="appRatingCount" class="app-rating-count">0 learner ratings</span>
+        </div>
+        <div class="app-rating-stars" role="group" aria-label="Rate Pilingo from 1 to 5 stars">
+          <button class="app-rating-star" type="button" data-app-rating="1" aria-label="Rate Pilingo 1 star" aria-pressed="false">★</button>
+          <button class="app-rating-star" type="button" data-app-rating="2" aria-label="Rate Pilingo 2 stars" aria-pressed="false">★</button>
+          <button class="app-rating-star" type="button" data-app-rating="3" aria-label="Rate Pilingo 3 stars" aria-pressed="false">★</button>
+          <button class="app-rating-star" type="button" data-app-rating="4" aria-label="Rate Pilingo 4 stars" aria-pressed="false">★</button>
+          <button class="app-rating-star" type="button" data-app-rating="5" aria-label="Rate Pilingo 5 stars" aria-pressed="false">★</button>
+        </div>
+        <div id="appRatingStatus" class="app-rating-status" aria-live="polite">Tap a star to rate Pilingo.</div>
       </div>
 
       <div class="card">
@@ -3799,6 +3825,7 @@ html,body{max-width:100%;overflow-x:clip}
 <script src="pilingo-notify.js?v=12"></script>
 <script src="pilingo-social.js?v=16"></script>
 <script src="pilingo-calls.js?v=20"></script>
+<script src="pilingo-ratings.js?v=1"></script>
 <script src="app-ui.js"></script>
 <script src="app-state.js"></script>
 <script src="app-polish.js"></script>
@@ -4604,6 +4631,7 @@ if(window.PilingoCalls){
   PilingoCalls.startPolling();
 }
 updateOwnerOnlyPanels();
+window.PilingoRatings?.init?.();
 refreshAppVisibilityControls(true);
 updateReminderUI();
 document.addEventListener("visibilitychange", () => {

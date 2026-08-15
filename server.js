@@ -26,6 +26,7 @@ const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
 const VOICE_MESSAGES_DIR = path.join(DATA_DIR, "voice-messages");
 const PROFILE_PHOTOS_DIR = path.join(DATA_DIR, "profile-photos");
 const CALLS_FILE = path.join(DATA_DIR, "calls.json");
+const RATINGS_FILE = path.join(DATA_DIR, "app-ratings.json");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
@@ -131,6 +132,11 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if (req.method === "GET" && parsed.pathname === "/api/ratings") {
+    const email = normalizeEmail(parsed.searchParams.get("email") || "");
+    return sendJson(res, 200, { ok: true, ...getRatingsSummary(email) });
+  }
+
   if (req.method === "GET" && parsed.pathname === "/api/social") {
     const viewerEmail = normalizeEmail(parsed.searchParams.get("viewerEmail") || "");
     return sendJson(res, 200, {
@@ -234,6 +240,16 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true, event });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid request body" });
+    }
+  }
+
+  if (req.method === "POST" && parsed.pathname === "/api/ratings") {
+    try {
+      const payload = JSON.parse(await readBody(req));
+      const result = saveAppRating(payload);
+      return sendJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return sendJson(res, 400, { ok: false, error: "Invalid rating request" });
     }
   }
 
@@ -645,6 +661,7 @@ function ensureDataFile() {
   if (!fs.existsSync(VISITS_FILE)) fs.writeFileSync(VISITS_FILE, "[]", "utf8");
   if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, "[]", "utf8");
   if (!fs.existsSync(CALLS_FILE)) fs.writeFileSync(CALLS_FILE, "[]", "utf8");
+  if (!fs.existsSync(RATINGS_FILE)) fs.writeFileSync(RATINGS_FILE, "[]", "utf8");
 }
 
 function readCalls() {
@@ -1344,6 +1361,58 @@ function readStudentStats() {
 
 function writeStudentStats(students) {
   fs.writeFileSync(STATS_FILE, JSON.stringify(students, null, 2), "utf8");
+}
+
+function readAppRatings() {
+  try {
+    const ratings = JSON.parse(fs.readFileSync(RATINGS_FILE, "utf8"));
+    return Array.isArray(ratings) ? ratings : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeAppRatings(ratings) {
+  fs.writeFileSync(RATINGS_FILE, JSON.stringify(ratings, null, 2), "utf8");
+}
+
+function getRatingsSummary(viewerEmail = "") {
+  const ratings = readAppRatings().filter((entry) => {
+    const value = Number(entry?.rating);
+    return normalizeEmail(entry?.email) && Number.isInteger(value) && value >= 1 && value <= 5;
+  });
+  const total = ratings.length;
+  const average = total
+    ? Math.round((ratings.reduce((sum, entry) => sum + Number(entry.rating), 0) / total) * 10) / 10
+    : 0;
+  const normalizedViewer = normalizeEmail(viewerEmail);
+  const ownRating = ratings.find((entry) => normalizeEmail(entry.email) === normalizedViewer);
+
+  return {
+    average,
+    count: total,
+    userRating: ownRating ? Number(ownRating.rating) : 0
+  };
+}
+
+function saveAppRating(payload) {
+  const email = normalizeEmail(payload?.email);
+  const rating = Number(payload?.rating);
+  if (!email || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { ok: false, error: "Choose a rating from 1 to 5 stars." };
+  }
+  if (!readAccounts().some((account) => normalizeEmail(account?.email) === email)) {
+    return { ok: false, error: "Please sign in before rating Pilingo." };
+  }
+
+  const ratings = readAppRatings();
+  const existingIndex = ratings.findIndex((entry) => normalizeEmail(entry?.email) === email);
+  const record = { email, rating, updatedAt: new Date().toISOString() };
+  if (existingIndex >= 0) ratings[existingIndex] = record;
+  else ratings.push(record);
+  writeAppRatings(ratings);
+
+  return { ok: true, ...getRatingsSummary(email) };
 }
 
 function readAccounts() {
