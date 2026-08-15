@@ -1459,6 +1459,10 @@ function applyPilingoScreenContract(content) {
     html = html.replace(/<\/head>/i, `<link rel="stylesheet" href="/pilingo-screen.css?v=1">\n</head>`);
   }
 
+  if (!/src=["'][^"']*app-polish\.js(?:\?[^"']*)?["']/i.test(html)) {
+    html = html.replace(/<\/head>/i, `<script src="/app-polish.js?v=2" defer></script>\n</head>`);
+  }
+
   return Buffer.from(html, "utf8");
 }
 

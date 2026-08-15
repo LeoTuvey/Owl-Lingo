@@ -12,7 +12,7 @@ const AppPolish = {
     return el;
   },
 
-  _applyPressedState(el){
+  _applyPressedState(el, pointerType = "mouse"){
     if(!el || this._activePressedButtons.has(el)) return;
 
     this._activePressedButtons.add(el);
@@ -31,7 +31,10 @@ const AppPolish = {
       "filter 135ms ease",
       "box-shadow 135ms ease"
     ].filter(Boolean).join(", ");
-    el.style.transform = `${el.dataset.pressOriginalTransform || ""} translateY(4px) scale(0.965)`.trim();
+    el.dataset.pressPointerType = pointerType;
+    el.style.transform = pointerType === "mouse"
+      ? `${el.dataset.pressOriginalTransform || ""} translateY(4px) scale(0.965)`.trim()
+      : (el.dataset.pressOriginalTransform || "");
     el.style.filter = "brightness(0.97)";
   },
 
@@ -42,6 +45,7 @@ const AppPolish = {
     el.classList.remove("is-pressed");
     el.style.transform = el.dataset.pressOriginalTransform || "";
     el.style.filter = "";
+    delete el.dataset.pressPointerType;
 
     window.setTimeout(() => {
       if(!this._activePressedButtons.has(el)){
@@ -56,16 +60,16 @@ const AppPolish = {
 
     document.addEventListener("pointerdown", (event) => {
       const button = this._getPressableButton(event.target);
-      if(button) this._applyPressedState(button);
-    }, true);
+      if(button) this._applyPressedState(button, event.pointerType || "mouse");
+    }, { capture:true, passive:true });
 
     document.addEventListener("pointerup", () => {
       this._activePressedButtons.forEach((button) => this._releasePressedState(button));
-    }, true);
+    }, { capture:true, passive:true });
 
     document.addEventListener("pointercancel", () => {
       this._activePressedButtons.forEach((button) => this._releasePressedState(button));
-    }, true);
+    }, { capture:true, passive:true });
 
     document.addEventListener("keydown", (event) => {
       if(event.repeat) return;

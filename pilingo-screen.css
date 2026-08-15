@@ -14,6 +14,8 @@ html{
   width:100%;
   min-height:100%;
   overflow-x:clip;
+  overscroll-behavior-x:none;
+  -webkit-text-size-adjust:100%;
 }
 
 body{
@@ -21,6 +23,56 @@ body{
   min-height:100vh;
   min-height:100dvh;
   overflow-x:clip;
+  overscroll-behavior-x:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"]{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+button,
+a,
+[role="button"]{
+  -webkit-user-drag:none;
+}
+
+.student-profile-card,
+.settings-card,
+.account-card,
+.message-thread,
+.call-card,
+[data-pilingo-scroll]{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  scroll-behavior:auto;
+  touch-action:pan-y;
+}
+
+@media(hover:none), (pointer:coarse){
+  html,
+  body,
+  .student-profile-card,
+  .settings-card,
+  .account-card,
+  .message-thread,
+  .call-card,
+  [data-pilingo-scroll]{
+    scroll-behavior:auto!important;
+  }
+
+  button:active,
+  button.is-pressed,
+  [role="button"]:active,
+  [role="button"].is-pressed{
+    transform:none!important;
+  }
 }
 
 body > main,
@@ -38,6 +90,9 @@ body > .pilingo-screen{
     margin:0!important;
     background:#fff!important;
     backdrop-filter:none!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+    touch-action:manipulation;
   }
 
   body #messageModal .message-modal-card{
@@ -62,10 +117,13 @@ body > .pilingo-screen{
   body #messageModal .message-thread{
     min-height:0!important;
     max-height:none!important;
+    overflow-y:auto!important;
+    touch-action:pan-y;
   }
 
   body #messageModal .message-composer{
     padding:9px max(10px,var(--pilingo-safe-right)) calc(9px + var(--pilingo-safe-bottom)) max(10px,var(--pilingo-safe-left))!important;
     border-radius:0!important;
+    flex:none!important;
   }
 }
