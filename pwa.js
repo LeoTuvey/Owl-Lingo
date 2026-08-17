@@ -18,6 +18,7 @@
   let swRegistrationPromise = null;
   let lastRecordedActivity = "";
   const visitSessionKey = "pilingo_visit_session_v1";
+  const visitSentAtKey = "pilingo_visit_sent_at_v1";
 
   function createVisitSessionId(){
     if(window.crypto?.randomUUID){
@@ -31,8 +32,8 @@
 
     let sessionId = "";
     try {
-      sessionId = sessionStorage.getItem(visitSessionKey) || "";
-      if(sessionId) return true;
+      const lastSentAt = Number(sessionStorage.getItem(visitSentAtKey) || "0");
+      if(lastSentAt && Date.now() - lastSentAt < 30000) return true;
       sessionId = createVisitSessionId();
       sessionStorage.setItem(visitSessionKey, sessionId);
     } catch(error) {
@@ -65,7 +66,10 @@
           body: JSON.stringify(payload),
           keepalive: true
         });
-        if(response.ok) return true;
+        if(response.ok) {
+          try { sessionStorage.setItem(visitSentAtKey, String(Date.now())); } catch(error) {}
+          return true;
+        }
       } catch(error) {
         // Try the next configured backend.
       }
