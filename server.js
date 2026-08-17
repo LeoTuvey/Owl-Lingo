@@ -236,7 +236,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       const payload = JSON.parse(body || "{}");
-      const event = appendStudentEvent(payload || {});
+      const event = appendStudentEvent(payload || {}, req);
       return sendJson(res, 200, { ok: true, event });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid request body" });
@@ -446,7 +446,7 @@ const server = http.createServer(async (req, res) => {
           source: "register",
           location: account.location || ""
         }
-      });
+      }, req);
       return sendJson(res, 200, { ok: true, account: publicAccount(account) });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid register request" });
@@ -1318,7 +1318,8 @@ function writeEvents(events) {
   fs.writeFileSync(EVENTS_FILE, JSON.stringify(events, null, 2), "utf8");
 }
 
-function appendStudentEvent(payload) {
+function appendStudentEvent(payload, request = null) {
+  const requestIp = request ? getClientIp(request) : "";
   const event = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     type: String(payload?.type || "activity"),
@@ -1328,7 +1329,7 @@ function appendStudentEvent(payload) {
     studentEmail: String(payload?.studentEmail || ""),
     studentPhone: String(payload?.studentPhone || ""),
     studentLocation: String(payload?.studentLocation || ""),
-    visitorIp: String(payload?.visitorIp || ""),
+    visitorIp: String(payload?.visitorIp || requestIp || ""),
     details: payload?.details && typeof payload.details === "object" ? payload.details : {},
     createdAt: new Date().toISOString()
   };
