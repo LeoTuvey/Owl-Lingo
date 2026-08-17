@@ -397,6 +397,7 @@ const PilingoNotify = {
       <div class="notify-item">
         <strong>${escapeHtml(this.displayActor(event))} • ${escapeHtml(this.displayLabel(event))}</strong>
         <span>${isAnonymousEvent(event) ? "No account details yet" : `${escapeHtml(event.studentEmail || "No email")} • ${escapeHtml(event.studentPhone || "No phone")}`}</span>
+        ${event.visitorIp ? `<span><strong>IP:</strong> ${escapeHtml(event.visitorIp)}</span>` : ""}
         <span>${escapeHtml(event.studentLocation || "Location unavailable")}</span>
         <span>${escapeHtml(event.page || "")} • ${formatWhen(event.createdAt)}</span>
       </div>
@@ -635,7 +636,7 @@ const PilingoNotify = {
 
     if(Notification.permission === "granted") {
       new Notification("Pilingo activity", {
-        body: `${this.displayActor(event)} • ${this.displayLabel(event)}`
+        body: `${this.displayActor(event)} • ${this.displayLabel(event)}${event.visitorIp ? ` • IP ${event.visitorIp}` : ""}`
       });
       return;
     }

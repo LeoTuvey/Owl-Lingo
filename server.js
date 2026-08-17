@@ -1231,35 +1231,33 @@ async function sendNewVisitorNotifications(visit) {
     visit.continent ? `(${visit.continent})` : ""
   ].filter((part) => part && part !== "Unknown");
   const locationLabel = locationParts.join(", ") || "Location unavailable";
-  const event = {
+  const event = appendStudentEvent({
     type: "new_visitor",
     label: "New person opened Pilingo",
     studentName: "Website visitor",
     studentEmail: "",
     studentPhone: "",
     studentLocation: locationLabel,
+    visitorIp: visit.ipAddress,
     page: visit.entryPage || "/",
-    createdAt: visit.createdAt,
     details: {
+      ipAddress: visit.ipAddress,
       city: visit.city,
       region: visit.region,
       country: visit.country,
       continent: visit.continent,
       referrerHost: visit.referrerHost
     }
-  };
+  });
 
   const pushTasks = OWNER_EMAILS.map((email) =>
     sendPushNotificationToUser(email, {
       title: "🌍 New Pilingo visitor",
-      body: `${locationLabel} opened ${visit.entryPage || "the app"}.`,
+      body: `IP ${visit.ipAddress || "unavailable"} • ${locationLabel} opened ${visit.entryPage || "the app"}.`,
       url: "/index.html"
     })
   );
-  await Promise.allSettled([
-    sendNotifications(event),
-    ...pushTasks
-  ]);
+  await Promise.allSettled(pushTasks);
 }
 
 function getVisitSummary() {
@@ -1330,6 +1328,7 @@ function appendStudentEvent(payload) {
     studentEmail: String(payload?.studentEmail || ""),
     studentPhone: String(payload?.studentPhone || ""),
     studentLocation: String(payload?.studentLocation || ""),
+    visitorIp: String(payload?.visitorIp || ""),
     details: payload?.details && typeof payload.details === "object" ? payload.details : {},
     createdAt: new Date().toISOString()
   };
@@ -1740,7 +1739,7 @@ function isNamedStudentEvent(event) {
   const email = String(event?.studentEmail || "").trim().toLowerCase();
   const phone = String(event?.studentPhone || "").trim();
   const name = String(event?.studentName || "").trim().toLowerCase();
-  return !!(email || phone || (name && name !== "unknown student"));
+  return !!(email || phone || (name && name !== "unknown student" && name !== "website visitor" && name !== "anonymous visitor"));
 }
 
 function publicAccount(account) {
@@ -3142,10 +3141,11 @@ async function sendTelegramNotification(event) {
     `Email: ${event.studentEmail || ""}`,
     `Phone: ${event.studentPhone || ""}`,
     `Location: ${event.studentLocation || ""}`,
+    event.visitorIp ? `IP address: ${event.visitorIp}` : "",
     `Action: ${event.label || event.type || "Activity"}`,
     `Page: ${event.page || ""}`,
     `Time: ${event.createdAt || ""}`
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
@@ -3168,6 +3168,7 @@ async function sendEmailNotification(event) {
       <p><strong>Email:</strong> ${escapeHtml(event.studentEmail || "")}</p>
       <p><strong>Phone:</strong> ${escapeHtml(event.studentPhone || "")}</p>
       <p><strong>Location:</strong> ${escapeHtml(event.studentLocation || "")}</p>
+      ${event.visitorIp ? `<p><strong>IP address:</strong> ${escapeHtml(event.visitorIp)}</p>` : ""}
       <p><strong>Action:</strong> ${escapeHtml(event.label || event.type || "Activity")}</p>
       <p><strong>Page:</strong> ${escapeHtml(event.page || "")}</p>
       <p><strong>Time:</strong> ${escapeHtml(event.createdAt || "")}</p>
