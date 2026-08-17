@@ -395,9 +395,8 @@ const PilingoNotify = {
 
     list.innerHTML = finalEvents.map((event) => `
       <div class="notify-item">
-        <strong>${escapeHtml(this.displayActor(event))} • ${escapeHtml(this.displayLabel(event))}</strong>
-        <span>${isAnonymousEvent(event) ? "No account details yet" : `${escapeHtml(event.studentEmail || "No email")} • ${escapeHtml(event.studentPhone || "No phone")}`}</span>
-        ${event.visitorIp ? `<span><strong>IP:</strong> ${escapeHtml(event.visitorIp)}</span>` : ""}
+        <strong>${escapeHtml(event.studentName || "Student")} • ${escapeHtml(this.displayLabel(event))}</strong>
+        <span>${escapeHtml(event.studentEmail || "No email")} • ${escapeHtml(event.studentPhone || "No phone")}</span>
         <span>${escapeHtml(event.studentLocation || "Location unavailable")}</span>
         <span>${escapeHtml(event.page || "")} • ${formatWhen(event.createdAt)}</span>
       </div>
@@ -635,8 +634,8 @@ const PilingoNotify = {
     this.lastSeenEventId = event.id;
 
     if(Notification.permission === "granted") {
-      new Notification("Pilingo activity", {
-        body: `${this.displayActor(event)} • ${this.displayLabel(event)}${event.visitorIp ? ` • IP ${event.visitorIp}` : ""}`
+      new Notification("Pilingo student activity", {
+        body: `${event.studentName || "Student"} • ${this.displayLabel(event)}`
       });
       return;
     }
@@ -654,6 +653,7 @@ const PilingoNotify = {
       const name = String(event?.studentName || "").trim();
       const studentKey = email || phone || name.toLowerCase();
       const createdAt = new Date(event?.createdAt || 0).getTime();
+      const isUnknown = !email && !phone && (!name || name.toLowerCase() === "unknown student");
       const isHomeOpen = type === "page_open" && page === "index.html";
       const isAccountCreated = type === "account_created";
       const isLogin = type === "account_login";
@@ -661,6 +661,7 @@ const PilingoNotify = {
       const isLearningStart = type === "learning_started";
       const isImportant = isAccountCreated || isLogin || isLessonOpen || isLearningStart;
 
+      if(isUnknown && isHomeOpen) continue;
       if(isHomeOpen && studentKey && meaningfulStudents.has(studentKey)) continue;
 
       const signature = [
@@ -690,9 +691,6 @@ const PilingoNotify = {
     if(type === "account_logout") return "Logged out";
     if(type === "learning_started") return "Started learning";
     return String(event?.label || event?.type || "Activity");
-  },
-  displayActor(event){
-    return isAnonymousEvent(event) ? "Anonymous visitor" : String(event?.studentName || "Student");
   },
   buildCompetitionState(students, currentIndex, leader){
     const stateKey = "pilingo_competition_state_v1";
@@ -783,13 +781,6 @@ const PilingoNotify = {
     }
   }
 };
-
-function isAnonymousEvent(event){
-  const email = String(event?.studentEmail || "").trim();
-  const phone = String(event?.studentPhone || "").trim();
-  const name = String(event?.studentName || "").trim().toLowerCase();
-  return !email && !phone && (!name || name === "unknown student" || name === "website visitor");
-}
 
 function formatWhen(iso){
   if(!iso) return "Unknown time";

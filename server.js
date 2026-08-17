@@ -236,7 +236,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       const payload = JSON.parse(body || "{}");
-      const event = appendStudentEvent(payload || {}, req);
+      const event = appendStudentEvent(payload || {});
       return sendJson(res, 200, { ok: true, event });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid request body" });
@@ -446,7 +446,7 @@ const server = http.createServer(async (req, res) => {
           source: "register",
           location: account.location || ""
         }
-      }, req);
+      });
       return sendJson(res, 200, { ok: true, account: publicAccount(account) });
     } catch (error) {
       return sendJson(res, 400, { ok: false, error: "Invalid register request" });
@@ -1231,33 +1231,35 @@ async function sendNewVisitorNotifications(visit) {
     visit.continent ? `(${visit.continent})` : ""
   ].filter((part) => part && part !== "Unknown");
   const locationLabel = locationParts.join(", ") || "Location unavailable";
-  const event = appendStudentEvent({
+  const event = {
     type: "new_visitor",
     label: "New person opened Pilingo",
     studentName: "Website visitor",
     studentEmail: "",
     studentPhone: "",
     studentLocation: locationLabel,
-    visitorIp: visit.ipAddress,
     page: visit.entryPage || "/",
+    createdAt: visit.createdAt,
     details: {
-      ipAddress: visit.ipAddress,
       city: visit.city,
       region: visit.region,
       country: visit.country,
       continent: visit.continent,
       referrerHost: visit.referrerHost
     }
-  });
+  };
 
   const pushTasks = OWNER_EMAILS.map((email) =>
     sendPushNotificationToUser(email, {
       title: "🌍 New Pilingo visitor",
-      body: `IP ${visit.ipAddress || "unavailable"} • ${locationLabel} opened ${visit.entryPage || "the app"}.`,
+      body: `${locationLabel} opened ${visit.entryPage || "the app"}.`,
       url: "/index.html"
     })
   );
-  await Promise.allSettled(pushTasks);
+  await Promise.allSettled([
+    sendNotifications(event),
+    ...pushTasks
+  ]);
 }
 
 function getVisitSummary() {
@@ -1318,8 +1320,7 @@ function writeEvents(events) {
   fs.writeFileSync(EVENTS_FILE, JSON.stringify(events, null, 2), "utf8");
 }
 
-function appendStudentEvent(payload, request = null) {
-  const requestIp = request ? getClientIp(request) : "";
+function appendStudentEvent(payload) {
   const event = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     type: String(payload?.type || "activity"),
@@ -1329,7 +1330,6 @@ function appendStudentEvent(payload, request = null) {
     studentEmail: String(payload?.studentEmail || ""),
     studentPhone: String(payload?.studentPhone || ""),
     studentLocation: String(payload?.studentLocation || ""),
-    visitorIp: String(payload?.visitorIp || requestIp || ""),
     details: payload?.details && typeof payload.details === "object" ? payload.details : {},
     createdAt: new Date().toISOString()
   };
@@ -1740,7 +1740,7 @@ function isNamedStudentEvent(event) {
   const email = String(event?.studentEmail || "").trim().toLowerCase();
   const phone = String(event?.studentPhone || "").trim();
   const name = String(event?.studentName || "").trim().toLowerCase();
-  return !!(email || phone || (name && name !== "unknown student" && name !== "website visitor" && name !== "anonymous visitor"));
+  return !!(email || phone || (name && name !== "unknown student"));
 }
 
 function publicAccount(account) {
@@ -3142,11 +3142,10 @@ async function sendTelegramNotification(event) {
     `Email: ${event.studentEmail || ""}`,
     `Phone: ${event.studentPhone || ""}`,
     `Location: ${event.studentLocation || ""}`,
-    event.visitorIp ? `IP address: ${event.visitorIp}` : "",
     `Action: ${event.label || event.type || "Activity"}`,
     `Page: ${event.page || ""}`,
     `Time: ${event.createdAt || ""}`
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 
   await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
@@ -3169,7 +3168,6 @@ async function sendEmailNotification(event) {
       <p><strong>Email:</strong> ${escapeHtml(event.studentEmail || "")}</p>
       <p><strong>Phone:</strong> ${escapeHtml(event.studentPhone || "")}</p>
       <p><strong>Location:</strong> ${escapeHtml(event.studentLocation || "")}</p>
-      ${event.visitorIp ? `<p><strong>IP address:</strong> ${escapeHtml(event.visitorIp)}</p>` : ""}
       <p><strong>Action:</strong> ${escapeHtml(event.label || event.type || "Activity")}</p>
       <p><strong>Page:</strong> ${escapeHtml(event.page || "")}</p>
       <p><strong>Time:</strong> ${escapeHtml(event.createdAt || "")}</p>
