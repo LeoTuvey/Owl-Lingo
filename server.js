@@ -236,6 +236,26 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       const payload = JSON.parse(body || "{}");
+      const email = String(payload?.studentEmail || "").trim();
+      const phone = String(payload?.studentPhone || "").trim();
+      const name = String(payload?.studentName || "").trim().toLowerCase();
+      const isAnonymous = !email && !phone && (!name || name === "unknown student");
+      if (isAnonymous) {
+        const location = await lookupCoarseLocation(getClientIp(req));
+        const coordinateLabel = location.latitude && location.longitude
+          ? `Lat ${location.latitude}, Lng ${location.longitude}`
+          : "Coordinates unavailable";
+        const placeLabel = [location.city, location.region, location.country]
+          .filter((part) => part && part !== "Unknown")
+          .join(", ");
+        payload.studentLocation = placeLabel ? `${placeLabel} • ${coordinateLabel}` : coordinateLabel;
+        payload.details = {
+          ...(payload.details && typeof payload.details === "object" ? payload.details : {}),
+          latitude: location.latitude,
+          longitude: location.longitude,
+          country: location.country
+        };
+      }
       const event = appendStudentEvent(payload || {});
       return sendJson(res, 200, { ok: true, event });
     } catch (error) {
