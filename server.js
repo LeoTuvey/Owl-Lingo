@@ -1115,13 +1115,13 @@ function getClientIp(req) {
 
 async function lookupCoarseLocation(ip) {
   if (!ip || isPrivateIp(ip) || !/^[0-9a-f:.]+$/i.test(ip)) {
-    return { city: "Local", region: "", country: "Local", countryCode: "", continent: "" };
+    return { city: "Local", region: "", country: "Local", countryCode: "", continent: "", latitude: null, longitude: null };
   }
 
   const lookups = [
     async () => {
       const data = await fetchLocationJson(
-        `https://ipwho.is/${encodeURIComponent(ip)}?fields=success,city,region,country,country_code,continent`
+        `https://ipwho.is/${encodeURIComponent(ip)}?fields=success,city,region,country,country_code,continent,latitude,longitude`
       );
       if (data?.success === false) throw new Error("Location unavailable");
       return {
@@ -1129,7 +1129,9 @@ async function lookupCoarseLocation(ip) {
         region: data?.region,
         country: data?.country,
         countryCode: data?.country_code,
-        continent: data?.continent
+        continent: data?.continent,
+        latitude: data?.latitude,
+        longitude: data?.longitude
       };
     },
     async () => {
@@ -1140,7 +1142,9 @@ async function lookupCoarseLocation(ip) {
         region: data?.region,
         country: data?.country_name,
         countryCode: data?.country_code,
-        continent: data?.continent_code
+        continent: data?.continent_code,
+        latitude: data?.latitude,
+        longitude: data?.longitude
       };
     }
   ];
@@ -1154,14 +1158,21 @@ async function lookupCoarseLocation(ip) {
         region: String(location.region || ""),
         country: String(location.country || "Unknown"),
         countryCode: String(location.countryCode || "").toUpperCase(),
-        continent: String(location.continent || "Unknown")
+        continent: String(location.continent || "Unknown"),
+        latitude: normalizeCoordinate(location.latitude, -90, 90),
+        longitude: normalizeCoordinate(location.longitude, -180, 180)
       };
     } catch (error) {
       // Try the next provider when one is unavailable or rate-limited.
     }
   }
 
-  return { city: "Unknown", region: "", country: "Unknown", countryCode: "", continent: "Unknown" };
+  return { city: "Unknown", region: "", country: "Unknown", countryCode: "", continent: "Unknown", latitude: null, longitude: null };
+}
+
+function normalizeCoordinate(value, min, max) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= min && number <= max ? number.toFixed(4) : null;
 }
 
 function isPrivateIp(ip) {
@@ -1212,6 +1223,8 @@ async function recordVisit(req, payload) {
     country: location.country,
     countryCode: location.countryCode,
     continent: location.continent,
+    latitude: location.latitude,
+    longitude: location.longitude,
     entryPage: String(payload?.entryPage || "").slice(0, 160),
     referrerHost: String(payload?.referrerHost || "").slice(0, 160),
     timezone: String(payload?.timezone || "").slice(0, 100),
@@ -1231,13 +1244,16 @@ async function sendNewVisitorNotifications(visit) {
     visit.continent ? `(${visit.continent})` : ""
   ].filter((part) => part && part !== "Unknown");
   const locationLabel = locationParts.join(", ") || "Location unavailable";
+  const coordinateLabel = visit.latitude && visit.longitude
+    ? `Lat ${visit.latitude}, Lng ${visit.longitude}`
+    : "Coordinates unavailable";
   const event = {
     type: "new_visitor",
     label: "New person opened Pilingo",
     studentName: "Website visitor",
     studentEmail: "",
     studentPhone: "",
-    studentLocation: locationLabel,
+    studentLocation: `${locationLabel} • ${coordinateLabel}`,
     page: visit.entryPage || "/",
     createdAt: visit.createdAt,
     details: {
@@ -1245,6 +1261,8 @@ async function sendNewVisitorNotifications(visit) {
       region: visit.region,
       country: visit.country,
       continent: visit.continent,
+      latitude: visit.latitude,
+      longitude: visit.longitude,
       referrerHost: visit.referrerHost
     }
   };
@@ -1252,7 +1270,7 @@ async function sendNewVisitorNotifications(visit) {
   const pushTasks = OWNER_EMAILS.map((email) =>
     sendPushNotificationToUser(email, {
       title: "🌍 New Pilingo visitor",
-      body: `${locationLabel} opened ${visit.entryPage || "the app"}.`,
+      body: `${coordinateLabel} • ${locationLabel} opened ${visit.entryPage || "the app"}.`,
       url: "/index.html"
     })
   );
