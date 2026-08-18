@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=94"></script>
+<script src="course-data.js?v=95"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1979,15 +1979,34 @@ const isGreetingsBall5Step = (step) => (
     )
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
+const possessiveEnglishOptions = ["my", "your", "his", "her", "our", "their"];
+const possessiveSidesQuizStep = (singular, plural, answer, note = "") => ({
+    type:"choice",
+    instruction:"Choose the English word that matches both sides",
+    prompt:"Singular and plural possessive forms",
+    promptHtml:`
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,7vw,90px);width:min(100%,880px);margin:0 auto;align-items:start">
+            <div style="text-align:center">
+                <div style="font-size:clamp(34px,6vw,64px);line-height:1">🐈</div>
+                <div style="margin-top:14px;font-size:clamp(28px,5vw,54px);font-weight:900;color:#050505;white-space:nowrap">${singular}</div>
+            </div>
+            <div style="text-align:center">
+                <div style="font-size:clamp(34px,6vw,64px);line-height:1">🐈🐈</div>
+                <div style="margin-top:14px;font-size:clamp(28px,5vw,54px);font-weight:900;color:#050505;white-space:nowrap">${plural}</div>
+            </div>
+        </div>
+        ${note ? `<div style="margin-top:18px;font-size:clamp(18px,2.4vw,28px);font-weight:800;color:#425466">${note}</div>` : ""}`,
+    options:possessiveEnglishOptions,
+    answer
+});
 const GREETINGS_BALL5_STEPS = [
-    {
-        type:"choice",
-        instruction:"",
-        prompt:"Possessive forms",
-        promptHtml:'<img src="assets/lessons/greet-people-ball5-possessives.png" alt="Singular and plural possessive forms for my, your, his, her, our, your plural, and their" style="display:block;width:min(100%,1124px);height:auto;margin:0 auto;border-radius:10px">',
-        options:["Continue"],
-        answer:"Continue"
-    }
+    possessiveSidesQuizStep('amin<span style="color:#ef806d">/</span>êmin', 'êtmin<span style="color:#ef806d">/</span>ênmin', "my"),
+    possessiveSidesQuizStep('ate<span style="color:#ef806d">/</span>ête', 'êtte<span style="color:#ef806d">/</span>ênte', "your"),
+    possessiveSidesQuizStep('awî<span style="color:#ef806d">/</span>êwî', 'êtwî<span style="color:#ef806d">/</span>ênwî', "his"),
+    possessiveSidesQuizStep('awê<span style="color:#ef806d">/</span>êwê', 'êtwê<span style="color:#ef806d">/</span>ênwê', "her"),
+    possessiveSidesQuizStep('ame<span style="color:#ef806d">/</span>ême', 'êtme<span style="color:#ef806d">/</span>ênme', "our"),
+    possessiveSidesQuizStep('awe<span style="color:#ef806d">/</span>êwe', 'êtwe<span style="color:#ef806d">/</span>ênwe', "your", "hingo • plural you"),
+    possessiveSidesQuizStep('awan<span style="color:#ef806d">/</span>êwan', 'êtwan<span style="color:#ef806d">/</span>ênwan', "their")
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
