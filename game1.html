@@ -2094,9 +2094,11 @@ const GREETINGS_BALL5_STEPS = [
         type:"choice",
         instruction:"Choose the missing word",
         prompt:"How are you?\nTu çawa __?",
-        promptHtml:'How <span style="color:#4a86e8;font-weight:1000">are</span> you?<br>Tu çawa <span class="prompt-blank">__</span>?',
+        promptHtml:'How <span style="color:#4a86e8;font-weight:1000">are</span> you?<br>Tu çawa <span class="prompt-blank" data-choice-answer-target>__</span>?',
         options:["ne", "im", "yî"],
-        answer:"yî"
+        answer:"yî",
+        moveCorrectToBlank:true,
+        choiceAnswerColor:"#4a86e8"
     },
     rawBuildStep("Arrange the Words!", "Ez a-baş im, spas!", ["thanks!", "good,", "am", "I"], ["I", "am", "good,", "thanks!"]),
     {
@@ -2122,7 +2124,8 @@ const GREETINGS_BALL5_STEPS = [
         promptHtml:'How <span style="color:#4a86e8;font-weight:1000">are</span> you?<br>Hûn(Hing) çawa <span class="prompt-blank" data-choice-answer-target>__</span>?',
         options:["yî", "im", "ne"],
         answer:"ne",
-        moveCorrectToBlank:true
+        moveCorrectToBlank:true,
+        choiceAnswerColor:"#4a86e8"
     },
     ball5TypedMissingStep(
         "Tu çawa yî?\n____ are you?",
@@ -7882,6 +7885,7 @@ function moveCorrectChoiceIntoBlank(step, value, button){
     const token = document.createElement("span");
     token.className = "choice-fly-token";
     token.textContent = value;
+    if(step.choiceAnswerColor) token.style.color = step.choiceAnswerColor;
     token.style.left = start.left + "px";
     token.style.top = start.top + "px";
     document.body.appendChild(token);
@@ -7899,6 +7903,7 @@ function moveCorrectChoiceIntoBlank(step, value, button){
 
     animation.finished.finally(() => {
         target.textContent = value;
+        if(step.choiceAnswerColor) target.style.color = step.choiceAnswerColor;
         token.remove();
         markCorrect();
     });
