@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=97"></script>
+<script src="course-data.js?v=98"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1999,6 +1999,25 @@ const possessiveSidesQuizStep = (singular, plural, answer, note = "") => ({
     options:possessiveEnglishOptions,
     answer
 });
+const ball5VoiceMatchStep = (instruction, pairs) => ({
+    type:"match",
+    instruction,
+    prompt:"",
+    pairs:pairs.map((pair, index) => ({
+        english:pair[0],
+        kurmanji:pair[1],
+        group:pair[2] || `ball5-match-${index}`
+    })),
+    leftHeading:"English",
+    rightHeading:"Kurmanji",
+    leftSide:"first",
+    rightSide:"second",
+    compactOnPhone:pairs.length >= 7,
+    leftSpeakMap:Object.fromEntries(pairs.map((pair) => [
+        pair[0],
+        pair[3] || pair[0].replace(/[\p{Extended_Pictographic}\uFE0F]/gu, "").trim()
+    ]))
+});
 const GREETINGS_BALL5_STEPS = [
     possessiveSidesQuizStep('amin<span style="color:#ef806d">/</span>êmin', 'êtmin<span style="color:#ef806d">/</span>ênmin', "my"),
     possessiveSidesQuizStep('ate<span style="color:#ef806d">/</span>ête', 'êtte<span style="color:#ef806d">/</span>ênte', "your"),
@@ -2006,7 +2025,42 @@ const GREETINGS_BALL5_STEPS = [
     possessiveSidesQuizStep('awê<span style="color:#ef806d">/</span>êwê', 'êtwê<span style="color:#ef806d">/</span>ênwê', "her"),
     possessiveSidesQuizStep('ame<span style="color:#ef806d">/</span>ême', 'êtme<span style="color:#ef806d">/</span>ênme', "our"),
     possessiveSidesQuizStep('awe<span style="color:#ef806d">/</span>êwe<span style="font-size:.58em;font-weight:800">(hingo)</span>', 'êtwe<span style="color:#ef806d">/</span>ênwe<span style="font-size:.58em;font-weight:800">(hingo)</span>', "your"),
-    possessiveSidesQuizStep('awan<span style="color:#ef806d">/</span>êwan', 'êtwan<span style="color:#ef806d">/</span>ênwan', "their")
+    possessiveSidesQuizStep('awan<span style="color:#ef806d">/</span>êwan', 'êtwan<span style="color:#ef806d">/</span>ênwan', "their"),
+    ball5VoiceMatchStep("Match the words", [
+        ["So", "Herê"],
+        ["You (s.)", "Tu"],
+        ["You (p.)", "Hûn (Hing)"],
+        ["see you", "dê te bînim"],
+        ["how", "çawa (çitû)"],
+        ["Thanks", "spas"],
+        ["Today", "îro"]
+    ]),
+    ball5VoiceMatchStep("Match the words", [
+        ["Go!", "Here!"],
+        ["Yes", "Erê"],
+        ["how", "çawa (çitû)"],
+        ["home", "mal"],
+        ["No", "Ne"],
+        ["goodbye", "bi xatirê te"]
+    ]),
+    ball5VoiceMatchStep("Match the subject pronouns", [
+        ["I", "Ez"],
+        ["You", "Tu"],
+        ["He", "Ew", "ew"],
+        ["It", "Ew", "ew"],
+        ["She", "Ew", "ew"],
+        ["We", "Em"],
+        ["You (p.)", "Hûn (Hing)"],
+        ["They", "Ew", "ew"]
+    ]),
+    ball5VoiceMatchStep("Match the times of day", [
+        ["🌄 Dawn", "berspêde", "dawn", "Dawn"],
+        ["🌄 Morning", "sibeh (spêde)", "morning", "Morning"],
+        ["☀️ Noon (Midday)", "nîvro", "noon", "Noon, Midday"],
+        ["🌇 Afternoon", "pasnîvro", "afternoon", "Afternoon"],
+        ["🌆 Evening", "îvarî (êvarî)", "evening", "Evening"],
+        ["🌙 Night", "şev", "night", "Night"]
+    ])
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
