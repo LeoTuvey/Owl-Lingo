@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=90"></script>
+<script src="course-data.js?v=92"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1733,7 +1733,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
-const TEMPORARILY_LOCKED_BALL_IDS = new Set(["a-part-2-greetings-v7"]);
+const TEMPORARILY_LOCKED_BALL_IDS = new Set();
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
 const GREETINGS_BALL4_VERSION = "greetings-ball4-v36";
@@ -1980,6 +1980,8 @@ const isGreetingsBall5Step = (step) => (
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
 const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
+// Ball 6 is a complete mastery pass built on Ball 4's proven activity mix and UI.
+const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_STEPS.map((step) => ({ ...step }));
 
 const gameParts = [
     {
@@ -3160,6 +3162,7 @@ const gameParts = [
             ...GREETINGS_BALL3_REPLACEMENT_STEPS,
             ...GREETINGS_BALL4_STEPS,
             ...GREETINGS_BALL5_STEPS,
+            ...GREETINGS_BALL6_STEPS,
         ]
     },
     {
@@ -3696,7 +3699,7 @@ const coursePartRoutes = {
         slug:"greetings",
         title:"👋 Greet People",
         gamePartIndex:0,
-        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"],
+        sectionIds:["a-part-2-greetings-v1", "a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7", "a-part-2-greetings-v8"],
         enginePartId:"part-3"
     },
     "food-drink":{
@@ -4113,6 +4116,21 @@ const partSections = {
                 detail:`Ball 5 activity ${index + 1}`,
                 start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index,
                 end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index
+            }))
+        },
+        {
+            id:"a-part-2-greetings-v8",
+            ballNumber:6,
+            label:"Ball 6",
+            detail:"Mastery practice for has, have, colours, animals, and possessives",
+            start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length,
+            end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length + GREETINGS_BALL6_STEPS.length,
+            lessons:Array.from({ length:GREETINGS_BALL6_STEPS.length }, (_, index) => ({
+                id:`a-part-2-greetings-v8-activity-${index + 1}`,
+                label:`Activity ${index + 1}`,
+                detail:`Ball 6 activity ${index + 1}`,
+                start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length + index,
+                end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length + index
             }))
         }
     ],
@@ -6217,7 +6235,8 @@ function lessonProgressIds(index, sectionIndex){
         "a-part-1i-v1",
         "a-part-2-greetings-v5",
         "a-part-2-greetings-v6",
-        "a-part-2-greetings-v7"
+        "a-part-2-greetings-v7",
+        "a-part-2-greetings-v8"
     ].includes(section?.id);
     if(!requiresCurrentLessonIds && isLegacySectionComplete(index, sectionIndex)) {
         return lessons.map(lesson => lesson.id);
@@ -6372,7 +6391,7 @@ function markLessonComplete(index, sectionIndex, lessonId){
 function isSectionComplete(index, sectionIndex){
     const section = sectionsForPart(index)[sectionIndex];
     const progress = sectionLessonProgress(index, sectionIndex);
-    if(["a-part-1i-v1", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"].includes(section?.id)) {
+    if(["a-part-1i-v1", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7", "a-part-2-greetings-v8"].includes(section?.id)) {
         return progress.total > 0 && progress.completed >= progress.total;
     }
 
@@ -6794,7 +6813,8 @@ function startSectionById(index, sectionId){
     }
 
     if(TEMPORARILY_LOCKED_BALL_IDS.has(sectionId)) {
-        showSectionSelect(index, "🔒 Ball 5 is temporarily locked while its lessons and quizzes are improved.");
+        const lockedBall = sections[sectionIndex]?.label || "This ball";
+        showSectionSelect(index, `🔒 ${lockedBall} is temporarily locked while its lessons and quizzes are prepared.`);
         return;
     }
 
@@ -8123,7 +8143,7 @@ function completeStep(){
         }
 
         if(usesDirectBallFlow(partIndex)) {
-            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
+            if(["a-part-2-greetings-v2", "a-part-2-greetings-v5", "a-part-2-greetings-v6", "a-part-2-greetings-v7", "a-part-2-greetings-v8"].includes(sections[sectionIndex]?.id) && typeof completedLessonIndex === "number") {
                 const nextLessonIndex = completedLessonIndex + 1;
                 if(nextLessonIndex < lessonsForSection(partIndex, sectionIndex).length) {
                     startLesson(partIndex, sectionIndex, nextLessonIndex);
