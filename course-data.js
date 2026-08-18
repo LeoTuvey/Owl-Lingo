@@ -154,6 +154,13 @@ const SECTION_ONE_PARTS = [
       "Ball 5 quiz 22: Type you",
       "Ball 5 quiz 23: Good morning Susan",
       "Ball 5 quiz 24: Good morning Nina",
+      "Ball 5 quiz 25: Goodbye",
+      "Ball 5 quiz 26: Ate possessive",
+      "Ball 5 quiz 27: Your mother with ate",
+      "Ball 5 quiz 28: Ête possessive",
+      "Ball 5 quiz 29: Your mother with ête",
+      "Ball 5 quiz 30: Type our",
+      "Ball 5 quiz 31: Type cats",
       ...Array.from({ length:32 }, (_, index) => `Ball 6 activity ${index + 1}`)
     ),
     balls: [
@@ -161,7 +168,7 @@ const SECTION_ONE_PARTS = [
       ball("a-part-2-greetings-v2", 2, "Ball 2", "Greeting conversations, grammar endings, typing, and listening", 11),
       ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb note, animals, have got, possessives, and articles", 78),
       ball("a-part-2-greetings-v6", 4, "Ball 4", "Has, have, this, colours, animals, and possessives", 82),
-      ball("a-part-2-greetings-v7", 5, "Ball 5", "Possessives, greetings, pronouns, conversations, typing, and times of day", 24),
+      ball("a-part-2-greetings-v7", 5, "Ball 5", "Possessives, greetings, pronouns, conversations, typing, and times of day", 31),
       ball("a-part-2-greetings-v8", 6, "Ball 6", "Have got and has got animal sentences", 32)
     ]
   },

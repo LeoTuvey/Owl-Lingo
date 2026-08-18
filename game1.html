@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=100"></script>
+<script src="course-data.js?v=101"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -2019,9 +2019,9 @@ const ball5VoiceMatchStep = (instruction, pairs) => ({
         pair[3] || pair[0].replace(/[\p{Extended_Pictographic}\uFE0F]/gu, "").trim()
     ]))
 });
-const ball5TypedMissingStep = (prompt, promptHtml, answer) => ({
+const ball5TypedMissingStep = (prompt, promptHtml, answer, instruction = "Type the Missing Word!") => ({
     type:"type",
-    instruction:"Type the Missing Word!",
+    instruction,
     prompt,
     promptHtml,
     inputPlaceholder:"Type the missing word",
@@ -2148,6 +2148,49 @@ const GREETINGS_BALL5_STEPS = [
         "Spêde baş Nîna!\n____ morning Nina.",
         'Spêde <span style="color:#4a86e8;font-weight:1000">baş</span> Nîna!<br><span class="prompt-blank" data-typed-answer-target>____</span> morning Nina.',
         "Good"
+    ),
+    {
+        type:"choice",
+        instruction:"",
+        prompt:"Bi xatira te!",
+        options:["welcome", "goodbye"],
+        answer:"goodbye"
+    },
+    {
+        type:"choice",
+        instruction:"",
+        prompt:"ate",
+        options:["your", "mine", "her"],
+        answer:"your"
+    },
+    ball5TypedMissingStep(
+        "Dayik ate a-çawa ye?\nHow is ____ mother?",
+        'Dayik <span style="color:#4a86e8;font-weight:1000">ate</span> a-çawa ye?<br>How is <span class="prompt-blank" data-typed-answer-target>____</span> mother?',
+        "your",
+        ""
+    ),
+    {
+        type:"choice",
+        instruction:"",
+        prompt:"ête",
+        options:["your", "mine", "her"],
+        answer:"your"
+    },
+    ball5TypedMissingStep(
+        "Bab ête ê-çawa ye?\nHow is ____ mother?",
+        'Bab <span style="color:#4a86e8;font-weight:1000">ête</span> ê-çawa ye?<br>How is <span class="prompt-blank" data-typed-answer-target>____</span> mother?',
+        "your",
+        ""
+    ),
+    ball5TypedMissingStep(
+        "Kitik êtme\n____ cats",
+        'Kitik <span style="color:#4a86e8;font-weight:1000">êtme</span><br><span class="prompt-blank" data-typed-answer-target>____</span> cats',
+        "Our"
+    ),
+    ball5TypedMissingStep(
+        "Kitik ênme\nOur ____",
+        '<span style="color:#4a86e8;font-weight:1000">Kitik</span> ênme<br>Our <span class="prompt-blank" data-typed-answer-target>____</span>',
+        "cats"
     )
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
