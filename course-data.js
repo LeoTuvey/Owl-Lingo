@@ -136,7 +136,7 @@ const SECTION_ONE_PARTS = [
       "Verb note",
       ...Array.from({ length:77 }, (_, index) => `Ball 3 activity ${index + 1}`),
       ...Array.from({ length:82 }, (_, index) => `Ball 4 activity ${index + 1}`),
-      ...Array.from({ length:7 }, (_, index) => `Ball 5 possessives quiz ${index + 1}`),
+      "Ball 5 quiz 1: Match singular and plural possessives",
       ...Array.from({ length:32 }, (_, index) => `Ball 6 activity ${index + 1}`)
     ),
     balls: [
@@ -144,7 +144,7 @@ const SECTION_ONE_PARTS = [
       ball("a-part-2-greetings-v2", 2, "Ball 2", "Greeting conversations, grammar endings, typing, and listening", 11),
       ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb note, animals, have got, possessives, and articles", 78),
       ball("a-part-2-greetings-v6", 4, "Ball 4", "Has, have, this, colours, animals, and possessives", 82),
-      ball("a-part-2-greetings-v7", 5, "Ball 5", "Choose the English possessive for singular and plural forms", 7),
+      ball("a-part-2-greetings-v7", 5, "Ball 5", "Choose English words between singular and plural possessive forms", 1),
       ball("a-part-2-greetings-v8", 6, "Ball 6", "Have got and has got animal sentences", 32)
     ]
   },
