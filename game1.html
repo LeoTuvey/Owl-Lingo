@@ -1981,32 +1981,12 @@ const isGreetingsBall5Step = (step) => (
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
 const GREETINGS_BALL5_STEPS = [
     {
-        type:"match",
-        instruction:"Match the possessive form",
-        prompt:"🐈 Singular and 🐈🐈 plural possessives",
-        pairs:[
-            { english:"my", kurmanji:"🐈 amin / êmin  •  🐈🐈 êtmin / ênmin", group:"my" },
-            { english:"your", kurmanji:"🐈 ate / ête  •  🐈🐈 êtte / ênte", group:"your-singular" },
-            { english:"his", kurmanji:"🐈 awî / êwî  •  🐈🐈 êtwî / ênwî", group:"his" },
-            { english:"her", kurmanji:"🐈 awê / êwê  •  🐈🐈 êtwê / ênwê", group:"her" },
-            { english:"our", kurmanji:"🐈 ame / ême  •  🐈🐈 êtme / ênme", group:"our" },
-            { english:"your (plural)", kurmanji:"🐈 awe / êwe (hingo)  •  🐈🐈 êtwe / ênwe (hingo)", group:"your-plural" },
-            { english:"their", kurmanji:"🐈 awan / êwan  •  🐈🐈 êtwan / ênwan", group:"their" }
-        ],
-        leftHeading:"English",
-        rightHeading:"Kurmanji",
-        leftSide:"first",
-        rightSide:"second",
-        compactOnPhone:true,
-        leftSpeakMap:{
-            "my":"my",
-            "your":"your",
-            "his":"his",
-            "her":"her",
-            "our":"our",
-            "your (plural)":"your",
-            "their":"their"
-        }
+        type:"choice",
+        instruction:"",
+        prompt:"Possessive forms",
+        promptHtml:'<img src="assets/lessons/greet-people-ball5-possessives.png" alt="Singular and plural possessive forms for my, your, his, her, our, your plural, and their" style="display:block;width:min(100%,1124px);height:auto;margin:0 auto;border-radius:10px">',
+        options:["Continue"],
+        answer:"Continue"
     }
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
