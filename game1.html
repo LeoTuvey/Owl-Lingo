@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=93"></script>
+<script src="course-data.js?v=94"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1733,7 +1733,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
-const TEMPORARILY_LOCKED_BALL_IDS = new Set(["a-part-2-greetings-v7"]);
+const TEMPORARILY_LOCKED_BALL_IDS = new Set();
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
 const GREETINGS_BALL4_VERSION = "greetings-ball4-v36";
@@ -1979,8 +1979,36 @@ const isGreetingsBall5Step = (step) => (
     )
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
-// Ball 5 is reserved for new material. Its previous lessons and quizzes now live in Ball 6.
-const GREETINGS_BALL5_STEPS = [];
+const GREETINGS_BALL5_STEPS = [
+    {
+        type:"match",
+        instruction:"Match the possessive form",
+        prompt:"🐈 Singular and 🐈🐈 plural possessives",
+        pairs:[
+            { english:"my", kurmanji:"🐈 amin / êmin  •  🐈🐈 êtmin / ênmin", group:"my" },
+            { english:"your", kurmanji:"🐈 ate / ête  •  🐈🐈 êtte / ênte", group:"your-singular" },
+            { english:"his", kurmanji:"🐈 awî / êwî  •  🐈🐈 êtwî / ênwî", group:"his" },
+            { english:"her", kurmanji:"🐈 awê / êwê  •  🐈🐈 êtwê / ênwê", group:"her" },
+            { english:"our", kurmanji:"🐈 ame / ême  •  🐈🐈 êtme / ênme", group:"our" },
+            { english:"your (plural)", kurmanji:"🐈 awe / êwe (hingo)  •  🐈🐈 êtwe / ênwe (hingo)", group:"your-plural" },
+            { english:"their", kurmanji:"🐈 awan / êwan  •  🐈🐈 êtwan / ênwan", group:"their" }
+        ],
+        leftHeading:"English",
+        rightHeading:"Kurmanji",
+        leftSide:"first",
+        rightSide:"second",
+        compactOnPhone:true,
+        leftSpeakMap:{
+            "my":"my",
+            "your":"your",
+            "his":"his",
+            "her":"her",
+            "our":"our",
+            "your (plural)":"your",
+            "their":"their"
+        }
+    }
+];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
 const gameParts = [
@@ -4107,13 +4135,13 @@ const partSections = {
             id:"a-part-2-greetings-v7",
             ballNumber:5,
             label:"Ball 5",
-            detail:"New lessons and quizzes are coming soon",
+            detail:"Singular and plural possessive forms",
             start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length,
             lessons:Array.from({ length:GREETINGS_BALL5_STEPS.length }, (_, index) => ({
                 id:`a-part-2-greetings-v7-activity-${index + 1}`,
-                label:`Activity ${index + 1}`,
-                detail:`Ball 5 activity ${index + 1}`,
+                label:`Quiz ${index + 1}`,
+                detail:index === 0 ? "Singular and plural possessives" : `Ball 5 quiz ${index + 1}`,
                 start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index,
                 end:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + index
             }))
