@@ -2006,6 +2006,7 @@ const ball5VoiceMatchStep = (instruction, pairs) => ({
     pairs:pairs.map((pair, index) => ({
         english:pair[0],
         kurmanji:pair[1],
+        kurmanjiHtml:pair[4] || "",
         group:pair[2] || `ball5-match-${index}`
     })),
     leftHeading:"English",
@@ -2071,9 +2072,9 @@ const GREETINGS_BALL5_STEPS = [
     ]),
     ball5VoiceMatchStep("Match the conversation words", [
         ["how", "çawa (çitû)"],
-        ["are", "î / î / in / ne"],
+        ["are", "î/yî/in/ne", "are", "are", 'î/<span style="color:#ef4f4f;font-weight:1000">y</span>î/in/ne'],
         ["am", "im / me"],
-        ["is", "e / ye"],
+        ["is", "e/ye", "is", "is", 'e/<span style="color:#ef4f4f;font-weight:1000">y</span>e'],
         ["you", "tu / hûn (hing)"],
         ["good", "baş"],
         ["thanks", "spas"]
