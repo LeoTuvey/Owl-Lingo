@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=98"></script>
+<script src="course-data.js?v=99"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -2060,7 +2060,42 @@ const GREETINGS_BALL5_STEPS = [
         ["🌇 Afternoon", "pasnîvro", "afternoon", "Afternoon"],
         ["🌆 Evening", "îvarî (êvarî)", "evening", "Evening"],
         ["🌙 Night", "şev", "night", "Night"]
-    ])
+    ]),
+    ball5VoiceMatchStep("Match the words", [
+        ["day", "roj"],
+        ["night", "şev"],
+        ["hello", "silav"],
+        ["good", "baş"],
+        ["good morning", "sibeh (spêde) baş"],
+        ["good evening", "îvarî (êvarî) baş"]
+    ]),
+    ball5VoiceMatchStep("Match the conversation words", [
+        ["how", "çawa (çitû)"],
+        ["are", "î / î / in / ne"],
+        ["am", "im / me"],
+        ["is", "e / ye"],
+        ["you", "tu / hûn (hing)"],
+        ["good", "baş"],
+        ["thanks", "spas"]
+    ]),
+    rawBuildStep("", "Hello Susan", ["Susan", "Silav"], ["Silav", "Susan"]),
+    {
+        type:"choice",
+        instruction:"Choose the missing word",
+        prompt:"How are you?\nTu çawa __?",
+        promptHtml:'How <span style="color:#4a86e8;font-weight:1000">are</span> you?<br>Tu çawa <span class="prompt-blank">__</span>?',
+        options:["ne", "im", "yî"],
+        answer:"yî"
+    },
+    rawBuildStep("Arrange the Words!", "Ez a-baş im, spas!", ["thanks!", "good,", "am", "I"], ["I", "am", "good,", "thanks!"]),
+    {
+        type:"choice",
+        instruction:"",
+        prompt:"you",
+        spoken:"you",
+        options:["we", "they", "hûn (hing)"],
+        answer:"hûn (hing)"
+    }
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
