@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=92"></script>
+<script src="course-data.js?v=93"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1733,7 +1733,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const coursePartSlug = urlParams.get("coursePart") || "";
 const initialBallId = urlParams.get("ballId") || "";
 let initialBallLaunchAttempted = false;
-const TEMPORARILY_LOCKED_BALL_IDS = new Set();
+const TEMPORARILY_LOCKED_BALL_IDS = new Set(["a-part-2-greetings-v7"]);
 const FAMILY_BALL3_PROGRESS_VERSION = "family-ball3-v4";
 const GREETINGS_BALL3_REPLACEMENT_VERSION = "greetings-ball3-replacement-v9";
 const GREETINGS_BALL4_VERSION = "greetings-ball4-v36";
@@ -1979,9 +1979,9 @@ const isGreetingsBall5Step = (step) => (
     )
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
-const GREETINGS_BALL5_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
-// Ball 6 is a complete mastery pass built on Ball 4's proven activity mix and UI.
-const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_STEPS.map((step) => ({ ...step }));
+// Ball 5 is reserved for new material. Its previous lessons and quizzes now live in Ball 6.
+const GREETINGS_BALL5_STEPS = [];
+const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
 const gameParts = [
     {
@@ -4107,7 +4107,7 @@ const partSections = {
             id:"a-part-2-greetings-v7",
             ballNumber:5,
             label:"Ball 5",
-            detail:"Have got and has got animal sentences",
+            detail:"New lessons and quizzes are coming soon",
             start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length,
             lessons:Array.from({ length:GREETINGS_BALL5_STEPS.length }, (_, index) => ({
@@ -4122,7 +4122,7 @@ const partSections = {
             id:"a-part-2-greetings-v8",
             ballNumber:6,
             label:"Ball 6",
-            detail:"Mastery practice for has, have, colours, animals, and possessives",
+            detail:"Have got and has got animal sentences",
             start:301 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length,
             end:300 + GREETINGS_BALL3_REPLACEMENT_STEPS.length + GREETINGS_BALL4_STEPS.length + GREETINGS_BALL5_STEPS.length + GREETINGS_BALL6_STEPS.length,
             lessons:Array.from({ length:GREETINGS_BALL6_STEPS.length }, (_, index) => ({
@@ -6353,7 +6353,9 @@ function isActiveCoursePartComplete(index){
     if(!activeCoursePartRoute) return false;
     const sections = sectionsForPart(index);
     if(!sections.length) return false;
-    return sections.every((section, sectionIndex) => isSectionComplete(index, sectionIndex));
+    return sections.every((section, sectionIndex) => (
+        TEMPORARILY_LOCKED_BALL_IDS.has(section?.id) || isSectionComplete(index, sectionIndex)
+    ));
 }
 
 function syncActiveCoursePartCompletion(index){
@@ -6416,7 +6418,14 @@ function isSectionUnlocked(index, sectionIndex){
     }
 
     if(sectionIndex === 0) return true;
-    return isSectionComplete(index, sectionIndex - 1);
+    let previousSectionIndex = sectionIndex - 1;
+    while(
+        previousSectionIndex >= 0 &&
+        TEMPORARILY_LOCKED_BALL_IDS.has(sectionsForPart(index)[previousSectionIndex]?.id)
+    ) {
+        previousSectionIndex--;
+    }
+    return previousSectionIndex < 0 || isSectionComplete(index, previousSectionIndex);
 }
 
 function markSectionComplete(index, sectionIndex){

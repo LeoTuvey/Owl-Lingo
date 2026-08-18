@@ -1266,7 +1266,7 @@ button{
 
 <div class="toast" id="toast"></div>
 
-<script src="course-data.js?v=92"></script>
+<script src="course-data.js?v=93"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-mascot.js?v=4"></script>
 <script src="pilingo-sounds.js?v=6"></script>
@@ -1444,7 +1444,9 @@ function isBallUnlocked(sectionId, part, ballIndex){
   if (balls[ballIndex]?.comingSoon) return false;
   if (!Engine.isPartUnlocked(sectionId, part.id)) return false;
   if (ballIndex === 0) return true;
-  return balls.slice(0, ballIndex).every((ball) => isBallCompleted(ball, sectionId, part.id));
+  return balls.slice(0, ballIndex).every((ball) => (
+    ball.comingSoon || isBallCompleted(ball, sectionId, part.id)
+  ));
 }
 
 function getPartStatus(sectionId, part){
