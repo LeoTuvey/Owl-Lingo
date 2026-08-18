@@ -1705,7 +1705,7 @@ button.wrong{
     <div id="feedback"></div>
 </div>
 
-<script src="course-data.js?v=96"></script>
+<script src="course-data.js?v=97"></script>
 <script src="engine-core.js?v=15"></script>
 <script src="pilingo-sounds.js?v=5"></script>
 <script src="pilingo-mascot.js?v=4"></script>
@@ -1979,22 +1979,34 @@ const isGreetingsBall5Step = (step) => (
     )
 );
 const GREETINGS_BALL4_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter((step) => !isGreetingsBall5Step(step));
+const possessiveEnglishOptions = ["my", "your", "his", "her", "our", "their"];
+const possessiveSidesQuizStep = (singular, plural, answer, note = "") => ({
+    type:"choice",
+    instruction:"Choose the English word that matches both sides",
+    prompt:"Singular and plural possessive forms",
+    promptHtml:`
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(12px,4vw,40px);width:min(100%,760px);margin:0 auto;align-items:start">
+            <div style="min-width:0;text-align:center">
+                <div style="font-size:clamp(28px,4.5vw,44px);line-height:1">🐈</div>
+                <div style="margin-top:10px;font-size:clamp(20px,3.5vw,34px);font-weight:900;color:#050505;white-space:normal;overflow-wrap:anywhere">${singular}</div>
+            </div>
+            <div style="min-width:0;text-align:center">
+                <div style="font-size:clamp(28px,4.5vw,44px);line-height:1">🐈🐈</div>
+                <div style="margin-top:10px;font-size:clamp(20px,3.5vw,34px);font-weight:900;color:#050505;white-space:normal;overflow-wrap:anywhere">${plural}</div>
+            </div>
+        </div>
+        ${note ? `<div style="margin-top:12px;font-size:clamp(15px,2vw,20px);font-weight:800;color:#425466">${note}</div>` : ""}`,
+    options:possessiveEnglishOptions,
+    answer
+});
 const GREETINGS_BALL5_STEPS = [
-    {
-        type:"possessiveTable",
-        instruction:"Choose the English word that matches both sides",
-        prompt:"",
-        options:["my", "your", "his", "her", "our", "their"],
-        rows:[
-            { singular:"amin/êmin", plural:"êtmin/ênmin", answer:"my" },
-            { singular:"ate/ête", plural:"êtte/ênte", answer:"your" },
-            { singular:"awî/êwî", plural:"êtwî/ênwî", answer:"his" },
-            { singular:"awê/êwê", plural:"êtwê/ênwê", answer:"her" },
-            { singular:"ame/ême", plural:"êtme/ênme", answer:"our" },
-            { singular:"awe/êwe (hingo)", plural:"êtwe/ênwe (hingo)", answer:"your" },
-            { singular:"awan/êwan", plural:"êtwan/ênwan", answer:"their" }
-        ]
-    }
+    possessiveSidesQuizStep('amin<span style="color:#ef806d">/</span>êmin', 'êtmin<span style="color:#ef806d">/</span>ênmin', "my"),
+    possessiveSidesQuizStep('ate<span style="color:#ef806d">/</span>ête', 'êtte<span style="color:#ef806d">/</span>ênte', "your"),
+    possessiveSidesQuizStep('awî<span style="color:#ef806d">/</span>êwî', 'êtwî<span style="color:#ef806d">/</span>ênwî', "his"),
+    possessiveSidesQuizStep('awê<span style="color:#ef806d">/</span>êwê', 'êtwê<span style="color:#ef806d">/</span>ênwê', "her"),
+    possessiveSidesQuizStep('ame<span style="color:#ef806d">/</span>ême', 'êtme<span style="color:#ef806d">/</span>ênme', "our"),
+    possessiveSidesQuizStep('awe<span style="color:#ef806d">/</span>êwe', 'êtwe<span style="color:#ef806d">/</span>ênwe', "your", "hingo • plural you"),
+    possessiveSidesQuizStep('awan<span style="color:#ef806d">/</span>êwan', 'êtwan<span style="color:#ef806d">/</span>ênwan', "their")
 ];
 const GREETINGS_BALL6_STEPS = GREETINGS_BALL4_AND_5_STEPS.filter(isGreetingsBall5Step);
 
@@ -7327,7 +7339,6 @@ function load(){
     if(step.type === "hear") renderHearStep(step);
     if(step.type === "build") renderBuildStep(step);
     if(step.type === "match") renderMatchStep(step);
-    if(step.type === "possessiveTable") renderPossessiveTableStep(step);
     if(step.type === "audioMatch") renderAudioMatchStep(step);
     if(step.type === "type") renderTypeStep(step);
     if(step.type === "next") renderNextStep(step);
@@ -7359,69 +7370,6 @@ function renderChoiceStep(step){
         `).join("");
 
     if(step.spoken) setTimeout(() => speak(step.spoken), 250);
-}
-
-function possessiveFormHtml(value){
-    return escapeHtml(value).replaceAll("/", '<span style="color:#ef806d">/</span>');
-}
-
-function renderPossessiveTableStep(step){
-    const optionHtml = step.options.map((option) =>
-        `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`
-    ).join("");
-
-    document.getElementById("activity").innerHTML = `
-        <div style="width:min(100%,1000px);margin:0 auto;overflow-x:auto;padding:4px">
-            <div style="min-width:680px;display:grid;grid-template-columns:minmax(180px,1fr) minmax(190px,.8fr) minmax(230px,1fr);gap:10px 24px;align-items:center">
-                <div style="text-align:center;font-size:50px;line-height:1">🐈</div>
-                <div></div>
-                <div style="text-align:center;font-size:50px;line-height:1">🐈🐈</div>
-                ${step.rows.map((row, index) => `
-                    <div style="text-align:left;font-size:clamp(25px,3.4vw,43px);font-weight:900;color:#050505;white-space:nowrap">${possessiveFormHtml(row.singular)}</div>
-                    <label style="display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:center">
-                        <span id="possessive-check-${index}" style="font-size:30px;text-align:center" aria-hidden="true"></span>
-                        <select id="possessive-answer-${index}" onchange="clearPossessiveTableRowFeedback(${index})" aria-label="English word for ${escapeHtml(row.singular)} and ${escapeHtml(row.plural)}" style="width:100%;padding:10px 34px 10px 12px;border:3px solid #c9d8e6;border-radius:14px;background:#fff;color:#111;font-family:inherit;font-size:clamp(20px,2.6vw,32px);font-weight:900;line-height:1.1">
-                            <option value="">Choose</option>
-                            ${optionHtml}
-                        </select>
-                    </label>
-                    <div style="text-align:left;font-size:clamp(25px,3.4vw,43px);font-weight:900;color:#050505;white-space:nowrap">${possessiveFormHtml(row.plural)}</div>
-                `).join("")}
-            </div>
-        </div>
-        <button id="possessiveTableCheckButton" onclick="checkPossessiveTable(this)" style="margin-top:22px">Check</button>
-    `;
-}
-
-function clearPossessiveTableRowFeedback(index){
-    const select = document.getElementById("possessive-answer-" + index);
-    const indicator = document.getElementById("possessive-check-" + index);
-    if(select) select.style.borderColor = "#c9d8e6";
-    if(indicator) indicator.textContent = "";
-}
-
-function checkPossessiveTable(button){
-    const step = currentStep();
-    let allCorrect = true;
-
-    step.rows.forEach((row, index) => {
-        const select = document.getElementById("possessive-answer-" + index);
-        const indicator = document.getElementById("possessive-check-" + index);
-        const correct = select && normalize(select.value) === normalize(row.answer);
-        allCorrect = allCorrect && correct;
-        if(select) select.style.borderColor = correct ? "#22a447" : "#e54b4b";
-        if(indicator) indicator.textContent = correct ? "✅" : "❌";
-    });
-
-    showButtonResult(button, allCorrect ? "correct" : "wrong");
-    if(allCorrect) {
-        document.querySelectorAll('#activity select, #activity button').forEach((entry) => {
-            entry.disabled = true;
-        });
-        markCorrect();
-        return;
-    }
-    markWrong();
 }
 
 function shuffleChoiceOptions(options){
