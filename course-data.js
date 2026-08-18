@@ -169,7 +169,10 @@ const SECTION_ONE_PARTS = [
       ball("a-part-2-greetings-v5", 3, "Ball 3", "Verb note, animals, have got, possessives, and articles", 78),
       ball("a-part-2-greetings-v6", 4, "Ball 4", "Has, have, this, colours, animals, and possessives", 82),
       ball("a-part-2-greetings-v7", 5, "Ball 5", "Possessives, greetings, pronouns, conversations, typing, and times of day", 31),
-      ball("a-part-2-greetings-v8", 6, "Ball 6", "Have got and has got animal sentences", 32)
+      {
+        ...ball("a-part-2-greetings-v8", 6, "Ball 6", "Temporarily locked while lessons and quizzes are improved", 32),
+        comingSoon: true
+      }
     ]
   },
   {
